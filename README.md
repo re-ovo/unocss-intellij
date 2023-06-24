@@ -3,6 +3,8 @@
 <span>Unocss Support on Intellij</span>
 </div> 
 
+> ⚠ Working In Progress, Not ready for Use
+
 ## Features
 - Auto complete
 - Syntax highlight

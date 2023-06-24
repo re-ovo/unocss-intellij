@@ -17,7 +17,10 @@
     Unocss Support on Intellij Family
   ]]></description>
 
+    <category>Style Sheets</category>
+
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.css</depends>
     <depends>JavaScript</depends>
 
     <!-- Product and plugin compatibility requirements.
@@ -27,7 +30,14 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-
+        <completion.contributor
+                language="XML"
+                implementationClass="me.rerere.unocssintellij.UnocssAutoComplete"
+                order="last"
+        />
+        <platform.backend.documentation.psiTargetProvider
+                implementation="me.rerere.unocssintellij.documentation.UnocssDocumentTargetProvider"
+        />
     </extensions>
 
     <projectListeners>

@@ -51,3 +51,7 @@ export function resolveCSSByOffset(content, cursor) {
         safelist: false,
     });
 }
+
+process.stdin.on("data", async (chunk) => {
+    console.log(JSON.stringify(await getComplete(chunk.toString(), 0)));
+})

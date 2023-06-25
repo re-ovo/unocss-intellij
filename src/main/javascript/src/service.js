@@ -78,8 +78,10 @@ async function handle_command(command, data) {
         await resolveConfig(data?.rootDir || '');
         return {}
     } else if (command === "getComplete") {
-        return await getComplete(data.content, data.content.length);
+        return await getComplete(data.content);
     } else if(command === "resolveCSSByOffset") {
         return await resolveCSSByOffset(data.content, data.cursor);
+    } else if(command === "resolveCSS") {
+        return await resolveCSS(data.content);
     }
 }

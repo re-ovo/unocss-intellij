@@ -32,16 +32,15 @@
     <extensions defaultExtensionNs="com.intellij">
         <completion.contributor
                 language="XML"
-                implementationClass="me.rerere.unocssintellij.UnocssAutoComplete"
-                order="last"
+                implementationClass="me.rerere.unocssintellij.completion.UnocssAutoComplete"
         />
+        <completion.contributor
+                language="JavaScript"
+                implementationClass="me.rerere.unocssintellij.completion.UnocssAutoComplete"
+        />
+
         <platform.backend.documentation.targetProvider
                 implementation="me.rerere.unocssintellij.documentation.UnocssDocumentTargetProviderOffset"
         />
     </extensions>
-
-    <projectListeners>
-        <listener class="me.rerere.unocssintellij.FileListener"
-                  topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"/>
-    </projectListeners>
 </idea-plugin>

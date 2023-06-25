@@ -30,10 +30,3 @@ fun isUnocssInstalled(project: Project, context: VirtualFile) : Boolean {
         .findInstalledPackage("unocss")
     return unocssPackage != null
 }
-
-class FileListener : FileEditorManagerListener {
-    override fun selectionChanged(event: FileEditorManagerEvent) {
-        val project = event.manager.project
-        val file = event.newFile ?: return
-    }
-}

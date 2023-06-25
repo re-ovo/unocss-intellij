@@ -26,26 +26,38 @@ class UnocssService(project: Project) : Disposable {
         return unocssProcess
     }
 
-    fun getCompletion(ctx: VirtualFile, prefix: String): List<String> {
+    fun getCompletion(ctx: VirtualFile, prefix: String, cursor: Int): List<String> {
         val process = getProcess(ctx)
         val response: SuggestionResponse = process.sendCommand(
             SuggestionCommand(
                 data = SuggestionCommandData(
-                    content = prefix
+                    content = prefix,
+                    cursor = cursor
                 )
             )
         )
-        println("$prefix => response: $response")
         return response.result
     }
 
-    fun resolveCss(file: PsiFile, offset: Int): ResolveCSSResult {
+    fun resolveCssByOffset(file: PsiFile, offset: Int): ResolveCSSResult {
         val process = getProcess(file.virtualFile)
+        val response: ResolveCSSResponse = process.sendCommand(
+            ResolveCSSByOffsetCommand(
+                data = ResolveCSSByOffsetCommandData(
+                    content = file.text,
+                    cursor = offset
+                )
+            )
+        )
+        return response.result
+    }
+
+    fun resolveCss(file: VirtualFile, content: String): ResolveCSSResult {
+        val process = getProcess(file)
         val response: ResolveCSSResponse = process.sendCommand(
             ResolveCSSCommand(
                 data = ResolveCSSCommandData(
-                    content = file.text,
-                    cursor = offset
+                    content = content
                 )
             )
         )

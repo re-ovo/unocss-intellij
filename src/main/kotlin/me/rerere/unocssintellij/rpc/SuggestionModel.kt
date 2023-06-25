@@ -17,10 +17,16 @@ data class SuggestionCommandData(
 @Serializable
 data class SuggestionResponse(
     override val action: String,
-    val result: List<String>
+    val result: List<SuggestionItem>
 ): RpcResponse
 
+//@Serializable
+//data class SuggestionResult(
+//    val suggestions: List<SuggestionItem>
+//)
+
 @Serializable
-data class SuggestionResult(
-    val suggestions: List<List<String>>
+data class SuggestionItem(
+    val className: String,
+    val css: String
 )

@@ -26,7 +26,7 @@ class UnocssService(project: Project) : Disposable {
         return unocssProcess
     }
 
-    fun getCompletion(ctx: VirtualFile, prefix: String, cursor: Int): List<String> {
+    fun getCompletion(ctx: VirtualFile, prefix: String, cursor: Int): List<SuggestionItem> {
         val process = getProcess(ctx)
         val response: SuggestionResponse = process.sendCommand(
             SuggestionCommand(

@@ -35,8 +35,18 @@ export function resolveConfig(roorDir) {
     });
 }
 
-export function getComplete(content) {
-    return autocomplete.suggest(content);
+export async function getComplete(content) {
+    const suggestions = await autocomplete.suggest(content);
+    return Promise.all(suggestions.map(async (suggestion) => {
+        return {
+            className: suggestion,
+            css: (await generator.generate(suggestion, {
+                preflights: false,
+                safelist: false,
+                minify: false
+            })).css
+        }
+    }));
 }
 
 export function resolveCSS(item) {
@@ -47,7 +57,8 @@ export function resolveCSS(item) {
 }
 
 export function resolveCSSByOffset(content, cursor) {
-    return generator.generate(searchUsageBoundary(content, cursor).content, {
+    const boundaryContent = searchUsageBoundary(content, cursor).content;
+    return generator.generate(boundaryContent, {
         preflights: false,
         safelist: false,
         minify: false
@@ -79,9 +90,9 @@ async function handle_command(command, data) {
         return {}
     } else if (command === "getComplete") {
         return await getComplete(data.content);
-    } else if(command === "resolveCSSByOffset") {
+    } else if (command === "resolveCSSByOffset") {
         return await resolveCSSByOffset(data.content, data.cursor);
-    } else if(command === "resolveCSS") {
+    } else if (command === "resolveCSS") {
         return await resolveCSS(data.content);
     }
 }

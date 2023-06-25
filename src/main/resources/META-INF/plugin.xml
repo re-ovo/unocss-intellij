@@ -30,6 +30,11 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
+        <languageInjectionContributor
+                language="XML"
+                implementationClass="me.rerere.unocssintellij.inject.CssInjector"
+        />
+
         <completion.contributor
                 language="XML"
                 implementationClass="me.rerere.unocssintellij.completion.UnocssAutoComplete"

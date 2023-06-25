@@ -50,6 +50,7 @@ export function resolveCSSByOffset(content, cursor) {
     return generator.generate(searchUsageBoundary(content, cursor).content, {
         preflights: false,
         safelist: false,
+        minify: false
     });
 }
 
@@ -78,5 +79,7 @@ async function handle_command(command, data) {
         return {}
     } else if (command === "getComplete") {
         return await getComplete(data.content, data.content.length);
+    } else if(command === "resolveCSSByOffset") {
+        return await resolveCSSByOffset(data.content, data.cursor);
     }
 }

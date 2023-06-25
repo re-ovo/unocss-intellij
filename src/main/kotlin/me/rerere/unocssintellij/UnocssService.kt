@@ -1,13 +1,11 @@
 package me.rerere.unocssintellij
 
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ex.ApplicationEx
-import com.intellij.openapi.application.ex.ApplicationUtil
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiFile
 import me.rerere.unocssintellij.rpc.*
-import org.snakeyaml.engine.v2.api.Load
 import java.util.concurrent.Executors
 
 @Service(Service.Level.PROJECT)
@@ -19,8 +17,8 @@ class UnocssService(project: Project) : Disposable {
         if (!unocssProcess.isRunning()) {
             unocssProcess.start(ctx)
             communicationThread.execute {
-                unocssProcess.sendCommand<ResolveConfigCommand, RpcResponseUnit>(
-                    ResolveConfigCommand()
+                unocssProcess.sendCommand<ResolveConfig, RpcResponseUnit>(
+                    ResolveConfig()
                 )
                 println("Unocss process started")
             }
@@ -38,6 +36,19 @@ class UnocssService(project: Project) : Disposable {
             )
         )
         println("$prefix => response: $response")
+        return response.result
+    }
+
+    fun resolveCss(file: PsiFile, offset: Int): ResolveCSSResult {
+        val process = getProcess(file.virtualFile)
+        val response: ResolveCSSResponse = process.sendCommand(
+            ResolveCSSCommand(
+                data = ResolveCSSCommandData(
+                    content = file.text,
+                    cursor = offset
+                )
+            )
+        )
         return response.result
     }
 

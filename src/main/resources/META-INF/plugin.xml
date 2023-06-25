@@ -35,12 +35,13 @@
                 implementationClass="me.rerere.unocssintellij.UnocssAutoComplete"
                 order="last"
         />
-        <platform.backend.documentation.psiTargetProvider
-                implementation="me.rerere.unocssintellij.documentation.UnocssDocumentTargetProvider"
+        <platform.backend.documentation.targetProvider
+                implementation="me.rerere.unocssintellij.documentation.UnocssDocumentTargetProviderOffset"
         />
     </extensions>
 
     <projectListeners>
-        <listener class="me.rerere.unocssintellij.FileListener" topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"/>
+        <listener class="me.rerere.unocssintellij.FileListener"
+                  topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"/>
     </projectListeners>
 </idea-plugin>

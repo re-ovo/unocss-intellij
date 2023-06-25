@@ -4,7 +4,11 @@ package me.rerere.unocssintellij.documentation
 
 import com.intellij.lang.css.CSSLanguage
 import com.intellij.lang.documentation.DocumentationMarkup
+import com.intellij.lang.documentation.DocumentationProvider
 import com.intellij.lang.documentation.DocumentationSettings
+import com.intellij.lang.documentation.ide.impl.DocumentationManagementHelper
+import com.intellij.lang.documentation.ide.impl.DocumentationManager
+import com.intellij.lang.documentation.psi.PsiElementDocumentationTarget
 import com.intellij.model.Pointer
 import com.intellij.navigation.TargetPresentation
 import com.intellij.openapi.application.runReadAction
@@ -15,10 +19,13 @@ import com.intellij.openapi.editor.richcopy.HtmlSyntaxInfoUtil
 import com.intellij.platform.backend.documentation.DocumentationResult
 import com.intellij.platform.backend.documentation.DocumentationTarget
 import com.intellij.platform.backend.documentation.DocumentationTargetProvider
+import com.intellij.platform.backend.documentation.PsiDocumentationTargetProvider
+import com.intellij.pom.Navigatable
 import com.intellij.psi.*
 import com.intellij.psi.css.impl.CssElementTypes
 import com.intellij.psi.css.impl.CssLazyStylesheet
 import com.intellij.psi.css.impl.util.CssHighlighter
+import com.intellij.psi.impl.FakePsiElement
 import com.intellij.psi.util.childrenOfType
 import com.intellij.psi.util.elementType
 import com.intellij.refactoring.suggested.createSmartPointer
@@ -30,7 +37,6 @@ class UnocssDocumentTargetProviderOffset : DocumentationTargetProvider {
         val service = file.project.service<UnocssService>()
         val result = service.resolveCssByOffset(file, offset)
         val element: PsiElement = file.findElementAt(offset) ?: return mutableListOf()
-
         return if (result.css.isNotEmpty()) {
             val target = UnocssDocumentTarget(element, result)
             mutableListOf(target)
@@ -40,10 +46,8 @@ class UnocssDocumentTargetProviderOffset : DocumentationTargetProvider {
     }
 }
 
-class UnocssDocumentTarget(
-    private val targetElement: PsiElement?,
-    private val result: ResolveCSSResult
-) : DocumentationTarget {
+class UnocssDocumentTarget(private val targetElement: PsiElement?, private val result: ResolveCSSResult) :
+    DocumentationTarget {
     override fun computePresentation(): TargetPresentation {
         return TargetPresentation
             .builder("Unocss Document")
@@ -81,138 +85,138 @@ class UnocssDocumentTarget(
             })
         }
     }
+}
 
-    private fun StringBuilder.generateCssDoc(element: PsiElement, indent: Int = 0) {
-        val visitor = object : PsiElementVisitor() {
-            override fun visitElement(element: PsiElement) {
-                // debug the ast tree
-                // val whiteSpace = " ".repeat(indent)
-                // println("$whiteSpace${element.elementType} ${element.javaClass.name}")
+private fun StringBuilder.generateCssDoc(element: PsiElement, indent: Int = 0) {
+    val visitor = object : PsiElementVisitor() {
+        override fun visitElement(element: PsiElement) {
+            // debug the ast tree
+            // val whiteSpace = " ".repeat(indent)
+            // println("$whiteSpace${element.elementType} ${element.javaClass.name}")
 
-                when (element.elementType) {
-                    CssElementTypes.CSS_COMMENT -> {
-                        val comment = element.text
+            when (element.elementType) {
+                CssElementTypes.CSS_COMMENT -> {
+                    val comment = element.text
+                    appendCodeSpan(
+                        text = comment,
+                        attr = CssHighlighter.CSS_COMMENT
+                    )
+                    append("<br>")
+                }
+
+                CssElementTypes.CSS_SELECTOR_LIST -> {
+                    val selectors = element.childrenOfType<PsiElement>()
+                    selectors.forEach { selector ->
                         appendCodeSpan(
-                            text = comment,
-                            attr = CssHighlighter.CSS_COMMENT
+                            text = selector.text,
+                            attr = CssHighlighter.CSS_CLASS_NAME
                         )
-                        append("<br>")
                     }
+                }
 
-                    CssElementTypes.CSS_SELECTOR_LIST -> {
-                        val selectors = element.childrenOfType<PsiElement>()
-                        selectors.forEach { selector ->
-                            appendCodeSpan(
-                                text = selector.text,
-                                attr = CssHighlighter.CSS_CLASS_NAME
-                            )
-                        }
-                    }
+                CssElementTypes.CSS_LBRACE -> {
+                    append("&nbsp;")
+                    appendCodeSpan(
+                        text = "{",
+                        attr = CssHighlighter.CSS_BRACES
+                    )
+                    append("<div>")
+                }
 
-                    CssElementTypes.CSS_LBRACE -> {
+                CssElementTypes.CSS_RBRACE -> {
+                    appendCodeSpan(
+                        text = "}",
+                        attr = CssHighlighter.CSS_BRACES
+                    )
+                    append("</div>")
+                }
+
+                CssElementTypes.CSS_DECLARATION -> {
+                    append("&nbsp; &nbsp;")
+                    generateCssDoc(element, indent + 1)
+                }
+
+                CssElementTypes.CSS_IDENT -> {
+                    appendCodeSpan(
+                        text = element.text,
+                        attr = DefaultLanguageHighlighterColors.IDENTIFIER
+                    )
+                }
+
+                CssElementTypes.CSS_COLON -> {
+                    appendCodeSpan(
+                        text = ": ",
+                        attr = DefaultLanguageHighlighterColors.OPERATION_SIGN
+                    )
+                }
+
+                CssElementTypes.CSS_NUMBER -> {
+                    appendCodeSpan(
+                        text = element.text,
+                        attr = CssHighlighter.CSS_NUMBER
+                    )
+                }
+
+                CssElementTypes.CSS_FUNCTION_TOKEN -> {
+                    appendCodeSpan(
+                        text = element.text,
+                        attr = CssHighlighter.CSS_FUNCTION
+                    )
+                }
+
+                CssElementTypes.CSS_LPAREN -> {
+                    appendCodeSpan(
+                        text = "(",
+                        attr = CssHighlighter.CSS_BRACES
+                    )
+                }
+
+                CssElementTypes.CSS_RPAREN -> {
+                    appendCodeSpan(
+                        text = ")",
+                        attr = CssHighlighter.CSS_BRACES
+                    )
+                }
+
+                CssElementTypes.CSS_COMMA -> {
+                    appendCodeSpan(
+                        text = ",",
+                        attr = CssHighlighter.CSS_COMMA
+                    )
+                }
+
+                CssElementTypes.CSS_SEMICOLON -> {
+                    appendCodeSpan(
+                        text = ";",
+                        attr = CssHighlighter.CSS_SEMICOLON
+                    )
+                    append("<br/>")
+                }
+
+                CssElementTypes.CSS_STRING -> {
+                    appendCodeSpan(
+                        text = element.text,
+                        attr = CssHighlighter.CSS_STRING
+                    )
+                }
+
+                TokenType.WHITE_SPACE -> {
+                    if (element.prevSibling.elementType != CssElementTypes.CSS_COMMENT) {
                         append("&nbsp;")
-                        appendCodeSpan(
-                            text = "{",
-                            attr = CssHighlighter.CSS_BRACES
-                        )
-                        append("<div>")
                     }
+                }
 
-                    CssElementTypes.CSS_RBRACE -> {
-                        appendCodeSpan(
-                            text = "}",
-                            attr = CssHighlighter.CSS_BRACES
-                        )
-                        append("</div>")
-                    }
-
-                    CssElementTypes.CSS_DECLARATION -> {
-                        append("&nbsp; &nbsp;")
-                        generateCssDoc(element, indent + 1)
-                    }
-
-                    CssElementTypes.CSS_IDENT -> {
-                        appendCodeSpan(
-                            text = element.text,
-                            attr = DefaultLanguageHighlighterColors.IDENTIFIER
-                        )
-                    }
-
-                    CssElementTypes.CSS_COLON -> {
-                        appendCodeSpan(
-                            text = ": ",
-                            attr = DefaultLanguageHighlighterColors.OPERATION_SIGN
-                        )
-                    }
-
-                    CssElementTypes.CSS_NUMBER -> {
-                        appendCodeSpan(
-                            text = element.text,
-                            attr = CssHighlighter.CSS_NUMBER
-                        )
-                    }
-
-                    CssElementTypes.CSS_FUNCTION_TOKEN -> {
-                        appendCodeSpan(
-                            text = element.text,
-                            attr = CssHighlighter.CSS_FUNCTION
-                        )
-                    }
-
-                    CssElementTypes.CSS_LPAREN -> {
-                        appendCodeSpan(
-                            text = "(",
-                            attr = CssHighlighter.CSS_BRACES
-                        )
-                    }
-
-                    CssElementTypes.CSS_RPAREN -> {
-                        appendCodeSpan(
-                            text = ")",
-                            attr = CssHighlighter.CSS_BRACES
-                        )
-                    }
-
-                    CssElementTypes.CSS_COMMA -> {
-                        appendCodeSpan(
-                            text = ",",
-                            attr = CssHighlighter.CSS_COMMA
-                        )
-                    }
-
-                    CssElementTypes.CSS_SEMICOLON -> {
-                        appendCodeSpan(
-                            text = ";",
-                            attr = CssHighlighter.CSS_SEMICOLON
-                        )
-                        append("<br/>")
-                    }
-
-                    CssElementTypes.CSS_STRING -> {
-                        appendCodeSpan(
-                            text = element.text,
-                            attr = CssHighlighter.CSS_STRING
-                        )
-                    }
-
-                    TokenType.WHITE_SPACE -> {
-                        if (element.prevSibling.elementType != CssElementTypes.CSS_COMMENT) {
-                            append("&nbsp;")
-                        }
-                    }
-
-                    else -> {
-                        generateCssDoc(element, indent + 1)
-                    }
+                else -> {
+                    generateCssDoc(element, indent + 1)
                 }
             }
         }
-        element.acceptChildren(visitor)
     }
+    element.acceptChildren(visitor)
+}
 
-    private fun StringBuilder.appendCodeSpan(text: String, attr: TextAttributesKey) {
-        HtmlSyntaxInfoUtil.appendStyledSpan(
-            this, attr, text, DocumentationSettings.getHighlightingSaturation(true)
-        )
-    }
+private fun StringBuilder.appendCodeSpan(text: String, attr: TextAttributesKey) {
+    HtmlSyntaxInfoUtil.appendStyledSpan(
+        this, attr, text, DocumentationSettings.getHighlightingSaturation(true)
+    )
 }

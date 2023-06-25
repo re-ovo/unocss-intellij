@@ -38,7 +38,6 @@
                 language="JavaScript"
                 implementationClass="me.rerere.unocssintellij.completion.UnocssAutoComplete"
         />
-
         <platform.backend.documentation.targetProvider
                 implementation="me.rerere.unocssintellij.documentation.UnocssDocumentTargetProviderOffset"
         />

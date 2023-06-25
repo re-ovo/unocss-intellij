@@ -3,6 +3,7 @@
 package me.rerere.unocssintellij.documentation
 
 import com.intellij.lang.css.CSSLanguage
+import com.intellij.lang.documentation.AbstractDocumentationProvider
 import com.intellij.lang.documentation.DocumentationMarkup
 import com.intellij.lang.documentation.DocumentationProvider
 import com.intellij.lang.documentation.DocumentationSettings
@@ -28,6 +29,7 @@ import com.intellij.psi.css.impl.util.CssHighlighter
 import com.intellij.psi.impl.FakePsiElement
 import com.intellij.psi.util.childrenOfType
 import com.intellij.psi.util.elementType
+import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.refactoring.suggested.createSmartPointer
 import me.rerere.unocssintellij.UnocssService
 import me.rerere.unocssintellij.rpc.ResolveCSSResult
@@ -82,7 +84,7 @@ class UnocssDocumentTarget(private val targetElement: PsiElement?, private val r
                 // append(result.css)
                 // append("</code>")
                 append(DocumentationMarkup.CONTENT_END)
-            })
+            }).anchor("bg-")
         }
     }
 }
@@ -120,7 +122,7 @@ private fun StringBuilder.generateCssDoc(element: PsiElement, indent: Int = 0) {
                         text = "{",
                         attr = CssHighlighter.CSS_BRACES
                     )
-                    append("<div>")
+                    append("<br>")
                 }
 
                 CssElementTypes.CSS_RBRACE -> {
@@ -128,11 +130,10 @@ private fun StringBuilder.generateCssDoc(element: PsiElement, indent: Int = 0) {
                         text = "}",
                         attr = CssHighlighter.CSS_BRACES
                     )
-                    append("</div>")
                 }
 
                 CssElementTypes.CSS_DECLARATION -> {
-                    append("&nbsp; &nbsp;")
+                    append("&nbsp;&nbsp;")
                     generateCssDoc(element, indent + 1)
                 }
 

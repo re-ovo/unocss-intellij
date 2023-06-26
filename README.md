@@ -1,11 +1,11 @@
-<div align="center">
+<p align="center">
     <img src="docs/logo.svg" style="width: 5rem; height: 5rem"/>
-    <h1>Unocss Intellij</h1>
-    <a href="https://github.com/unocss/unocss">Unocss</a> Support Intellij Based IDEs
-    <div>(Intellij Idea/WebStorm)</div>
-</div>
+</p>
 
-> ⚠ Working In Progress, Not ready for Use
+# Unocss Intellij
+> <a href="https://github.com/unocss/unocss">Unocss</a> Support for Intellij Based IDEs
+
+> ⚠ Working In Progress, Not ready for Use!
 
 ## Work In Progress
 
@@ -22,4 +22,14 @@
 
 ## Screenshots
 
-TODO
+| Auto Complete | Css Doc | Icon/Color Preview |
+|---------------|---------|--------------------|
+| TODO          | TODO    | TODO               |
+
+## Contribution
+
+See [developer.md](docs/developer.md)
+
+## License
+
+[MIT](LICENSE) License

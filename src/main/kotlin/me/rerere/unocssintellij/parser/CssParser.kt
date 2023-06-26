@@ -17,7 +17,7 @@ private val CSS_RGBA_COLOR_PATTERN =
 
 private val CSS_COMMENT_PATTERN = """/\*.*?\*/""".toRegex()
 
-private val CSS_UNO_ICON_PATTERN = """--un-icon:\s?\(.+\);""".toRegex()
+private val CSS_UNO_ICON_PATTERN = """--un-icon:\s?url\(.+\);""".toRegex()
 
 // parse colors from css
 // pattern: rgba(255, 255, 255, var(--opacity))
@@ -34,15 +34,13 @@ fun parseColors(css: String): Set<JBColor> {
 
 // parse css icons
 // pattern: --un-icon: (data:...)
-fun parseIcons(css: String): Set<String> {
-    val icons = mutableSetOf<String>()
+fun parseIcons(css: String): String? {
     CSS_UNO_ICON_PATTERN.findAll(css).forEach {
-        val value = it.value
-            .removePrefix("--un-icon: (\"")
+        return it.value
+            .removePrefix("--un-icon:url(\"")
             .removeSuffix("\");")
-        icons.add(value)
     }
-    return icons
+    return null
 }
 
 // trim css to remove comments and spaces

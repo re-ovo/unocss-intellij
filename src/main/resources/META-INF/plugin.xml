@@ -48,14 +48,22 @@
 
         <multiHostInjector implementation="me.rerere.unocssintellij.inject.UnocssInjector"/>
 
+        <!-- 提供补全 -->
         <completion.contributor
                 language="Unocss"
                 implementationClass="me.rerere.unocssintellij.completion.UnocssAutoComplete"
                 order="last"
         />
 
+        <!-- 文档提示 -->
         <platform.backend.documentation.targetProvider
                 implementation="me.rerere.unocssintellij.documentation.UnocssDocumentTargetProviderOffset"
+        />
+
+        <!-- 图标 -->
+        <codeInsight.lineMarkerProvider
+                language="Unocss"
+                implementationClass="me.rerere.unocssintellij.hint.UnocssLineMarker"
         />
     </extensions>
 

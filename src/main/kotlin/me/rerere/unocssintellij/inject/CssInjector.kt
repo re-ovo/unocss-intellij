@@ -32,7 +32,7 @@ class UnocssInjector : MultiHostInjector {
 
         if(context is JSLiteralExpression && context.parent is JSVariable) {
             val value = context.value
-            println("Injecting: $value, ${shouldInjectJsString(value.toString())}")
+            // println("Injecting: $value, ${shouldInjectJsString(value.toString())}")
             if(value is String && shouldInjectJsString(value)) {
                 registrar
                     .startInjecting(UnocssLang.INSTANCE)

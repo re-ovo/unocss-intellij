@@ -50,7 +50,7 @@ export async function getComplete(content) {
 }
 
 export function resolveCSS(item) {
-    return generator.generate(item.label, {
+    return generator.generate(item, {
         preflights: false,
         safelist: false,
     });

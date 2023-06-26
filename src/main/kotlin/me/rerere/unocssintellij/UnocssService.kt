@@ -1,5 +1,6 @@
 package me.rerere.unocssintellij
 
+import com.google.common.cache.CacheBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
@@ -13,23 +14,24 @@ class UnocssService(project: Project) : Disposable {
     private var unocssProcess: UnocssProcess = UnocssProcess(project)
     private val communicationThread = Executors.newSingleThreadExecutor()
 
-    private fun getProcess(ctx: VirtualFile): UnocssProcess? {
+    private val cssCache = CacheBuilder.newBuilder()
+        .maximumSize(256)
+        .build<String, String>()
+
+    private fun getProcess(ctx: VirtualFile): UnocssProcess {
         if (!unocssProcess.isRunning()) {
             unocssProcess.start(ctx)
-            communicationThread.execute {
-                println("Waiting for unocss process to start...")
-                unocssProcess.sendCommand<ResolveConfig, RpcResponseUnit>(
-                    ResolveConfig()
-                )
-                println("Unocss process started!")
-            }
-            return null
+            println("Waiting for unocss process to start...")
+            unocssProcess.sendCommand<ResolveConfig, RpcResponseUnit>(
+                ResolveConfig()
+            )
+            println("Unocss process started!")
         }
         return unocssProcess
     }
 
     fun getCompletion(ctx: VirtualFile, prefix: String, cursor: Int): List<SuggestionItem> {
-        val process = getProcess(ctx) ?: return emptyList()
+        val process = getProcess(ctx)
         val response: SuggestionResponse = process.sendCommand(
             SuggestionCommand(
                 data = SuggestionCommandData(
@@ -41,8 +43,8 @@ class UnocssService(project: Project) : Disposable {
         return response.result
     }
 
-    fun resolveCssByOffset(file: PsiFile, offset: Int): ResolveCSSResult? {
-        val process = getProcess(file.virtualFile) ?: return null
+    fun resolveCssByOffset(file: PsiFile, offset: Int): ResolveCSSResult{
+        val process = getProcess(file.virtualFile)
         val response: ResolveCSSResponse = process.sendCommand(
             ResolveCSSByOffsetCommand(
                 data = ResolveCSSByOffsetCommandData(
@@ -54,8 +56,8 @@ class UnocssService(project: Project) : Disposable {
         return response.result
     }
 
-    fun resolveCss(file: VirtualFile, content: String): ResolveCSSResult? {
-        val process = getProcess(file) ?: return null
+    fun resolveCss(file: VirtualFile, content: String): ResolveCSSResult {
+        val process = getProcess(file)
         val response: ResolveCSSResponse = process.sendCommand(
             ResolveCSSCommand(
                 data = ResolveCSSCommandData(
@@ -64,6 +66,22 @@ class UnocssService(project: Project) : Disposable {
             )
         )
         return response.result
+    }
+
+    fun resolveCssToCache(file: VirtualFile, content: String): String? {
+        val cached = cssCache.getIfPresent(content.trim())
+        if (cached != null) {
+            return cached
+        }
+        communicationThread.execute {
+            println("send resolve css command: $content")
+            val result = resolveCss(file, content)
+            println("resolve css result: $result")
+            if (result != null) {
+                cssCache.put(content, result.css)
+            }
+        }
+        return null
     }
 
     override fun dispose() {

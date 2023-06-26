@@ -9,6 +9,7 @@ unojs/
 ### Flex ###
 idea-flex.skeleton
 jflex-*.*.*.jar
+src/main/gen/
 
 ### IntelliJ IDEA ###
 .idea/modules.xml

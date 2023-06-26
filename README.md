@@ -10,7 +10,7 @@ Unocss Intellij
 ## Work In Progress
 - [ ] Detect the config changes
 - [ ] Improve the `UnocssProcess` performance (support concurrent)
-- [ ] CSS Icon/Color Inlay Hint
+- [x] CSS Icon/Color Inlay Hint
 - [ ] Css Class Counter
 
 ## Features

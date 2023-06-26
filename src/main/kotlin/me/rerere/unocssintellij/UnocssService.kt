@@ -13,21 +13,23 @@ class UnocssService(project: Project) : Disposable {
     private var unocssProcess: UnocssProcess = UnocssProcess(project)
     private val communicationThread = Executors.newSingleThreadExecutor()
 
-    private fun getProcess(ctx: VirtualFile): UnocssProcess {
+    private fun getProcess(ctx: VirtualFile): UnocssProcess? {
         if (!unocssProcess.isRunning()) {
             unocssProcess.start(ctx)
             communicationThread.execute {
+                println("Waiting for unocss process to start...")
                 unocssProcess.sendCommand<ResolveConfig, RpcResponseUnit>(
                     ResolveConfig()
                 )
-                println("Unocss process started")
+                println("Unocss process started!")
             }
+            return null
         }
         return unocssProcess
     }
 
     fun getCompletion(ctx: VirtualFile, prefix: String, cursor: Int): List<SuggestionItem> {
-        val process = getProcess(ctx)
+        val process = getProcess(ctx) ?: return emptyList()
         val response: SuggestionResponse = process.sendCommand(
             SuggestionCommand(
                 data = SuggestionCommandData(
@@ -39,8 +41,8 @@ class UnocssService(project: Project) : Disposable {
         return response.result
     }
 
-    fun resolveCssByOffset(file: PsiFile, offset: Int): ResolveCSSResult {
-        val process = getProcess(file.virtualFile)
+    fun resolveCssByOffset(file: PsiFile, offset: Int): ResolveCSSResult? {
+        val process = getProcess(file.virtualFile) ?: return null
         val response: ResolveCSSResponse = process.sendCommand(
             ResolveCSSByOffsetCommand(
                 data = ResolveCSSByOffsetCommandData(
@@ -52,8 +54,8 @@ class UnocssService(project: Project) : Disposable {
         return response.result
     }
 
-    fun resolveCss(file: VirtualFile, content: String): ResolveCSSResult {
-        val process = getProcess(file)
+    fun resolveCss(file: VirtualFile, content: String): ResolveCSSResult? {
+        val process = getProcess(file) ?: return null
         val response: ResolveCSSResponse = process.sendCommand(
             ResolveCSSCommand(
                 data = ResolveCSSCommandData(

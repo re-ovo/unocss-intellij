@@ -3,15 +3,9 @@
 package me.rerere.unocssintellij.documentation
 
 import com.intellij.lang.css.CSSLanguage
-import com.intellij.lang.documentation.AbstractDocumentationProvider
 import com.intellij.lang.documentation.DocumentationMarkup
-import com.intellij.lang.documentation.DocumentationProvider
 import com.intellij.lang.documentation.DocumentationSettings
-import com.intellij.lang.documentation.ide.impl.DocumentationManagementHelper
-import com.intellij.lang.documentation.ide.impl.DocumentationManager
-import com.intellij.lang.documentation.psi.PsiElementDocumentationTarget
 import com.intellij.model.Pointer
-import com.intellij.model.psi.impl.targetSymbols
 import com.intellij.navigation.TargetPresentation
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.service
@@ -21,31 +15,34 @@ import com.intellij.openapi.editor.richcopy.HtmlSyntaxInfoUtil
 import com.intellij.platform.backend.documentation.DocumentationResult
 import com.intellij.platform.backend.documentation.DocumentationTarget
 import com.intellij.platform.backend.documentation.DocumentationTargetProvider
-import com.intellij.platform.backend.documentation.PsiDocumentationTargetProvider
-import com.intellij.pom.Navigatable
 import com.intellij.psi.*
 import com.intellij.psi.css.impl.CssElementTypes
 import com.intellij.psi.css.impl.CssLazyStylesheet
 import com.intellij.psi.css.impl.util.CssHighlighter
-import com.intellij.psi.impl.FakePsiElement
 import com.intellij.psi.util.childrenOfType
 import com.intellij.psi.util.elementType
-import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.refactoring.suggested.createSmartPointer
 import me.rerere.unocssintellij.UnocssService
+import me.rerere.unocssintellij.lang.UnocssElementType
+import me.rerere.unocssintellij.lang.psi.UnocssTypes
 import me.rerere.unocssintellij.rpc.ResolveCSSResult
 
 class UnocssDocumentTargetProviderOffset : DocumentationTargetProvider {
     override fun documentationTargets(file: PsiFile, offset: Int): MutableList<out DocumentationTarget> {
         val service = file.project.service<UnocssService>()
-        val result = service.resolveCssByOffset(file, offset)
         val element: PsiElement = file.findElementAt(offset) ?: return mutableListOf()
-        return if (result.css.isNotEmpty()) {
-            val target = UnocssDocumentTarget(element, result)
-            mutableListOf(target)
-        } else {
-            mutableListOf()
+
+        if(element.elementType == UnocssTypes.CLASSNAME) {
+            val result = service.resolveCssByOffset(file, offset) ?: return mutableListOf()
+            return if (result.css.isNotEmpty()) {
+                val target = UnocssDocumentTarget(element, result)
+                mutableListOf(target)
+            } else {
+                mutableListOf()
+            }
         }
+
+        return mutableListOf()
     }
 }
 

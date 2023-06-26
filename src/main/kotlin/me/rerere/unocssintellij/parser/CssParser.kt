@@ -68,9 +68,7 @@ fun dumpAstTree(element: PsiElement, indent: Int = 0) {
 
             super.visitElement(element)
 
-            if (element.children.isNotEmpty()) {
-                dumpAstTree(element, indent + 1)
-            }
+            dumpAstTree(element, indent + 1)
         }
     }
     element.acceptChildren(walker)

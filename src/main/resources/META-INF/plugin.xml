@@ -21,6 +21,7 @@
 
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.css</depends>
+    <depends>org.intellij.intelliLang</depends>
     <depends>JavaScript</depends>
 
     <!-- Product and plugin compatibility requirements.
@@ -30,21 +31,36 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-        <languageInjectionContributor
-                language="XML"
-                implementationClass="me.rerere.unocssintellij.inject.CssInjector"
+        <lang.parserDefinition
+                language="Unocss"
+                implementationClass="me.rerere.unocssintellij.lang.UnocssParserDefinition"
         />
+        <fileType
+                name="Unocss file"
+                implementationClass="me.rerere.unocssintellij.lang.UnocssFileType"
+                fieldName="INSTANCE"
+                language="Unocss"
+                extensions="unocss"
+        />
+        <lang.syntaxHighlighter
+                language="Unocss"
+                implementationClass="me.rerere.unocssintellij.lang.UnocssHighlighter"/>
+
+        <multiHostInjector implementation="me.rerere.unocssintellij.inject.UnocssInjector"/>
 
         <completion.contributor
-                language="XML"
+                language="Unocss"
                 implementationClass="me.rerere.unocssintellij.completion.UnocssAutoComplete"
+                order="last"
         />
-        <completion.contributor
-                language="JavaScript"
-                implementationClass="me.rerere.unocssintellij.completion.UnocssAutoComplete"
-        />
+
         <platform.backend.documentation.targetProvider
                 implementation="me.rerere.unocssintellij.documentation.UnocssDocumentTargetProviderOffset"
         />
+    </extensions>
+
+    <extensions defaultExtensionNs="org.intellij.intelliLang">
+        <!-- 允许语言注入 -->
+        <languageSupport implementation="me.rerere.unocssintellij.lang.UnocssLangSupport"/>
     </extensions>
 </idea-plugin>

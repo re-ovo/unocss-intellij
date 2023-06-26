@@ -22,10 +22,13 @@ intellij {
     version.set("2023.1")
     type.set("IU") // Target IDE Platform
 
-    plugins.set(listOf("JavaScript"))
+    plugins.set(listOf("JavaScript", "org.intellij.intelliLang"))
 }
 
 fun properties(key: String) = project.findProperty(key).toString()
+
+// include the generated source directory
+sourceSets["main"].java.srcDirs("src/main/gen")
 
 tasks {
     // Set the JVM compatibility versions

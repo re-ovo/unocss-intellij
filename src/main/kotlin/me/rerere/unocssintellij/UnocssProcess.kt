@@ -8,12 +8,15 @@ import com.intellij.lang.javascript.buildTools.npm.PackageJsonUtil
 import com.intellij.lang.javascript.service.JSLanguageServiceUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import me.rerere.unocssintellij.rpc.RpcCommand
 import me.rerere.unocssintellij.rpc.RpcResponse
+import me.rerere.unocssintellij.util.toLocalVirtualFile
 import java.io.File
 import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.thread
 import kotlin.concurrent.withLock
 
 class UnocssProcess(private val project: Project) {
@@ -22,15 +25,21 @@ class UnocssProcess(private val project: Project) {
     var inputStream = process?.inputStream?.bufferedReader()
 
     fun start(context: VirtualFile) {
-        val interpreter = NodeJsInterpreterManager.getInstance(project).interpreter ?: return
+        val interpreter = NodeJsInterpreterManager.getInstance(project).interpreter ?: run {
+            error("Node.js interpreter not found")
+        }
         val configurator = NodeCommandLineConfigurator.find(interpreter)
         val directory = JSLanguageServiceUtil.getPluginDirectory(Unocss::class.java, "unojs") ?: return
         val exe = "${directory}${File.separator}service.js"
         val commandLine = GeneralCommandLine("", exe)
         configurator.configure(commandLine)
-        commandLine.withWorkDirectory(
-            PackageJsonUtil.findUpPackageJson(context)?.parent?.path ?: return
-        )
+
+        val realCtx = context.toLocalVirtualFile()
+        val packageJson = PackageJsonUtil.findUpPackageJson(realCtx) ?: run {
+            error("Package.json not found: $context")
+        }
+        val workDir = packageJson.parent.path
+        commandLine.withWorkDirectory(workDir)
         val handler = CapturingProcessHandler(commandLine)
 
         process = handler.process.also {
@@ -50,6 +59,10 @@ class UnocssProcess(private val project: Project) {
     }
 
     inline fun <reified C, reified R> sendCommand(command: C): R where C : RpcCommand, R : RpcResponse {
+        if (!isRunning()) {
+            error("Process not running: ${isRunning()}")
+        }
+
         lock.withLock {
             val json = Unocss.JSON.encodeToString<C>(command)
 
@@ -58,7 +71,7 @@ class UnocssProcess(private val project: Project) {
                 it.write(json.toByteArray())
                 it.write("\n".toByteArray())
                 it.flush()
-            } ?: error("Process not running")
+            } ?: error("null response, running ${isRunning()}")
 
             // Read response from process
             val resJson = inputStream?.readLine() ?: error("Process not running")

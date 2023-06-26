@@ -6,6 +6,10 @@ build/
 unojs/
 .idea/
 
+### Flex ###
+idea-flex.skeleton
+jflex-*.*.*.jar
+
 ### IntelliJ IDEA ###
 .idea/modules.xml
 .idea/jarRepositories.xml

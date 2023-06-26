@@ -1,20 +1,15 @@
-package me.rerere.unocssintellij.inject
+package me.rerere.unocssintellij.injector
 
 import com.intellij.lang.injection.MultiHostInjector
 import com.intellij.lang.injection.MultiHostRegistrar
-import com.intellij.lang.injection.general.Injection
-import com.intellij.lang.injection.general.LanguageInjectionContributor
-import com.intellij.lang.injection.general.SimpleInjection
 import com.intellij.lang.javascript.psi.JSLiteralExpression
 import com.intellij.lang.javascript.psi.JSVariable
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiLanguageInjectionHost
-import com.intellij.psi.util.elementType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlAttributeValue
 import me.rerere.unocssintellij.lang.UnocssLang
-import me.rerere.unocssintellij.lang.psi.UnocssTypes
 
 class UnocssInjector : MultiHostInjector {
     override fun getLanguagesToInject(registrar: MultiHostRegistrar, context: PsiElement) {

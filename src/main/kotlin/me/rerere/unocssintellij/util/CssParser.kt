@@ -1,4 +1,4 @@
-package me.rerere.unocssintellij.parser
+package me.rerere.unocssintellij.util
 
 import com.intellij.lang.css.CSSLanguage
 import com.intellij.openapi.project.Project

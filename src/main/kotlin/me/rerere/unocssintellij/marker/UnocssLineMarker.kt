@@ -1,4 +1,4 @@
-package me.rerere.unocssintellij.hint
+package me.rerere.unocssintellij.marker
 
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProvider
@@ -9,8 +9,8 @@ import com.intellij.psi.util.elementType
 import com.intellij.util.ui.ColorIcon
 import me.rerere.unocssintellij.UnocssService
 import me.rerere.unocssintellij.lang.psi.UnocssTypes
-import me.rerere.unocssintellij.parser.parseColors
-import me.rerere.unocssintellij.parser.parseIcons
+import me.rerere.unocssintellij.util.parseColors
+import me.rerere.unocssintellij.util.parseIcons
 
 class UnocssLineMarker : LineMarkerProvider {
     override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {

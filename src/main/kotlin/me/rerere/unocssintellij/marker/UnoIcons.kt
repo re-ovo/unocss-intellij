@@ -1,4 +1,4 @@
-package me.rerere.unocssintellij.hint
+package me.rerere.unocssintellij.marker
 
 import com.github.weisj.jsvg.attributes.ViewBox
 import com.github.weisj.jsvg.parser.SVGLoader
@@ -8,7 +8,6 @@ import java.awt.Graphics2D
 import java.net.URLDecoder
 import javax.swing.Icon
 import javax.swing.JComponent
-import kotlin.math.roundToInt
 
 private fun svgDataUrlToSvgElement(url: String): String {
     val decoded = URLDecoder.decode(url, "UTF-8")

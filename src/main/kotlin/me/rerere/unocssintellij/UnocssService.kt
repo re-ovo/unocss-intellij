@@ -1,6 +1,5 @@
 package me.rerere.unocssintellij
 
-import com.google.common.cache.CacheBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
@@ -13,10 +12,6 @@ import java.util.concurrent.Executors
 class UnocssService(project: Project) : Disposable {
     private var unocssProcess: UnocssProcess = UnocssProcess(project)
     private val communicationThread = Executors.newSingleThreadExecutor()
-
-    private val cssCache = CacheBuilder.newBuilder()
-        .maximumSize(256)
-        .build<String, String>()
 
     private fun getProcess(ctx: VirtualFile): UnocssProcess {
         if (!unocssProcess.isRunning()) {
@@ -66,22 +61,6 @@ class UnocssService(project: Project) : Disposable {
             )
         )
         return response.result
-    }
-
-    fun resolveCssToCache(file: VirtualFile, content: String): String? {
-        val cached = cssCache.getIfPresent(content.trim())
-        if (cached != null) {
-            return cached
-        }
-        communicationThread.execute {
-            println("send resolve css command: $content")
-            val result = resolveCss(file, content)
-            println("resolve css result: $result")
-            if (result != null) {
-                cssCache.put(content, result.css)
-            }
-        }
-        return null
     }
 
     override fun dispose() {

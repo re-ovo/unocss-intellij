@@ -8,7 +8,6 @@ import com.intellij.lang.javascript.buildTools.npm.PackageJsonUtil
 import com.intellij.lang.javascript.service.JSLanguageServiceUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.VirtualFileManager
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import me.rerere.unocssintellij.rpc.RpcCommand
@@ -16,7 +15,6 @@ import me.rerere.unocssintellij.rpc.RpcResponse
 import me.rerere.unocssintellij.util.toLocalVirtualFile
 import java.io.File
 import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.thread
 import kotlin.concurrent.withLock
 
 class UnocssProcess(private val project: Project) {
@@ -59,10 +57,6 @@ class UnocssProcess(private val project: Project) {
     }
 
     inline fun <reified C, reified R> sendCommand(command: C): R where C : RpcCommand, R : RpcResponse {
-        if (!isRunning()) {
-            error("Process not running: ${isRunning()}")
-        }
-
         lock.withLock {
             val json = Unocss.JSON.encodeToString<C>(command)
 

@@ -1,9 +1,12 @@
 package me.rerere.unocssintellij
 
+import com.intellij.lang.javascript.buildTools.npm.PackageJsonUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.openapi.vfs.ex.VirtualFileManagerAdapter
 import com.intellij.psi.PsiFile
 import me.rerere.unocssintellij.rpc.*
 import java.util.concurrent.Executors
@@ -23,6 +26,11 @@ class UnocssService(project: Project) : Disposable {
             println("Unocss process started!")
         }
         return unocssProcess
+    }
+
+    private fun watchConfig(ctx: VirtualFile) {
+        val vf = PackageJsonUtil.findUpPackageJson(ctx) ?: return
+        // todo: handle unocss config change and package.json change
     }
 
     fun getCompletion(ctx: VirtualFile, prefix: String, cursor: Int): List<SuggestionItem> {

@@ -6,7 +6,6 @@ import com.intellij.lang.css.CSSLanguage
 import com.intellij.lang.documentation.DocumentationMarkup
 import com.intellij.lang.documentation.DocumentationSettings
 import com.intellij.model.Pointer
-import com.intellij.navigation.TargetPresentation
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
@@ -15,6 +14,7 @@ import com.intellij.openapi.editor.richcopy.HtmlSyntaxInfoUtil
 import com.intellij.platform.backend.documentation.DocumentationResult
 import com.intellij.platform.backend.documentation.DocumentationTarget
 import com.intellij.platform.backend.documentation.DocumentationTargetProvider
+import com.intellij.platform.backend.presentation.TargetPresentation
 import com.intellij.psi.*
 import com.intellij.psi.css.impl.CssElementTypes
 import com.intellij.psi.css.impl.CssLazyStylesheet
@@ -23,7 +23,6 @@ import com.intellij.psi.util.childrenOfType
 import com.intellij.psi.util.elementType
 import com.intellij.refactoring.suggested.createSmartPointer
 import me.rerere.unocssintellij.UnocssService
-import me.rerere.unocssintellij.lang.UnocssElementType
 import me.rerere.unocssintellij.lang.psi.UnocssTypes
 import me.rerere.unocssintellij.rpc.ResolveCSSResult
 

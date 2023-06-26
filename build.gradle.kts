@@ -20,7 +20,7 @@ dependencies {
 // Configure Gradle IntelliJ Plugin
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
-    version.set("2023.1")
+    version.set("2023.1.3")
     type.set("IU") // Target IDE Platform
 
     plugins.set(listOf("JavaScript", "org.intellij.intelliLang"))
@@ -64,5 +64,9 @@ tasks {
                 into("${destinationDir.path}/${project.name}/unojs")
             }
         }
+    }
+
+    runIde {
+        ideDir.set(file("C:\\Users\\qq160\\AppData\\Local\\JetBrains\\Toolbox\\apps\\WebStorm\\ch-0\\231.9161.29"))
     }
 }

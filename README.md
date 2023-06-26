@@ -1,15 +1,9 @@
-<div style="display: flex; align-items: center; gap: 1rem">
-    <img src="docs/logo.svg" style="width: 5rem; height: 5rem"/>
-    <div style="display: flex; flex-direction: column;">
-        <span style="font-size: 3rem; font-weight: bold">Unocss Intellij</span>
-        <span>
-            <a href="https://github.com/unocss/unocss">Unocss</a> Support on Intellij
-        </span>
-    </div>
-</div>
 <div align="center">
-
-</div> 
+    <img src="docs/logo.svg" style="width: 5rem; height: 5rem"/>
+    <h1>Unocss Intellij</h1>
+    <a href="https://github.com/unocss/unocss">Unocss</a> Support Intellij Based IDEs
+    <div>(Intellij Idea/WebStorm)</div>
+</div>
 
 > ⚠ Working In Progress, Not ready for Use
 

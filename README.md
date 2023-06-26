@@ -18,3 +18,6 @@ Unocss Intellij
 - Auto complete
 - Syntax highlight
 - Css hover preview
+
+## Screenshots
+TODO

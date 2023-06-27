@@ -113,10 +113,11 @@ class UnocssService(private val project: Project) : Disposable {
 
     fun resolveCssByOffset(file: PsiFile, offset: Int): ResolveCSSResult? {
         val process = getProcess(file.virtualFile) ?: return null
+        val text = file.text
         val response: ResolveCSSResponse = process.sendCommand(
             ResolveCSSByOffsetCommand(
                 data = ResolveCSSByOffsetCommandData(
-                    content = file.text,
+                    content = text,
                     cursor = offset
                 )
             )

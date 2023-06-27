@@ -7,6 +7,8 @@
 
 > ⚠ Working In Progress, Not ready for Use!
 
+> 为了确保上架之前的稳定性，寻求早期测试者，如果你有兴趣，请联系加QQ群 720240934
+
 ## Work In Progress
 
 - [ ] Detect the config changes

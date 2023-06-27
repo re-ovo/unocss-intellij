@@ -5,6 +5,8 @@ import {createAutocomplete, searchUsageBoundary} from "@unocss/autocomplete";
 import readline from "readline";
 import presetUno from "@unocss/preset-uno";
 
+console.log(`Hello from service.js, ${process.cwd()}`);
+
 const defaultConfig = {
     presets: [presetUno()],
     separators: []
@@ -71,16 +73,23 @@ const rl = readline.createInterface({
 })
 
 rl.on('line', async (input) => {
-    try {
-        const command = JSON.parse(input.trim());
-        const action = command.action;
-        const data = command.data;
-        const id = command.id;
+    if(input === 'test') {
+        console.log(JSON.stringify(await resolveCSS('color-red')))
+        return
+    }
+    const command = JSON.parse(input.trim());
+    const action = command.action;
+    const data = command.data;
+    const id = command.id;
 
+    try {
         const result = await handle_command(action, data);
         console.log(JSON.stringify({id, action, result}));
     } catch (e) {
-        console.error(e);
+        console.log(JSON.stringify({
+            id,
+            error: e.message || JSON.stringify(e),
+        }));
     }
 })
 

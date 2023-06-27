@@ -6,15 +6,19 @@ import com.intellij.javascript.nodejs.interpreter.NodeCommandLineConfigurator
 import com.intellij.javascript.nodejs.interpreter.NodeJsInterpreterManager
 import com.intellij.lang.javascript.buildTools.npm.PackageJsonUtil
 import com.intellij.lang.javascript.service.JSLanguageServiceUtil
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import me.rerere.unocssintellij.rpc.RpcCommand
 import me.rerere.unocssintellij.rpc.RpcResponse
 import me.rerere.unocssintellij.util.toLocalVirtualFile
 import java.io.File
 import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.thread
 import kotlin.concurrent.withLock
 
 class UnocssProcess(private val project: Project) {
@@ -46,6 +50,15 @@ class UnocssProcess(private val project: Project) {
             }
         }
         inputStream = process?.inputStream?.bufferedReader()
+
+        val hello = inputStream?.readLine() ?: error("Process not running")
+        println("Unocss process: $hello")
+
+        thread {
+            process?.errorStream?.bufferedReader()?.forEachLine {
+                println(it)
+            }
+        }
     }
 
     fun stop() {
@@ -69,6 +82,16 @@ class UnocssProcess(private val project: Project) {
 
             // Read response from process
             val resJson = inputStream?.readLine() ?: error("Process not running")
+
+            // Check error
+            run {
+                val jsonObject = Unocss.JSON.decodeFromString<JsonObject>(resJson)
+                val error = jsonObject["error"]?.jsonPrimitive?.content
+                if (error != null) {
+                    error(error)
+                }
+            }
+
             return Unocss.JSON.decodeFromString<R>(resJson)
         }
     }

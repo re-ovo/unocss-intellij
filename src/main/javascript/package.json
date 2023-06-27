@@ -1,9 +1,8 @@
 {
   "name": "unojs",
-  "type": "module",
   "scripts": {
     "dev": "node ./src/service.js",
-    "build": "esbuild ./src/service.js --bundle --outfile=../../../unojs/service.js --platform=node"
+    "build": "esbuild ./src/service.js --bundle --minify --outfile=../../../unojs/service.js --platform=node"
   },
   "devDependencies": {
     "@antfu/utils": "^0.7.4",

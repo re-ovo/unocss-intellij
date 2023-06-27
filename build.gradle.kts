@@ -66,7 +66,7 @@ tasks {
         }
     }
 
-    runIde {
-        ideDir.set(file("C:\\Users\\qq160\\AppData\\Local\\JetBrains\\Toolbox\\apps\\WebStorm\\ch-0\\231.9161.29"))
-    }
+//    runIde {
+//        ideDir.set(file("C:\\Users\\qq160\\AppData\\Local\\JetBrains\\Toolbox\\apps\\WebStorm\\ch-0\\231.9161.29"))
+//    }
 }

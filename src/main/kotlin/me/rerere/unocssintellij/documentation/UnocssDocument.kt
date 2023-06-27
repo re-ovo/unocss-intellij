@@ -32,7 +32,7 @@ class UnocssDocumentTargetProviderOffset : DocumentationTargetProvider {
         val element: PsiElement = file.findElementAt(offset) ?: return mutableListOf()
 
         if(element.elementType == UnocssTypes.CLASSNAME) {
-            val result = service.resolveCssByOffset(file, offset)
+            val result = service.resolveCssByOffset(file, offset) ?: return mutableListOf()
             return if (result.css.isNotEmpty()) {
                 val target = UnocssDocumentTarget(element, result)
                 mutableListOf(target)

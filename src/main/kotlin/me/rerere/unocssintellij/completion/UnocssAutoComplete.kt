@@ -10,7 +10,9 @@ import com.intellij.util.ProcessingContext
 import com.intellij.util.ui.ColorIcon
 import me.rerere.unocssintellij.UnocssService
 import me.rerere.unocssintellij.lang.psi.UnocssTypes
+import me.rerere.unocssintellij.marker.SVGIcon
 import me.rerere.unocssintellij.util.parseColors
+import me.rerere.unocssintellij.util.parseIcons
 import me.rerere.unocssintellij.util.trimCss
 
 class UnocssAutoComplete : CompletionContributor() {
@@ -45,6 +47,7 @@ class UnocssCompletionProvider : CompletionProvider<CompletionParameters>() {
             )
         }, ProgressManager.getInstance().progressIndicator).forEach { suggestion ->
             val colors = parseColors(suggestion.css)
+            val icon = parseIcons(suggestion.css)
             result.addElement(
                 LookupElementBuilder
                     .create(suggestion.className)
@@ -52,9 +55,9 @@ class UnocssCompletionProvider : CompletionProvider<CompletionParameters>() {
                     .withIcon(
                         if (colors.isNotEmpty()) {
                             ColorIcon(16, colors.first())
-                        } else {
-                            null
-                        }
+                        } else if(icon != null ){
+                            SVGIcon(icon)
+                        } else null
                     )
                     .withTailText(trimCss(suggestion.css), true)
             )

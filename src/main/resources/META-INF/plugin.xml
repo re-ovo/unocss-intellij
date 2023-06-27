@@ -64,6 +64,7 @@
         <codeInsight.lineMarkerProvider
                 language="Unocss"
                 implementationClass="me.rerere.unocssintellij.marker.UnocssLineMarker"
+                order="last"
         />
     </extensions>
 

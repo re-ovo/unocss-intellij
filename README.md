@@ -3,6 +3,7 @@
 </p>
 
 # Unocss Intellij
+
 > <a href="https://github.com/unocss/unocss">Unocss</a> Support for Intellij Based IDEs
 
 > ⚠ Working In Progress, Not ready for Use!
@@ -24,9 +25,9 @@
 
 ## Screenshots
 
-| Auto Complete | Css Doc | Icon/Color Preview |
-|---------------|---------|--------------------|
-| TODO          | TODO    | TODO               |
+| Auto Complete                               | Css Doc                                        | Icon/Color Preview                            |
+|---------------------------------------------|------------------------------------------------|-----------------------------------------------|
+| <img src="docs/screenshots/completion.png"> | <img src="docs/screenshots/documentation.png"> | <img src="docs/screenshots/highlighting.png"> |
 
 ## Contribution
 

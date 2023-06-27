@@ -33,7 +33,10 @@ fun parseColors(css: String): Set<JBColor> {
 }
 
 fun JBColor.toHex(): String {
-    return "#${Integer.toHexString(rgb)}"
+    val r = red
+    val g = green
+    val b = blue
+    return "#${r.toString(16)}${g.toString(16)}${b.toString(16)}"
 }
 
 // parse css icons

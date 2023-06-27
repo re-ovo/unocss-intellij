@@ -74,7 +74,7 @@ const rl = readline.createInterface({
 
 rl.on('line', async (input) => {
     if(input === 'test') {
-        console.log(JSON.stringify(await resolveCSS('color-red')))
+        console.log(JSON.stringify(await resolveCSS('color-red flex items-center')))
         return
     }
     const command = JSON.parse(input.trim());

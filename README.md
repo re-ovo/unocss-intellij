@@ -17,6 +17,10 @@
 - [x] CSS Icon/Color Inlay Hint
 - [ ] Css Class Counter
 
+## Known Issues
+- [ ] IDE freeze in some cases
+- [ ] Line Marker sometimes not working
+
 ## Features
 
 - Auto complete

@@ -48,7 +48,10 @@ class UnocssDocumentTargetProviderOffset : DocumentationTargetProvider {
     }
 }
 
-class UnocssDocumentTarget(private val targetElement: PsiElement?, private val result: ResolveCSSResult) :
+class UnocssDocumentTarget(
+    private val targetElement: PsiElement?,
+    private val result: ResolveCSSResult,
+) :
     DocumentationTarget {
     override fun computePresentation(): TargetPresentation {
         return TargetPresentation

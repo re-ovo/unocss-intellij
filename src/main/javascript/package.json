@@ -1,5 +1,6 @@
 {
   "name": "unojs",
+  "type": "module",
   "scripts": {
     "dev": "node ./src/service.js",
     "build": "esbuild ./src/service.js --bundle --minify --outfile=../../../unojs/service.js --platform=node"

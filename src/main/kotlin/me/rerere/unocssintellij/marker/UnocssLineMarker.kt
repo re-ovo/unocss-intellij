@@ -46,7 +46,7 @@ class UnocssLineMarker : LineMarkerProvider {
                 img,
                 null,
                 null,
-                GutterIconRenderer.Alignment.RIGHT,
+                GutterIconRenderer.Alignment.LEFT
             ) { "UNOCSS" }
         }
         return null

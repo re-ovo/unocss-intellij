@@ -75,6 +75,7 @@ class UnocssService(private val project: Project) : Disposable {
     // 初始化Unocss进程
     // (!) 初始化之前请检查是否是Node项目，以及安装了unocss
     private fun initProcess(ctx: VirtualFile) = runCatching {
+        if (unocssProcess != null) return@runCatching
         val process = UnocssProcess(project)
         println("Starting unocss process...")
         process.start(ctx)
@@ -126,6 +127,7 @@ class UnocssService(private val project: Project) : Disposable {
     }
 
     fun resolveCss(file: VirtualFile, content: String): ResolveCSSResult? {
+        println(content)
         val process = getProcess(file) ?: return null
         val response: ResolveCSSResponse = process.sendCommand(
             ResolveCSSCommand(

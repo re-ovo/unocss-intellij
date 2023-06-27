@@ -1,5 +1,8 @@
 package me.rerere.unocssintellij
 
+import com.google.common.collect.Lists
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.CapturingProcessHandler
 import com.intellij.javascript.nodejs.interpreter.NodeCommandLineConfigurator
@@ -9,90 +12,141 @@ import com.intellij.lang.javascript.service.JSLanguageServiceUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.coroutines.suspendCancellableCoroutine
+import me.rerere.unocssintellij.rpc.RpcAction
 import me.rerere.unocssintellij.rpc.RpcCommand
-import me.rerere.unocssintellij.rpc.RpcResponse
 import me.rerere.unocssintellij.util.toLocalVirtualFile
 import java.io.File
-import java.util.concurrent.locks.ReentrantLock
+import java.util.*
 import kotlin.concurrent.thread
-import kotlin.concurrent.withLock
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.time.Duration.Companion.seconds
 
-class UnocssProcess(private val project: Project) {
-    val lock = ReentrantLock()
-    var process: Process? = null
-    var inputStream = process?.inputStream?.bufferedReader()
+private val MAX_WAIT_TIME = 10.seconds
 
-    fun start(context: VirtualFile) {
+
+class UnocssProcess(project: Project, context: VirtualFile) : Disposable {
+    val process: Process
+    val waitingCommands: MutableList<AwaitingCommand> = Lists.newCopyOnWriteArrayList<AwaitingCommand>()
+
+    init {
+        println("[UnoProcess] Starting UnoProcess")
         val interpreter = NodeJsInterpreterManager.getInstance(project).interpreter ?: run {
             error("Node.js interpreter not found")
         }
         val configurator = NodeCommandLineConfigurator.find(interpreter)
-        val directory = JSLanguageServiceUtil.getPluginDirectory(Unocss::class.java, "unojs") ?: return
+        val directory = JSLanguageServiceUtil.getPluginDirectory(Unocss::class.java, "unojs")
+            ?: error("Plugin directory not found")
         val exe = "${directory}${File.separator}service.js"
         val commandLine = GeneralCommandLine("", exe)
         configurator.configure(commandLine)
-
+        println("[UnoProcess] Command line: $commandLine")
         val realCtx = context.toLocalVirtualFile()
         val packageJson = PackageJsonUtil.findUpPackageJson(realCtx) ?: run {
             error("Package.json not found: $context")
         }
         val workDir = packageJson.parent.path
         commandLine.withWorkDirectory(workDir)
+        println("[UnoProcess] Work directory: $workDir")
         val handler = CapturingProcessHandler(commandLine)
 
-        process = handler.process.also {
-            it.onExit().thenAccept {
-                println("Unocss process exited")
+        process = handler.process
+
+        // Create read thread
+        process.inputStream.let { inputStream ->
+            thread {
+                inputStream.bufferedReader().useLines { lines ->
+                    // Handle response
+                    lines.forEach { line ->
+                        val jsonObject = runCatching {  JsonParser.parseString(line).asJsonObject }
+                            .onFailure {
+                                println("[UnoProcess] Failed to parse json: $line")
+                            }
+                            .getOrNull() ?: return@forEach
+                        val id = jsonObject["id"]?.asString ?: return@forEach
+                        val waitingCommand = waitingCommands.find { it.id == id } ?: return@forEach
+                        waitingCommands.remove(waitingCommand)
+                        waitingCommand.callback(jsonObject)
+                    }
+
+                    // Check timeout
+                    val end = System.currentTimeMillis()
+                    waitingCommands.removeIf {
+                        if(end - it.start > MAX_WAIT_TIME.inWholeMilliseconds) {
+                            println("[UnoProcess] Command ${it.id} timeout")
+                            it.callback(
+                                JsonObject().apply {
+                                    addProperty("error", "Timeout")
+                                }
+                            )
+                            true
+                        } else {
+                            false
+                        }
+                    }
+                }
+                println("[UnoProcess] Read thread finished")
             }
+
+            println("[UnoProcess] Read thread started")
         }
-        inputStream = process?.inputStream?.bufferedReader()
 
-        val hello = inputStream?.readLine() ?: error("Process not running")
-        println("Unocss process: $hello")
-
-        thread {
-            process?.errorStream?.bufferedReader()?.forEachLine {
-                println(it)
-            }
-        }
-    }
-
-    fun stop() {
-        process?.destroy()
-    }
-
-    fun isRunning(): Boolean {
-        return process?.isAlive ?: false
-    }
-
-    inline fun <reified C, reified R> sendCommand(command: C): R where C : RpcCommand, R : RpcResponse {
-        lock.withLock {
-            val json = Unocss.JSON.encodeToString<C>(command)
-
-            // Send command to process
-            process?.outputStream?.let {
-                it.write(json.toByteArray())
-                it.write("\n".toByteArray())
-                it.flush()
-            } ?: error("null response, running ${isRunning()}")
-
-            // Read response from process
-            val resJson = inputStream?.readLine() ?: error("Process not running")
-
-            // Check error
-            run {
-                val jsonObject = Unocss.JSON.decodeFromString<JsonObject>(resJson)
-                val error = jsonObject["error"]?.jsonPrimitive?.content
-                if (error != null) {
-                    error(error)
+        // Create error thread
+        process.errorStream.let { errorStream ->
+            thread {
+                errorStream.bufferedReader().useLines { lines ->
+                    lines.forEach { line ->
+                        println("[UnoProcess] Error: $line")
+                    }
                 }
             }
+        }
+    }
 
-            return Unocss.JSON.decodeFromString<R>(resJson)
+    override fun dispose() {
+        process.destroyForcibly()
+        waitingCommands.clear()
+    }
+
+    // 发送命令并等待结果
+    // 这里使用 suspendCancellableCoroutine 将回调转换为挂起并可取消的协程
+    suspend inline fun <C, reified R> sendCommand(action: RpcAction, command: C?): R = suspendCancellableCoroutine { continuation ->
+        val start = System.currentTimeMillis()
+        val id = UUID.randomUUID().toString()
+
+        // Send command to process
+        val json = Unocss.GSON.toJson(RpcCommand(id, action.key, command))
+        process.outputStream?.let {
+            it.write(json.toByteArray())
+            it.write("\n".toByteArray())
+            it.flush()
+        } ?: run {
+            continuation.resumeWithException(RuntimeException("Process output stream not found"))
+            return@suspendCancellableCoroutine
+        }
+
+        // Wait for response
+        this.waitingCommands.add(AwaitingCommand(id, start) { jsonObject ->
+            if(jsonObject.has("error")) {
+                continuation.resumeWithException(
+                    RuntimeException(jsonObject["error"]?.asString ?: "unknown error")
+                )
+            } else {
+                val res = Unocss.GSON.fromJson(jsonObject["result"].toString(), R::class.java)
+                continuation.resume(res)
+            }
+        })
+
+        // Handle cancellation
+        continuation.invokeOnCancellation {
+            waitingCommands.removeIf { it.id == id }
         }
     }
 }
+
+data class AwaitingCommand(
+    val id: String,
+    val start: Long,
+    val callback: (JsonObject) -> Unit
+)

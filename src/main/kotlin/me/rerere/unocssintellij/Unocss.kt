@@ -1,5 +1,8 @@
 package me.rerere.unocssintellij
 
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonParser
 import com.intellij.javascript.nodejs.packageJson.NodeInstalledPackageFinder
 import com.intellij.lang.javascript.buildTools.npm.PackageJsonUtil
 import com.intellij.openapi.diagnostic.logger
@@ -13,13 +16,7 @@ object Unocss {
     val Logger = logger<Unocss>()
 
     // Global JSON instance
-    val JSON = Json {
-        prettyPrint = false
-        ignoreUnknownKeys = true
-        isLenient = true
-        encodeDefaults = true
-        explicitNulls = false
-    }
+    val GSON: Gson by lazy { GsonBuilder().create() }
 
     /**
      * Check if unocss is installed in the project

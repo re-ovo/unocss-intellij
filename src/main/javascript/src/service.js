@@ -73,7 +73,7 @@ const rl = readline.createInterface({
 })
 
 rl.on('line', async (input) => {
-    if(input === 'test') {
+    if (input === 'test') {
         console.log(JSON.stringify(await resolveCSS('color-red flex items-center')))
         return
     }
@@ -95,8 +95,8 @@ rl.on('line', async (input) => {
 
 async function handle_command(command, data) {
     if (command === "resolveConfig") {
-        await resolveConfig(data?.rootDir || '');
-        return {}
+        const cfg = await resolveConfig(data?.rootDir || '');
+        return cfg.presets
     } else if (command === "getComplete") {
         return await getComplete(data.content);
     } else if (command === "resolveCSSByOffset") {

@@ -3,12 +3,15 @@ package me.rerere.unocssintellij
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.AsyncFileListener.ChangeApplier
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiFile
+import kotlinx.coroutines.*
 import me.rerere.unocssintellij.rpc.*
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
 
 private val SENSITIVE_FILES = listOf(
     "package.json",
@@ -25,8 +28,8 @@ private val SENSITIVE_FILES = listOf(
 
 @Service(Service.Level.PROJECT)
 class UnocssService(private val project: Project) : Disposable {
-    private val communicationThread = Executors.newSingleThreadExecutor()
     private var unocssProcess: UnocssProcess? = null
+    private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     init {
         // 监听文件变化
@@ -48,10 +51,13 @@ class UnocssService(private val project: Project) : Disposable {
             }
             object : ChangeApplier {
                 override fun afterVfsChange() {
-                    if(detected && unocssProcess != null) {
+                    if (detected && unocssProcess != null) {
                         ctx?.let {
-                            updateConfig(it).onFailure {
-                                println("(!) Failed to update unocss config: $it")
+                            // reload config when sensitive file changed
+                            scope.launch {
+                                updateConfig(it).onFailure {
+                                    println("(!) Failed to update unocss config: $it")
+                                }
                             }
                         }
                     }
@@ -60,10 +66,14 @@ class UnocssService(private val project: Project) : Disposable {
         }, this)
     }
 
+    override fun dispose() {
+        scope.cancel()
+    }
+
     private fun getProcess(ctx: VirtualFile): UnocssProcess? {
         if (unocssProcess == null && Unocss.isUnocssInstalled(project, ctx)) {
-            communicationThread.submit {
-                initProcess(ctx)
+            initProcess(ctx)
+            scope.launch {
                 updateConfig(ctx).onFailure {
                     println("(!) Failed to update unocss config: $it")
                 }
@@ -76,71 +86,61 @@ class UnocssService(private val project: Project) : Disposable {
     // (!) 初始化之前请检查是否是Node项目，以及安装了unocss
     private fun initProcess(ctx: VirtualFile) = runCatching {
         if (unocssProcess != null) return@runCatching
-        val process = UnocssProcess(project)
-        println("Starting unocss process...")
-        process.start(ctx)
+        println("Starting unocss process with ctx: $ctx")
+        unocssProcess = UnocssProcess(project, ctx).also {
+            // Auto dispose with project service
+            Disposer.register(this, it)
+        }
         println("Unocss process started!")
-        unocssProcess = process
     }
 
     // 更新Unocss配置
-    private fun updateConfig(ctx: VirtualFile) = runCatching {
+    private suspend fun updateConfig(ctx: VirtualFile) = runCatching {
         val process = getProcess(ctx) ?: return@runCatching
         println("Updating unocss config...")
-        process.sendCommand<ResolveConfig, RpcResponseUnit>(
-            ResolveConfig()
-        )
+        process.sendCommand<Any?, Any?>(RpcAction.ResolveConfig, null)
         println("Unocss config updated!")
-    }
-
-    // 卸载Unocss进程
-    private fun stopProcess() = runCatching {
-        unocssProcess?.stop()
-        unocssProcess = null
     }
 
     fun getCompletion(ctx: VirtualFile, prefix: String, cursor: Int): List<SuggestionItem> {
         val process = getProcess(ctx) ?: return emptyList()
-        val response: SuggestionResponse = process.sendCommand(
-            SuggestionCommand(
-                data = SuggestionCommandData(
+        val response: SuggestionItemList = runBlocking {
+            process.sendCommand(
+                RpcAction.GetComplete,
+                GetCompleteCommandData(
                     content = prefix,
                     cursor = cursor
                 )
             )
-        )
-        return response.result
+        }
+        return response
     }
 
     fun resolveCssByOffset(file: PsiFile, offset: Int): ResolveCSSResult? {
         val process = getProcess(file.virtualFile) ?: return null
         val text = file.text
-        val response: ResolveCSSResponse = process.sendCommand(
-            ResolveCSSByOffsetCommand(
-                data = ResolveCSSByOffsetCommandData(
+        val response: ResolveCSSResult = runBlocking {
+            process.sendCommand(
+                RpcAction.ResolveCssByOffset,
+                ResolveCSSByOffsetCommandData(
                     content = text,
                     cursor = offset
                 )
             )
-        )
-        return response.result
+        }
+        return response
     }
 
     fun resolveCss(file: VirtualFile, content: String): ResolveCSSResult? {
-        println(content)
         val process = getProcess(file) ?: return null
-        val response: ResolveCSSResponse = process.sendCommand(
-            ResolveCSSCommand(
-                data = ResolveCSSCommandData(
+        val response: ResolveCSSResult = runBlocking {
+            process.sendCommand(
+                RpcAction.ResolveCss,
+                ResolveCSSCommandData(
                     content = content
                 )
             )
-        )
-        return response.result
-    }
-
-    override fun dispose() {
-        communicationThread.shutdown()
-        this.stopProcess()
+        }
+        return response
     }
 }

@@ -1,14 +1,41 @@
 package me.rerere.unocssintellij.rpc
 
-import kotlinx.serialization.Serializable
+data class RpcCommand<T>(
+    private val id: String,
+    private val action: String,
+    private val data: T
+)
 
-sealed interface RpcCommand {
-    val action: String
+enum class RpcAction(val key: String) {
+    ResolveConfig("resolveConfig"),
+    GetComplete("getComplete"),
+    ResolveCss("resolveCSS"),
+    ResolveCssByOffset("resolveCSSByOffset"),
 }
 
-sealed interface RpcResponse {
-    val action: String
-}
+data class GetCompleteCommandData(
+    val content: String,
+    val cursor: Int = content.length
+)
 
-@Serializable
-class RpcResponseUnit(override val action: String) : RpcResponse
+data class SuggestionItem(
+    val className: String,
+    val css: String
+)
+
+class SuggestionItemList : ArrayList<SuggestionItem>()
+
+
+data class ResolveCSSByOffsetCommandData(
+    val content: String,
+    val cursor: Int
+)
+
+data class ResolveCSSCommandData(
+    val content: String
+)
+
+data class ResolveCSSResult(
+    val css: String,
+    val layers: List<String>,
+)

@@ -11,7 +11,7 @@
 
 ## Work In Progress
 
-- [ ] Detect the config changes
+- [x] Detect the config changes
 - [ ] Improve the `UnocssProcess` performance (support concurrent)
 - [x] CSS Icon/Color Inlay Hint
 - [ ] Css Class Counter

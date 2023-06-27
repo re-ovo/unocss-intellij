@@ -16,6 +16,7 @@ private val CSS_RGBA_COLOR_PATTERN =
     """rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*(?:[\d.]+|var\(--[a-zA-Z0-9-_]+\))\s*\)""".toRegex()
 
 private val CSS_COMMENT_PATTERN = """/\*.*?\*/""".toRegex()
+private val CSS_CONTENT_PATTERN = """(?<=\{)[^}]*(?=})""".toRegex()
 
 private val CSS_UNO_ICON_PATTERN = """--un-icon:\s?url\(.+\);""".toRegex()
 
@@ -52,9 +53,11 @@ fun parseIcons(css: String): String? {
 
 // trim css to remove comments and spaces
 fun trimCss(css: String): String {
-    return css
+    val content = CSS_CONTENT_PATTERN.find(css)?.value ?: return css
+    return content
         .replace(CSS_COMMENT_PATTERN, "")
         .replace("\n", " ")
+        .let { " $it " }
 }
 
 // convert css to ast tree

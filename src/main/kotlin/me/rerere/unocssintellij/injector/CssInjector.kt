@@ -2,6 +2,7 @@ package me.rerere.unocssintellij.injector
 
 import com.intellij.lang.injection.MultiHostInjector
 import com.intellij.lang.injection.MultiHostRegistrar
+import com.intellij.lang.javascript.psi.JSConditionalExpression
 import com.intellij.lang.javascript.psi.JSLiteralExpression
 import com.intellij.lang.javascript.psi.JSVariable
 import com.intellij.openapi.util.TextRange
@@ -25,9 +26,8 @@ class UnocssInjector : MultiHostInjector {
                 .doneInjecting()
         }
 
-        if(context is JSLiteralExpression && context.parent is JSVariable) {
+        if(context is JSLiteralExpression && (context.parent is JSVariable || context.parent is JSConditionalExpression)) {
             val value = context.value
-            // println("Injecting: $value, ${shouldInjectJsString(value.toString())}")
             if(value is String && shouldInjectJsString(value)) {
                 registrar
                     .startInjecting(UnocssLang.INSTANCE)

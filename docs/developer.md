@@ -14,3 +14,5 @@
 1. 找到 `src/main/kotlin/me.rerere.unocssintellij/lang/uno.bnf` 文件，右键点击 `Generate Parser Code` 生成语法解析器。
 2. 找到 `src/main/kotlin/me.rerere.unocssintellij/lang/uno.flex` 文件，右键点击 `Run JFlex Generator` 生成词法解析器。
 
+## 运行
+执行 `runIde` 任务即可运行插件

@@ -1,5 +1,5 @@
 # 开发说明
-导入到Intellij IDEA即可
+导入到Intellij IDEA即可, 请确保使用JDK 17
 
 ## 预构建
 ### Javascript

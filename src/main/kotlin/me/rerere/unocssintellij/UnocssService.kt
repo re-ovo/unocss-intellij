@@ -82,6 +82,10 @@ class UnocssService(private val project: Project) : Disposable {
         return unocssProcess
     }
 
+    fun onFileOpened(file: VirtualFile) {
+        this.getProcess(file)
+    }
+
     // 初始化Unocss进程
     // (!) 初始化之前请检查是否是Node项目，以及安装了unocss
     private fun initProcess(ctx: VirtualFile) = runCatching {

@@ -79,7 +79,15 @@
         />
     </extensions>
 
-    <extensions defaultExtensionNs="org.intellij.intelliLang">
+    <projectListeners>
+        <listener
+                class="me.rerere.unocssintellij.listener.FileListener"
+                topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"
+        />
+    </projectListeners>
+
+
+    <extensions defaultExtensionNs=" org.intellij.intelliLang">
         <!-- 允许语言注入 -->
         <languageSupport implementation="me.rerere.unocssintellij.lang.UnocssLangSupport"/>
     </extensions>

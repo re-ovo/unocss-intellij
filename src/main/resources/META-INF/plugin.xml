@@ -33,7 +33,6 @@
 
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.css</depends>
-    <depends>org.intellij.intelliLang</depends>
     <depends>JavaScript</depends>
 
     <!-- Product and plugin compatibility requirements.
@@ -77,6 +76,12 @@
                 language="Unocss"
                 implementationClass="me.rerere.unocssintellij.marker.UnocssLineMarker"
         />
+
+        <!-- 工具栏 -->
+        <statusBarWidgetFactory
+                id="UnocssStatusBar"
+                implementation="me.rerere.unocssintellij.status.UnocssStatusBarFactory"
+        />
     </extensions>
 
     <projectListeners>
@@ -85,10 +90,4 @@
                 topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"
         />
     </projectListeners>
-
-
-    <extensions defaultExtensionNs=" org.intellij.intelliLang">
-        <!-- 允许语言注入 -->
-        <languageSupport implementation="me.rerere.unocssintellij.lang.UnocssLangSupport"/>
-    </extensions>
 </idea-plugin>

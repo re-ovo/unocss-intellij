@@ -21,7 +21,7 @@ intellij {
     version.set("2023.1.3")
     type.set("IU") // Target IDE Platform
 
-    plugins.set(listOf("JavaScript", "org.intellij.intelliLang"))
+    plugins.set(listOf("JavaScript"))
 }
 
 fun properties(key: String) = project.findProperty(key).toString()

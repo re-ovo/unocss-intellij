@@ -2,16 +2,19 @@ package me.rerere.unocssintellij
 
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.AsyncFileListener.ChangeApplier
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.openapi.wm.WindowManager
+import com.intellij.openapi.wm.impl.status.widget.StatusBarWidgetsManager
 import com.intellij.psi.PsiFile
 import kotlinx.coroutines.*
 import me.rerere.unocssintellij.rpc.*
-import java.util.concurrent.Executors
-import java.util.concurrent.atomic.AtomicBoolean
+import me.rerere.unocssintellij.status.UnocssStatusBarFactory
 
 private val SENSITIVE_FILES = listOf(
     "package.json",
@@ -86,6 +89,10 @@ class UnocssService(private val project: Project) : Disposable {
         this.getProcess(file)
     }
 
+    fun isProcessRunning(): Boolean {
+        return unocssProcess != null
+    }
+
     // 初始化Unocss进程
     // (!) 初始化之前请检查是否是Node项目，以及安装了unocss
     private fun initProcess(ctx: VirtualFile) = runCatching {
@@ -96,6 +103,10 @@ class UnocssService(private val project: Project) : Disposable {
             Disposer.register(this, it)
         }
         println("Unocss process started!")
+
+        // Update status bar
+        project.service<StatusBarWidgetsManager>()
+            .updateWidget(UnocssStatusBarFactory::class.java)
     }
 
     // 更新Unocss配置
@@ -104,6 +115,14 @@ class UnocssService(private val project: Project) : Disposable {
         println("Updating unocss config...")
         process.sendCommand<Any?, Any?>(RpcAction.ResolveConfig, null)
         println("Unocss config updated!")
+    }
+
+    fun updateConfigIfRunning() {
+        scope.launch {
+            val process = unocssProcess ?: return@launch
+            process.sendCommand<Any?, Any?>(RpcAction.ResolveConfig, null)
+            println("Unocss config updated!")
+        }
     }
 
     fun getCompletion(ctx: VirtualFile, prefix: String, cursor: Int): List<SuggestionItem> {

@@ -18,7 +18,6 @@ import com.intellij.psi.tree.IFileElementType
 import com.intellij.psi.tree.TokenSet
 import me.rerere.unocssintellij.lang.parser.UnocssParser
 import me.rerere.unocssintellij.lang.psi.UnocssTypes
-import org.intellij.plugins.intelliLang.inject.AbstractLanguageInjectionSupport
 import org.jetbrains.annotations.NonNls
 
 
@@ -27,12 +26,6 @@ class UnocssLang : Language("Unocss") {
         @JvmStatic
         val INSTANCE = UnocssLang()
     }
-}
-
-class UnocssLangSupport : AbstractLanguageInjectionSupport() {
-    override fun getId(): String = "Unocss"
-
-    override fun getPatternClasses(): Array<Class<*>> = arrayOf()
 }
 
 class UnocssFileType : LanguageFileType(UnocssLang.INSTANCE) {

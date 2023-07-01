@@ -112,9 +112,17 @@ class UnocssService(private val project: Project) : Disposable {
     // 更新Unocss配置
     private suspend fun updateConfig(ctx: VirtualFile) = runCatching {
         val process = getProcess(ctx) ?: return@runCatching
-        println("Updating unocss config...")
-        process.sendCommand<Any?, Any?>(RpcAction.ResolveConfig, null)
-        println("Unocss config updated!")
+        scope.launch {
+            println("Updating unocss config...")
+            runCatching {
+                withTimeout(10_000) {
+                    process.sendCommand<Any?, Any?>(RpcAction.ResolveConfig, null)
+                }
+            }.onFailure {
+                println("(!) Failed to update unocss config: $it")
+            }
+            println("Unocss config updated!")
+        }
     }
 
     fun updateConfigIfRunning() {

@@ -1,8 +1,12 @@
 package me.rerere.unocssintellij
 
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ex.ApplicationUtil
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.util.Disposer
@@ -112,17 +116,23 @@ class UnocssService(private val project: Project) : Disposable {
     // 更新Unocss配置
     private suspend fun updateConfig(ctx: VirtualFile) = runCatching {
         val process = getProcess(ctx) ?: return@runCatching
-        scope.launch {
-            println("Updating unocss config...")
-            runCatching {
-                withTimeout(10_000) {
-                    process.sendCommand<Any?, Any?>(RpcAction.ResolveConfig, null)
+        ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Updating unocss config") {
+            private lateinit var job: Job
+            override fun run(indicator: ProgressIndicator) {
+                println("Updating unocss config...")
+                job = scope.launch {
+                    runCatching {
+                        withTimeout(15_000) {
+                            process.sendCommand<Any?, Any?>(RpcAction.ResolveConfig, null)
+                        }
+                    }.onFailure {
+                        println("(!) Failed to update unocss config: $it")
+                    }
                 }
-            }.onFailure {
-                println("(!) Failed to update unocss config: $it")
+                runBlocking { job.join() }
+                println("Unocss config updated!")
             }
-            println("Unocss config updated!")
-        }
+        })
     }
 
     fun updateConfigIfRunning() {

@@ -1,6 +1,6 @@
 package me.rerere.unocssintellij
 
-import com.google.common.collect.Lists
+import com.google.common.collect.Sets
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.intellij.execution.configurations.GeneralCommandLine
@@ -28,7 +28,7 @@ private val MAX_WAIT_TIME = 10.seconds
 
 class UnocssProcess(project: Project, context: VirtualFile) : Disposable {
     val process: Process
-    val waitingCommands: MutableList<AwaitingCommand> = Lists.newCopyOnWriteArrayList<AwaitingCommand>()
+    val waitingCommands: MutableSet<AwaitingCommand> = Sets.newConcurrentHashSet()
 
     init {
         println("[UnoProcess] Starting UnoProcess")
@@ -149,4 +149,17 @@ data class AwaitingCommand(
     val id: String,
     val start: Long,
     val callback: (JsonObject) -> Unit
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as AwaitingCommand
+
+        return id == other.id
+    }
+
+    override fun hashCode(): Int {
+        return id.hashCode()
+    }
+}

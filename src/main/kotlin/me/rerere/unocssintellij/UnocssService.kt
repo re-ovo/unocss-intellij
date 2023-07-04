@@ -13,7 +13,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.wm.impl.status.widget.StatusBarWidgetsManager
 import com.intellij.psi.PsiFile
-import com.jetbrains.rd.framework.util.noAwait
 import kotlinx.coroutines.*
 import me.rerere.unocssintellij.rpc.*
 import me.rerere.unocssintellij.status.UnocssStatusBarFactory
@@ -148,13 +147,15 @@ class UnocssService(private val project: Project) : Disposable {
     fun getCompletion(ctx: VirtualFile, prefix: String, cursor: Int): List<SuggestionItem> {
         val process = getProcess(ctx) ?: return emptyList()
         val response: SuggestionItemList = runBlocking {
-            process.sendCommand(
-                RpcAction.GetComplete,
-                GetCompleteCommandData(
-                    content = prefix,
-                    cursor = cursor
+            withTimeout(1000) {
+                process.sendCommand(
+                    RpcAction.GetComplete,
+                    GetCompleteCommandData(
+                        content = prefix,
+                        cursor = cursor
+                    )
                 )
-            )
+            }
         }
         return response
     }
@@ -163,27 +164,26 @@ class UnocssService(private val project: Project) : Disposable {
         val process = getProcess(file.virtualFile) ?: return null
         val text = file.text
         val response: ResolveCSSResult = runBlocking {
-            process.sendCommand(
-                RpcAction.ResolveCssByOffset,
-                ResolveCSSByOffsetCommandData(
-                    content = text,
-                    cursor = offset
+            withTimeout(1000) {
+                process.sendCommand(
+                    RpcAction.ResolveCssByOffset,
+                    ResolveCSSByOffsetCommandData(
+                        content = text,
+                        cursor = offset
+                    )
                 )
-            )
+            }
         }
         return response
     }
 
-    fun resolveCss(file: VirtualFile, content: String): ResolveCSSResult? {
+    suspend fun resolveCss(file: VirtualFile, content: String): ResolveCSSResult? {
         val process = getProcess(file) ?: return null
-        val response: ResolveCSSResult = runBlocking {
-            process.sendCommand(
-                RpcAction.ResolveCss,
-                ResolveCSSCommandData(
-                    content = content
-                )
+        return process.sendCommand<ResolveCSSCommandData, ResolveCSSResult>(
+            RpcAction.ResolveCss,
+            ResolveCSSCommandData(
+                content = content
             )
-        }
-        return response
+        )
     }
 }

@@ -7,6 +7,8 @@ import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.elementType
 import com.intellij.util.ui.ColorIcon
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import me.rerere.unocssintellij.UnocssService
 import me.rerere.unocssintellij.lang.psi.UnocssTypes
 import me.rerere.unocssintellij.util.parseColors
@@ -18,10 +20,14 @@ class UnocssLineMarker : LineMarkerProvider {
             val project = element.project
             val service = project.service<UnocssService>()
 
-            val result = service.resolveCss(
-                element.containingFile.virtualFile,
-                element.text
-            )
+            val result = runBlocking {
+                withTimeout(50) {
+                    service.resolveCss(
+                        element.containingFile.virtualFile,
+                        element.text
+                    )
+                }
+            }
             val css = result?.css ?: return null
 
             // color icon

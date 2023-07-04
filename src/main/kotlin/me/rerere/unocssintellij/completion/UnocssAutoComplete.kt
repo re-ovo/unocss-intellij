@@ -1,14 +1,26 @@
 package me.rerere.unocssintellij.completion
 
+import com.intellij.codeInsight.AutoPopupController
 import com.intellij.codeInsight.completion.*
+import com.intellij.codeInsight.completion.impl.CompletionServiceImpl
+import com.intellij.codeInsight.editorActions.TypedHandlerDelegate
 import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.codeInsight.lookup.LookupManager
+import com.intellij.codeInsight.lookup.impl.LookupImpl
 import com.intellij.openapi.application.ex.ApplicationUtil
 import com.intellij.openapi.components.service
+import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.editor.EditorModificationUtil
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.project.Project
 import com.intellij.patterns.PlatformPatterns
+import com.intellij.psi.PsiFile
+import com.intellij.psi.util.childrenOfType
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ui.ColorIcon
 import me.rerere.unocssintellij.UnocssService
+import me.rerere.unocssintellij.lang.UnocssElementType
+import me.rerere.unocssintellij.lang.psi.UnocssClassValue
 import me.rerere.unocssintellij.lang.psi.UnocssTypes
 import me.rerere.unocssintellij.marker.SVGIcon
 import me.rerere.unocssintellij.util.parseColors
@@ -39,6 +51,8 @@ class UnocssCompletionProvider : CompletionProvider<CompletionParameters>() {
         val prefix = result.prefixMatcher.prefix
         val file = parameters.originalFile.virtualFile
 
+        println("Complete: $prefix ${file.path}")
+
         ApplicationUtil.runWithCheckCanceled({
             service.getCompletion(
                 file,
@@ -64,5 +78,35 @@ class UnocssCompletionProvider : CompletionProvider<CompletionParameters>() {
         }
 
         result.restartCompletionOnAnyPrefixChange()
+    }
+}
+
+// Make auto popup work when typing '-'
+// https://github.com/JetBrains/intellij-community/blob/4d5322af326084873e16cfafd0239a1713a52adc/plugins/terminal/src/org/jetbrains/plugins/terminal/exp/TerminalCompletionAutoPopupHandler.kt#L19
+class TypedHandler: TypedHandlerDelegate() {
+    override fun checkAutoPopup(charTyped: Char, project: Project, editor: Editor, file: PsiFile): Result {
+        if(!project.service<UnocssService>().isProcessRunning()) return Result.CONTINUE
+
+        val values = file.childrenOfType<UnocssClassValue>()
+        if(values.isEmpty()) return Result.CONTINUE
+
+        val phase = CompletionServiceImpl.getCompletionPhase()
+        val lookup = LookupManager.getActiveLookup(editor)
+        if (lookup is LookupImpl) {
+            if (editor.selectionModel.hasSelection()) {
+                lookup.performGuardedChange { EditorModificationUtil.deleteSelectedText(editor) }
+            }
+            return Result.STOP
+        }
+
+        if (Character.isLetterOrDigit(charTyped) || charTyped == '-') {
+            if (phase is CompletionPhase.EmptyAutoPopup && phase.allowsSkippingNewAutoPopup(editor, charTyped)) {
+                return Result.CONTINUE
+            }
+            AutoPopupController.getInstance(project).scheduleAutoPopup(editor)
+            return Result.STOP
+        }
+
+        return Result.CONTINUE
     }
 }

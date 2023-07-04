@@ -70,6 +70,7 @@
         <platform.backend.documentation.targetProvider
                 implementation="me.rerere.unocssintellij.documentation.UnocssDocumentTargetProviderOffset"
         />
+        <typedHandler implementation="me.rerere.unocssintellij.completion.TypedHandler" />
 
         <!-- 图标 -->
         <codeInsight.lineMarkerProvider

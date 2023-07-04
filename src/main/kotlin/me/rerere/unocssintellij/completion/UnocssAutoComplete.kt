@@ -51,8 +51,6 @@ class UnocssCompletionProvider : CompletionProvider<CompletionParameters>() {
         val prefix = result.prefixMatcher.prefix
         val file = parameters.originalFile.virtualFile
 
-        println("Complete: $prefix ${file.path}")
-
         ApplicationUtil.runWithCheckCanceled({
             service.getCompletion(
                 file,

@@ -19,7 +19,6 @@ import com.intellij.psi.util.childrenOfType
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ui.ColorIcon
 import me.rerere.unocssintellij.UnocssService
-import me.rerere.unocssintellij.lang.UnocssElementType
 import me.rerere.unocssintellij.lang.psi.UnocssClassValue
 import me.rerere.unocssintellij.lang.psi.UnocssTypes
 import me.rerere.unocssintellij.marker.SVGIcon

@@ -116,10 +116,9 @@ class UnocssProcess(project: Project, context: VirtualFile) : Disposable {
         val id = UUID.randomUUID().toString()
 
         // Send command to process
-        val json = Unocss.GSON.toJson(RpcCommand(id, action.key, command))
+        val json = Unocss.GSON.toJson(RpcCommand(id, action.key, command)) + "\n"
         process.outputStream?.let {
             it.write(json.toByteArray())
-            it.write("\n".toByteArray())
             it.flush()
         } ?: run {
             continuation.resumeWithException(RuntimeException("Process output stream not found"))

@@ -72,8 +72,8 @@ class UnocssService(private val project: Project) : Disposable {
         scope.cancel()
     }
 
-    private fun getProcess(ctx: VirtualFile): UnocssProcess? {
-        if (unocssProcess == null && Unocss.isUnocssInstalled(project, ctx)) {
+    private fun getProcess(ctx: VirtualFile?): UnocssProcess? {
+        if (unocssProcess == null && ctx != null && Unocss.isUnocssInstalled(project, ctx)) {
             initProcess(ctx)
             updateConfig(ctx).onFailure {
                 println("(!) Failed to update unocss config: $it")
@@ -177,7 +177,7 @@ class UnocssService(private val project: Project) : Disposable {
         return response
     }
 
-    suspend fun resolveCss(file: VirtualFile, content: String): ResolveCSSResult? {
+    suspend fun resolveCss(file: VirtualFile?, content: String): ResolveCSSResult? {
         val process = getProcess(file) ?: return null
         return process.sendCommand<ResolveCSSCommandData, ResolveCSSResult>(
             RpcAction.ResolveCss,

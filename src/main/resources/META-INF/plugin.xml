@@ -74,6 +74,9 @@
                 id="UnocssStatusBar"
                 implementation="me.rerere.unocssintellij.status.UnocssStatusBarFactory"
         />
+
+        <!-- 代码折叠 -->
+        <lang.foldingBuilder language="Unocss" implementationClass="me.rerere.unocssintellij.fold.UnocssFold" />
     </extensions>
 
     <projectListeners>

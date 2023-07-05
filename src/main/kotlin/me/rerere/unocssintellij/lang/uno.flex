@@ -15,7 +15,7 @@ import me.rerere.unocssintellij.lang.psi.UnocssTypes;
 %eof{  return;
 %eof}
 
-CLASSNAME=[a-zA-Z0-9\-\_\#]+
+CLASSNAME=[a-zA-Z0-9\-\_\#\:]+
 WHITESPACE=[\ \t\n\r]+
 
 %state WAITING_CLASSNAME

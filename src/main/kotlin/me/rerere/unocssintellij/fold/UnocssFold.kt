@@ -24,7 +24,7 @@ class UnocssFold : FoldingBuilderEx() {
                             injectedPsi,
                             injectedPsi.textRange
                         )
-
+                        if(hostRange.length == 0) return@enumerate
                         if(descriptors.any { it.range == hostRange }) {
                             return@enumerate
                         }

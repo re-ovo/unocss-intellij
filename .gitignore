@@ -5,6 +5,7 @@ build/
 !**/src/test/**/build/
 unojs/
 .idea/
+sign/
 
 ### Flex ###
 idea-flex.skeleton

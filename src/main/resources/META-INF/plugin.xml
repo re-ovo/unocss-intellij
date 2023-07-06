@@ -1,7 +1,7 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
     <id>me.rerere.unocss-intellij</id>
-    <name>UnocssIntellij</name>
+    <name>Unocss</name>
     <vendor email="re_dev@qq.com" url="https://github.com/re-ovo">RE_OVO</vendor>
 
     <description><![CDATA[

@@ -3,20 +3,37 @@ package me.rerere.unocssintellij.fold
 import com.intellij.lang.ASTNode
 import com.intellij.lang.folding.FoldingBuilderEx
 import com.intellij.lang.folding.FoldingDescriptor
+import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.editor.Document
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiRecursiveElementWalkingVisitor
 import com.intellij.psi.util.PsiTreeUtil
+import me.rerere.unocssintellij.lang.UnocssLang
 import me.rerere.unocssintellij.lang.psi.UnocssClassValue
 
 class UnocssFold : FoldingBuilderEx() {
     override fun buildFoldRegions(root: PsiElement, document: Document, quick: Boolean): Array<FoldingDescriptor> {
+        val injectedLanguageManager = InjectedLanguageManager.getInstance(root.project)
         val descriptors = mutableListOf<FoldingDescriptor>()
-        val classValues = PsiTreeUtil.findChildrenOfType(root, UnocssClassValue::class.java)
-        if(classValues.isNotEmpty()) {
-            classValues.forEach {
-                descriptors.add(FoldingDescriptor(it, it.textRange))
+
+        root.accept(object : PsiRecursiveElementWalkingVisitor() {
+            override fun visitElement(element: PsiElement) {
+                injectedLanguageManager.enumerate(element) { injectedPsi, _ ->
+                    if(injectedPsi.language == UnocssLang.INSTANCE) {
+                        val hostRange = injectedLanguageManager.injectedToHost(
+                            injectedPsi,
+                            injectedPsi.textRange
+                        )
+
+                        if(descriptors.any { it.range == hostRange }) {
+                            return@enumerate
+                        }
+                        descriptors.add(FoldingDescriptor(element, hostRange))
+                    }
+                }
+                super.visitElement(element)
             }
-        }
+        })
 
         return descriptors.toTypedArray()
     }

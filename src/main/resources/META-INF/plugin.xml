@@ -61,7 +61,7 @@
         <platform.backend.documentation.targetProvider
                 implementation="me.rerere.unocssintellij.documentation.UnocssDocumentTargetProviderOffset"
         />
-        <typedHandler implementation="me.rerere.unocssintellij.completion.TypedHandler" />
+        <typedHandler implementation="me.rerere.unocssintellij.completion.TypedHandler"/>
 
         <!-- 图标 -->
         <codeInsight.lineMarkerProvider
@@ -76,7 +76,14 @@
         />
 
         <!-- 代码折叠 -->
-        <lang.foldingBuilder language="Unocss" implementationClass="me.rerere.unocssintellij.fold.UnocssFold" />
+        <lang.foldingBuilder
+                language="HTML"
+                implementationClass="me.rerere.unocssintellij.fold.UnocssFold"
+        />
+        <lang.foldingBuilder
+                language="JavaScript"
+                implementationClass="me.rerere.unocssintellij.fold.UnocssFold"
+        />
     </extensions>
 
     <projectListeners>

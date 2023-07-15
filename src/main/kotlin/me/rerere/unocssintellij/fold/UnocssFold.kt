@@ -5,6 +5,7 @@ import com.intellij.lang.folding.FoldingBuilderEx
 import com.intellij.lang.folding.FoldingDescriptor
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.editor.Document
+import com.intellij.openapi.editor.FoldingGroup
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiRecursiveElementWalkingVisitor
 import com.intellij.psi.util.PsiTreeUtil
@@ -15,6 +16,8 @@ class UnocssFold : FoldingBuilderEx() {
     override fun buildFoldRegions(root: PsiElement, document: Document, quick: Boolean): Array<FoldingDescriptor> {
         val injectedLanguageManager = InjectedLanguageManager.getInstance(root.project)
         val descriptors = mutableListOf<FoldingDescriptor>()
+
+        val folderGroup = FoldingGroup.newGroup("unocss")
 
         root.accept(object : PsiRecursiveElementWalkingVisitor() {
             override fun visitElement(element: PsiElement) {
@@ -28,7 +31,7 @@ class UnocssFold : FoldingBuilderEx() {
                         if(descriptors.any { it.range == hostRange }) {
                             return@enumerate
                         }
-                        descriptors.add(FoldingDescriptor(element, hostRange))
+                        descriptors.add(FoldingDescriptor(element.node, hostRange, folderGroup))
                     }
                 }
                 super.visitElement(element)
@@ -39,7 +42,14 @@ class UnocssFold : FoldingBuilderEx() {
     }
 
     override fun getPlaceholderText(node: ASTNode): String? {
-        return "Unocss"
+        return node.text.trim('"')
+            .let {
+                if(it.length > 20) {
+                    it.substring(0, 20) + "..."
+                } else {
+                    it
+                }
+            }
     }
 
     override fun isCollapsedByDefault(node: ASTNode): Boolean {

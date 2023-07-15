@@ -27,7 +27,8 @@ private val SENSITIVE_FILES = listOf(
     "svelte.config",
     "iles.config",
     "astro.config",
-    "nuxt.config"
+    "nuxt.config",
+    "uno.config",
 )
 
 @Service(Service.Level.PROJECT)

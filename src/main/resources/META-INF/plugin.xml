@@ -22,8 +22,7 @@
 
     <change-notes><![CDATA[
       <ul>
-        <li>Code folds into a group so you can quickly unfold all unocss</li>
-        <li>Fix the problem that uno.config.js/ts configuration files are not watched</li>
+        <li>Fixed JSX string template support</li>
       </ul>
     ]]></change-notes>
 

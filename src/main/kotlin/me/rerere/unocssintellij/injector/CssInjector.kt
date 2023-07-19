@@ -2,15 +2,24 @@ package me.rerere.unocssintellij.injector
 
 import com.intellij.codeInsight.completion.CompletionPhase
 import com.intellij.codeInsight.completion.impl.CompletionServiceImpl
+import com.intellij.embedding.EmbeddingElementType
+import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.lang.injection.MultiHostInjector
 import com.intellij.lang.injection.MultiHostRegistrar
+import com.intellij.lang.javascript.JSElementTypes
 import com.intellij.lang.javascript.psi.JSConditionalExpression
+import com.intellij.lang.javascript.psi.JSEmbeddedContent
 import com.intellij.lang.javascript.psi.JSLiteralExpression
 import com.intellij.lang.javascript.psi.JSVariable
+import com.intellij.lang.javascript.types.JSEmbeddedExpressionElementType
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.service
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiLanguageInjectionHost
+import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.util.childrenOfType
+import com.intellij.psi.util.elementType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlAttributeValue
 import kotlinx.coroutines.runBlocking
@@ -97,6 +106,12 @@ class UnocssInjector : MultiHostInjector {
     private val classNames = setOf("class", "className")
     private fun shouldInjectXmlAttr(context: PsiElement): Boolean {
         val parent = context.parent
+
+        // 如果是嵌入式表达式，不注入
+        if(context.children.any { it.elementType == JSElementTypes.EMBEDDED_EXPRESSION }) {
+            return false
+        }
+
         if (parent is XmlAttribute) {
             val name = parent.name
             if (name in classNames) {

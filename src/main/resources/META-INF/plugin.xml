@@ -22,7 +22,8 @@
 
     <change-notes><![CDATA[
       <ul>
-        <li>Fixed JSX string template support</li>
+        <li>Fixed an issue where icon visibility was too low when using a dark theme</li>
+        <li>Use a better code rendering API to render documents to avoid some css parts not being rendered</li>
       </ul>
     ]]></change-notes>
 

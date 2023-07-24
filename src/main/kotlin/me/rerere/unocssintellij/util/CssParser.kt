@@ -33,7 +33,7 @@ fun parseColors(css: String): Set<JBColor> {
     return colors
 }
 
-fun JBColor.toHex(): String {
+fun Color.toHex(): String {
     val r = red
     val g = green
     val b = blue

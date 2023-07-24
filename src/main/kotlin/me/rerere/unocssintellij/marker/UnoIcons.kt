@@ -4,6 +4,7 @@ import com.github.weisj.jsvg.attributes.ViewBox
 import com.github.weisj.jsvg.parser.SVGLoader
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
+import me.rerere.unocssintellij.util.toHex
 import java.awt.Component
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -11,15 +12,13 @@ import java.net.URLDecoder
 import javax.swing.Icon
 import javax.swing.JComponent
 
-private const val ICON_SIZE = 18
+private const val ICON_SIZE = 20
 
 private fun svgDataUrlToSvgElement(url: String): String {
     val decoded = URLDecoder.decode(url, "UTF-8")
     val index = decoded.indexOf("<svg")
 
-    val iconColor = with(JBUI.CurrentTheme.Label.foreground()) {
-        String.format("#%02x%02x%02x", red, green, blue)
-    }
+    val iconColor = JBUI.CurrentTheme.Label.foreground().toHex()
     return decoded.substring(index).replace("currentColor", iconColor)
 }
 

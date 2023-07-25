@@ -28,6 +28,8 @@ object Unocss {
         val packageJson = PackageJsonUtil.findUpPackageJson(context.toLocalVirtualFile()) ?: return false
         val unocssPackage = NodeInstalledPackageFinder(project, packageJson)
             .findInstalledPackage("unocss")
-        return unocssPackage != null
+        val unocssPackageAt = NodeInstalledPackageFinder(project, packageJson)
+            .findInstalledPackage("@unocss")
+        return unocssPackage != null || unocssPackageAt != null
     }
 }

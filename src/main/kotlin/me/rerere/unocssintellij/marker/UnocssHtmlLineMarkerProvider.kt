@@ -6,8 +6,9 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.elementType
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlElementType
+import me.rerere.unocssintellij.model.UnocssResolveMeta
 
-class UnocssHtmlLineMarkerProvider : UnocssLineMarkerProvider() {
+open class UnocssHtmlLineMarkerProvider : UnocssLineMarkerProvider() {
     override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
         // match with "Valueless" attributify preset
         if (element.elementType == XmlElementType.XML_NAME) {
@@ -24,7 +25,7 @@ class UnocssHtmlLineMarkerProvider : UnocssLineMarkerProvider() {
     private fun getFromXmlName(element: PsiElement): LineMarkerInfo<*>? {
         // only attribute name
         return if (element.nextSibling == null) {
-             getLineMarkerInfo(UnocssLineMarkerMeta(element, element.text, null))
+             getLineMarkerInfo(UnocssResolveMeta(element, element.text, null))
         } else null
     }
 
@@ -32,6 +33,6 @@ class UnocssHtmlLineMarkerProvider : UnocssLineMarkerProvider() {
         val xmlAttrValueEle = PsiTreeUtil.getParentOfType(element, XmlAttributeValue::class.java) ?: return null
         val xmlName = xmlAttrValueEle.parent.firstChild.text
 
-        return getLineMarkerInfo(UnocssLineMarkerMeta(element, xmlName, element.text))
+        return getLineMarkerInfo(UnocssResolveMeta(element, xmlName, element.text))
     }
 }

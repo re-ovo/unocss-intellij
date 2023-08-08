@@ -33,8 +33,6 @@ object UnocssCSSTermListCompletionProvider : CompletionProvider<CompletionParame
     ) {
         val element = parameters.position
 
-        println("addCompletions" + element)
-
         val project = element.project
         val service = project.service<UnocssService>()
 

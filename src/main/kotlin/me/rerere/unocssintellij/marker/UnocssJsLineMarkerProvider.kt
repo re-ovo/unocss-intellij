@@ -6,12 +6,15 @@ import com.intellij.lang.javascript.psi.JSProperty
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlAttributeValue
+import me.rerere.unocssintellij.model.UnocssResolveMeta
 
 /**
  * For JSX/TSX Support
  */
-class UnocssJsLineMarkerProvider : UnocssLineMarkerProvider() {
+class UnocssJsLineMarkerProvider : UnocssHtmlLineMarkerProvider() {
     override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
+        val lineMarkerInfo = super.getLineMarkerInfo(element)
+        if (lineMarkerInfo != null) return lineMarkerInfo
 
         val attrValue: String = (if (element is JSLiteralExpression && element.isStringLiteral) {
             // JSLiteralExpression vue v-bind string literals
@@ -25,6 +28,6 @@ class UnocssJsLineMarkerProvider : UnocssLineMarkerProvider() {
         val xmlName = xmlAttrValueEle.parent.firstChild.text
 
         // Both JSLiteralExpression's first child and JSProperty's first child are LeafPsiElement
-        return getLineMarkerInfo(UnocssLineMarkerMeta(element.firstChild, xmlName, attrValue))
+        return getLineMarkerInfo(UnocssResolveMeta(element.firstChild, xmlName, attrValue))
     }
 }

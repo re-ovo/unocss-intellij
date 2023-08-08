@@ -1,15 +1,11 @@
 package me.rerere.unocssintellij.inspection
 
 import com.intellij.codeInspection.XmlSuppressionProvider
-import com.intellij.openapi.components.service
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.elementType
 import com.intellij.psi.xml.XmlElementType
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeoutOrNull
-import me.rerere.unocssintellij.UnocssService
-import me.rerere.unocssintellij.util.buildDummyDivTag
+import me.rerere.unocssintellij.model.UnocssResolveMeta
 
 /**
  * For suppressing unknown attribute inspection
@@ -45,14 +41,8 @@ class UnocssXmlSuppressionProvider : XmlSuppressionProvider() {
             attrElement.nextSibling?.nextSibling?.text?.trim('"', '{', '}', '[', ']')
         }
 
-        val matchResult = runBlocking {
-            withTimeoutOrNull(100) {
-                attrElement.project.service<UnocssService>().resolveCss(
-                    attrElement.containingFile.virtualFile,
-                    buildDummyDivTag(attrName to attrValue)
-                )
-            }
-        } ?: return false
+        val matchResult = UnocssResolveMeta(attrElement, attrName, attrValue, true).resolveCss()
+            ?: return false
 
         return if (onlyAttributeName) {
             matchResult.matchedTokens.contains(attributeNameOnlyMatchCandidate(attrName))

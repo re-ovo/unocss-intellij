@@ -63,8 +63,16 @@
 
         <!-- 图标 -->
         <codeInsight.lineMarkerProvider
-                language="Unocss"
-                implementationClass="me.rerere.unocssintellij.marker.UnocssLineMarker"
+                language="HTML"
+                implementationClass="me.rerere.unocssintellij.marker.UnocssHtmlLineMarkerProvider"
+        />
+        <codeInsight.lineMarkerProvider
+                language="JavaScript"
+                implementationClass="me.rerere.unocssintellij.marker.UnocssJsLineMarkerProvider"
+        />
+        <codeInsight.lineMarkerProvider
+            language="CSS"
+            implementationClass="me.rerere.unocssintellij.marker.UnocssCssLineMarkerProvider"
         />
 
         <!-- 工具栏 -->

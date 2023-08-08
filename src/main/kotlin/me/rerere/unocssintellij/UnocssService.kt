@@ -187,4 +187,15 @@ class UnocssService(private val project: Project) : Disposable {
             )
         )
     }
+
+    suspend fun resolveAnnotations(file: VirtualFile?, content: String): ResolveAnnotationsResult? {
+        val process = getProcess(file) ?: return null
+        return process.sendCommand<ResolveAnnotationsCommandData, ResolveAnnotationsResult>(
+            RpcAction.ResolveAnnotations,
+            ResolveAnnotationsCommandData(
+                id = file?.path ?: "",
+                content = content
+            )
+        )
+    }
 }

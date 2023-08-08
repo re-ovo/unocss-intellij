@@ -11,6 +11,7 @@ enum class RpcAction(val key: String) {
     GetComplete("getComplete"),
     ResolveCss("resolveCSS"),
     ResolveCssByOffset("resolveCSSByOffset"),
+    ResolveAnnotations("resolveAnnotations"),
 }
 
 data class GetCompleteCommandData(
@@ -38,4 +39,17 @@ data class ResolveCSSCommandData(
 data class ResolveCSSResult(
     val css: String,
     val layers: List<String>,
+    val matchedTokens: Set<String>,
 )
+
+data class ResolveAnnotationsCommandData(
+    val id: String = "",
+    val content: String
+)
+
+data class ResolveAnnotationsResult(
+    val matched: Set<String>,
+    val extraAnnotations: List<HighlightAnnotation>
+) {
+    data class HighlightAnnotation(val offset: Int, val length: Int, val className: String)
+}

@@ -3,6 +3,7 @@ package me.rerere.unocssintellij
 import com.google.common.collect.Sets
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import com.google.gson.reflect.TypeToken
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.CapturingProcessHandler
 import com.intellij.javascript.nodejs.interpreter.NodeCommandLineConfigurator
@@ -57,17 +58,22 @@ class UnocssProcess(project: Project, context: VirtualFile) : Disposable {
         process.inputStream.let { inputStream ->
             thread {
                 inputStream.bufferedReader().useLines { lines ->
+
                     // Handle response
                     lines.forEach { line ->
-                        val jsonObject = runCatching {  JsonParser.parseString(line).asJsonObject }
-                            .onFailure {
-                                println("[UnoProcess] Failed to parse json: $line")
-                            }
-                            .getOrNull() ?: return@forEach
-                        val id = jsonObject["id"]?.asString ?: return@forEach
-                        val waitingCommand = waitingCommands.find { it.id == id } ?: return@forEach
-                        waitingCommands.remove(waitingCommand)
-                        waitingCommand.callback(jsonObject)
+                        if (line.startsWith("[UnoProcess]")) {
+                            println(line)
+                        } else {
+                            val jsonObject = runCatching {  JsonParser.parseString(line).asJsonObject }
+                                .onFailure {
+                                    println("[UnoProcess] Failed to parse json: $line")
+                                }
+                                .getOrNull() ?: return@forEach
+                            val id = jsonObject["id"]?.asString ?: return@forEach
+                            val waitingCommand = waitingCommands.find { it.id == id } ?: return@forEach
+                            waitingCommands.remove(waitingCommand)
+                            waitingCommand.callback(jsonObject)
+                        }
                     }
 
                     // Check timeout
@@ -132,7 +138,7 @@ class UnocssProcess(project: Project, context: VirtualFile) : Disposable {
                     RuntimeException(jsonObject["error"]?.asString ?: "unknown error")
                 )
             } else {
-                val res = Unocss.GSON.fromJson(jsonObject["result"].toString(), R::class.java)
+                val res = Unocss.GSON.fromJson(jsonObject["result"].toString(), object : TypeToken<R>() {})
                 continuation.resume(res)
             }
         })

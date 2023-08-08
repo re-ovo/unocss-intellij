@@ -38,22 +38,19 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-        <lang.parserDefinition
-                language="Unocss"
-                implementationClass="me.rerere.unocssintellij.lang.UnocssParserDefinition"
-        />
-        <fileType
-                name="Unocss file"
-                implementationClass="me.rerere.unocssintellij.lang.UnocssFileType"
-                fieldName="INSTANCE"
-                language="Unocss"
-                extensions="unocss"
+
+        <!-- 代码补全 -->
+        <completion.contributor
+            language="HTML"
+            implementationClass="me.rerere.unocssintellij.completion.UnocssAttributeCompletionContributor"
         />
         <completion.contributor
-                language="Unocss"
-                implementationClass="me.rerere.unocssintellij.completion.UnocssAutoComplete"
-                order="last"
+            language="JavaScript"
+            implementationClass="me.rerere.unocssintellij.completion.UnocssAttributeCompletionContributor"
         />
+        <completion.contributor
+            language="CSS"
+            implementationClass="me.rerere.unocssintellij.completion.UnocssCSSCompletionContributor" />
 
         <!-- 文档提示 -->
         <platform.backend.documentation.targetProvider

@@ -15,57 +15,87 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.PsiFile
+import com.intellij.psi.html.HtmlTag
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.childrenOfType
+import com.intellij.psi.util.elementType
+import com.intellij.psi.xml.XmlAttribute
+import com.intellij.psi.xml.XmlElementType
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ui.ColorIcon
+import com.intellij.xml.util.HtmlUtil
 import me.rerere.unocssintellij.UnocssService
-import me.rerere.unocssintellij.lang.psi.UnocssClassValue
-import me.rerere.unocssintellij.lang.psi.UnocssTypes
 import me.rerere.unocssintellij.marker.SVGIcon
+import me.rerere.unocssintellij.util.isClassAttribute
 import me.rerere.unocssintellij.util.parseColors
 import me.rerere.unocssintellij.util.parseIcons
 import me.rerere.unocssintellij.util.trimCss
 
-class UnocssAutoComplete : CompletionContributor() {
+class UnocssAttributeCompletionContributor : CompletionContributor() {
     init {
         extend(
             CompletionType.BASIC,
-            PlatformPatterns
-                .psiElement(UnocssTypes.CLASSNAME),
-            UnocssCompletionProvider()
+            PlatformPatterns.psiElement(XmlElementType.XML_ATTRIBUTE_VALUE_TOKEN),
+            UnocssAttributeCompletionProvider
+        )
+        extend(
+            CompletionType.BASIC,
+            PlatformPatterns.psiElement(XmlElementType.XML_NAME),
+            UnocssAttributeCompletionProvider
         )
     }
 }
 
-class UnocssCompletionProvider : CompletionProvider<CompletionParameters>() {
+object UnocssAttributeCompletionProvider : CompletionProvider<CompletionParameters>() {
     override fun addCompletions(
         parameters: CompletionParameters,
         context: ProcessingContext,
         result: CompletionResultSet
     ) {
-        val project = parameters.position.project
+        val element = parameters.position
+        println("addCompletions: $element")
+
+        var unocssPrefix = ""
+        val completionPrefix = extractTypingPrefix(result.prefixMatcher.prefix)
+        val prefix = if (element.elementType == XmlElementType.XML_ATTRIBUTE_VALUE_TOKEN) {
+            val xmlAttributeEle = PsiTreeUtil.getParentOfType(element, XmlAttribute::class.java, false)
+                ?: return
+            val xmlName = xmlAttributeEle.firstChild
+
+            if (isClassAttribute(xmlName.text)) {
+                completionPrefix
+            } else {
+                unocssPrefix = xmlName.text
+                "${xmlName.text}-$completionPrefix"
+            }
+        } else {
+            completionPrefix
+        }
+
+        val project = element.project
         val service = project.service<UnocssService>()
 
-        val prefix = result.prefixMatcher.prefix
-        val file = parameters.originalFile.virtualFile
-
         ApplicationUtil.runWithCheckCanceled({
-            service.getCompletion(
-                file,
-                prefix,
-                prefix.length
-            )
+            service.getCompletion(parameters.originalFile.virtualFile, prefix, prefix.length)
         }, ProgressManager.getInstance().progressIndicator).forEach { suggestion ->
+            val className = if (unocssPrefix.isNotBlank()) {
+                suggestion.className.substring(unocssPrefix.length + 1)
+            } else {
+                suggestion.className
+            }
+            println("suggestion: $className")
+
             val colors = parseColors(suggestion.css)
             val icon = parseIcons(suggestion.css)
             result.addElement(
                 LookupElementBuilder
-                    .create(suggestion.className)
+                    .create(className)
+                    .withPresentableText(suggestion.className)
                     .withTypeText("Unocss")
                     .withIcon(
                         if (colors.isNotEmpty()) {
                             ColorIcon(16, colors.first())
-                        } else if(icon != null ){
+                        } else if (icon != null) {
                             SVGIcon(icon)
                         } else null
                     )
@@ -75,16 +105,18 @@ class UnocssCompletionProvider : CompletionProvider<CompletionParameters>() {
 
         result.restartCompletionOnAnyPrefixChange()
     }
+
+    private fun extractTypingPrefix(prefix: String) = prefix.trim().split(" ").last()
 }
 
 // Make auto popup work when typing '-'
 // https://github.com/JetBrains/intellij-community/blob/4d5322af326084873e16cfafd0239a1713a52adc/plugins/terminal/src/org/jetbrains/plugins/terminal/exp/TerminalCompletionAutoPopupHandler.kt#L19
-class TypedHandler: TypedHandlerDelegate() {
+class TypedHandler : TypedHandlerDelegate() {
     override fun checkAutoPopup(charTyped: Char, project: Project, editor: Editor, file: PsiFile): Result {
-        if(!project.service<UnocssService>().isProcessRunning()) return Result.CONTINUE
+        if (!project.service<UnocssService>().isProcessRunning()) return Result.CONTINUE
 
-        val values = file.childrenOfType<UnocssClassValue>()
-        if(values.isEmpty()) return Result.CONTINUE
+        val values = file.childrenOfType<HtmlTag>()
+        if (values.isEmpty()) return Result.CONTINUE
 
         val phase = CompletionServiceImpl.getCompletionPhase()
         val lookup = LookupManager.getActiveLookup(editor)

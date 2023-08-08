@@ -57,8 +57,7 @@
 
         <!-- 文档提示 -->
         <platform.backend.documentation.targetProvider
-                implementation="me.rerere.unocssintellij.documentation.UnocssDocumentTargetProviderOffset"
-        />
+                implementation="me.rerere.unocssintellij.documentation.UnocssDocumentTargetProvider" />
         <typedHandler implementation="me.rerere.unocssintellij.completion.TypedHandler"/>
 
         <!-- 图标 -->

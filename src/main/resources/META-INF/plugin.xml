@@ -29,13 +29,11 @@
 
     <category>Style Sheets</category>
 
-    <depends>com.intellij.modules.platform</depends>
-    <depends>com.intellij.css</depends>
-    <depends>JavaScript</depends>
-
     <!-- Product and plugin compatibility requirements.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.css</depends>
+    <depends>JavaScript</depends>
 
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
@@ -51,13 +49,6 @@
                 language="Unocss"
                 extensions="unocss"
         />
-        <lang.syntaxHighlighter
-                language="Unocss"
-                implementationClass="me.rerere.unocssintellij.lang.UnocssHighlighter"/>
-
-        <multiHostInjector implementation="me.rerere.unocssintellij.injector.UnocssInjector"/>
-
-        <!-- 提供补全 -->
         <completion.contributor
                 language="Unocss"
                 implementationClass="me.rerere.unocssintellij.completion.UnocssAutoComplete"
@@ -82,15 +73,21 @@
                 implementation="me.rerere.unocssintellij.status.UnocssStatusBarFactory"
         />
 
-        <!-- 代码折叠 -->
-        <lang.foldingBuilder
+        <!-- 属性标注 -->
+        <externalAnnotator
                 language="HTML"
-                implementationClass="me.rerere.unocssintellij.fold.UnocssFold"
-        />
-        <lang.foldingBuilder
+                implementationClass="me.rerere.unocssintellij.highlighting.UnocssAttributeExternalAnnotator"/>
+        <externalAnnotator
                 language="JavaScript"
-                implementationClass="me.rerere.unocssintellij.fold.UnocssFold"
-        />
+                implementationClass="me.rerere.unocssintellij.highlighting.UnocssAttributeExternalAnnotator"/>
+
+        <!-- preset/attributify 下抑制警告 -->
+        <lang.inspectionSuppressor
+                language="HTML"
+                implementationClass="me.rerere.unocssintellij.inspection.UnocssXmlSuppressionProvider"/>
+        <lang.inspectionSuppressor
+                language="JavaScript"
+                implementationClass="me.rerere.unocssintellij.inspection.UnocssXmlSuppressionProvider"/>
     </extensions>
 
     <projectListeners>

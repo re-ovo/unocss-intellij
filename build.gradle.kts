@@ -1,3 +1,5 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
 plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm") version "1.9.0"
@@ -37,6 +39,8 @@ tasks {
     }
     withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         kotlinOptions.jvmTarget = "17"
+
+        dependsOn("processJavaScript")
     }
 
     patchPluginXml {
@@ -52,6 +56,21 @@ tasks {
 
     publishPlugin {
         token.set(System.getenv("PUBLISH_TOKEN"))
+    }
+
+    task("processJavaScript") {
+        inputs.dir("src/main/javascript/src")
+        inputs.file("src/main/javascript/package.json")
+        outputs.dir("${project.projectDir}/unojs")
+        outputs.cacheIf { true }
+
+        doFirst {
+            exec {
+                workingDir("${project.projectDir}/src/main/javascript")
+                val npm = if(Os.isFamily(Os.FAMILY_WINDOWS)) "npm.cmd" else "npm"
+                commandLine(npm, "run", "build")
+            }
+        }
     }
 
     prepareSandbox {

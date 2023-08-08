@@ -8,12 +8,12 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.ListPopup
-import com.intellij.openapi.ui.popup.util.BaseListPopupStep
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.CustomStatusBarWidget
 import com.intellij.openapi.wm.StatusBarWidget
 import com.intellij.openapi.wm.StatusBarWidgetFactory
 import com.intellij.openapi.wm.impl.status.EditorBasedStatusBarPopup
+import kotlinx.coroutines.runBlocking
 import me.rerere.unocssintellij.UnocssService
 
 class UnocssStatusBarFactory : StatusBarWidgetFactory {
@@ -45,7 +45,7 @@ class UnocssStatusPop(project: Project) : EditorBasedStatusBarPopup(project, fal
         val group = object : ActionGroup() {
             override fun getChildren(e: AnActionEvent?): Array<AnAction> {
                 return arrayOf(
-                    object : AnAction("Update Config")  {
+                    object : AnAction("Update Config") {
                         override fun actionPerformed(e: AnActionEvent) {
                             project.service<UnocssService>().updateConfigIfRunning()
                         }
@@ -60,6 +60,24 @@ class UnocssStatusPop(project: Project) : EditorBasedStatusBarPopup(project, fal
     }
 
     override fun getWidgetState(file: VirtualFile?): WidgetState {
-        return WidgetState(null, "Unocss", true)
+        val text: String = if (file == null) {
+            "Unocss"
+        } else {
+            val filename = file.name
+            if (filename.endsWith(".js") || filename.endsWith(".ts")) {
+                "Unocss"
+            } else {
+                val matched = runBlocking {
+                    val content = file.contentsToByteArray().decodeToString()
+                    project.service<UnocssService>()
+                        .resolveCss(file, content)
+                        ?.matchedTokens ?: emptyList()
+                }
+
+                if (matched.isNotEmpty()) "Unocss: ${matched.size}" else "Unocss"
+            }
+        }
+
+        return WidgetState(null, text, true)
     }
 }

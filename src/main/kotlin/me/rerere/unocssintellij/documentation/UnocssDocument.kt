@@ -7,7 +7,6 @@ import com.intellij.lang.javascript.psi.e4x.impl.JSXmlAttributeValueImpl
 import com.intellij.model.Pointer
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.richcopy.HtmlSyntaxInfoUtil
 import com.intellij.platform.backend.documentation.DocumentationResult
 import com.intellij.platform.backend.documentation.DocumentationTarget
@@ -18,6 +17,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.codeStyle.CodeStyleManager
+import com.intellij.psi.css.impl.CssElementType
 import com.intellij.psi.css.impl.CssElementTypes
 import com.intellij.psi.impl.source.xml.XmlAttributeValueImpl
 import com.intellij.psi.util.PsiTreeUtil
@@ -26,16 +26,19 @@ import com.intellij.psi.xml.XmlElementType
 import com.intellij.psi.xml.XmlTokenType
 import com.intellij.refactoring.suggested.createSmartPointer
 import com.intellij.refactoring.suggested.startOffset
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeoutOrNull
-import me.rerere.unocssintellij.UnocssService
+import me.rerere.unocssintellij.model.UnocssResolveMeta
 import me.rerere.unocssintellij.rpc.ResolveCSSResult
-import me.rerere.unocssintellij.util.buildDummyDivTag
 import me.rerere.unocssintellij.util.parseColors
 import me.rerere.unocssintellij.util.toHex
 
 private val variantGroupPattern = Regex("(.*[:-])\\((.*)\\)")
 private val splitVariantGroupRE = Regex("\\s+(?![^(]*\\))")
+
+private val attributeNameOnlyElementTypes = setOf(
+    XmlElementType.XML_NAME,
+    CssElementTypes.CSS_IDENT,
+    CssElementTypes.CSS_STRING_TOKEN
+)
 
 class UnocssDocumentTargetProvider : DocumentationTargetProvider {
 
@@ -43,14 +46,17 @@ class UnocssDocumentTargetProvider : DocumentationTargetProvider {
         val element: PsiElement = file.findElementAt(offset) ?: return mutableListOf()
 
         val targets = mutableListOf<UnocssDocumentTarget>()
-        val service = file.project.service<UnocssService>()
-
-        val attribute: Pair<String, String?>
         val elementType = element.elementType
+        val meta: UnocssResolveMeta
         // attribute without value
-        if (elementType == XmlElementType.XML_NAME || elementType == CssElementTypes.CSS_IDENT) {
+        if (attributeNameOnlyElementTypes.contains(elementType)) {
             if (element.parent.lastChild != element) return targets
-            attribute = element.text to null
+            meta = UnocssResolveMeta(
+                element,
+                element.text.trim('"'),
+                null,
+                elementType !is CssElementType
+            )
         } else {
             val attributeValueEle = PsiTreeUtil.getParentOfType(
                 element,
@@ -63,28 +69,21 @@ class UnocssDocumentTargetProvider : DocumentationTargetProvider {
             val attributeNameEle = attributeEle.firstChild
 
             val offsetValue = getOffsetValue(offset, element, isLiteralValue) ?: return targets
-            attribute = attributeNameEle.text to offsetValue
+            meta = UnocssResolveMeta(element, attributeNameEle.text, offsetValue)
         }
 
-        resolveCssDocumentation(element, attribute, file, service, targets)
+        resolveCssDocumentation(meta, targets)
         return targets
     }
 
     private fun resolveCssDocumentation(
-        element: PsiElement,
-        attribute: Pair<String, String?>,
-        file: PsiFile,
-        service: UnocssService,
+        meta: UnocssResolveMeta,
         targets: MutableList<UnocssDocumentTarget>
     ) {
-        val matchResult = runBlocking {
-            withTimeoutOrNull(100) {
-                service.resolveCss(file.virtualFile, buildDummyDivTag(attribute))
-            }
-        } ?: return
+        val matchResult = meta.resolveCss() ?: return
 
         if (matchResult.matchedTokens.isNotEmpty()) {
-            targets.add(UnocssDocumentTarget(element, matchResult))
+            targets.add(UnocssDocumentTarget(meta.bindElement, matchResult))
         }
     }
 

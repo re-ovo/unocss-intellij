@@ -23,9 +23,9 @@ import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlElementType
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ui.ColorIcon
-import com.intellij.xml.util.HtmlUtil
 import me.rerere.unocssintellij.UnocssService
 import me.rerere.unocssintellij.marker.SVGIcon
+import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.util.isClassAttribute
 import me.rerere.unocssintellij.util.parseColors
 import me.rerere.unocssintellij.util.parseIcons
@@ -52,8 +52,8 @@ object UnocssAttributeCompletionProvider : CompletionProvider<CompletionParamete
         context: ProcessingContext,
         result: CompletionResultSet
     ) {
+        if (!UnocssSettingsState.instance.enable) return
         val element = parameters.position
-        println("addCompletions: $element")
 
         var unocssPrefix = ""
         val completionPrefix = extractTypingPrefix(result.prefixMatcher.prefix)
@@ -76,14 +76,14 @@ object UnocssAttributeCompletionProvider : CompletionProvider<CompletionParamete
         val service = project.service<UnocssService>()
 
         ApplicationUtil.runWithCheckCanceled({
-            service.getCompletion(parameters.originalFile.virtualFile, prefix, prefix.length)
+            val maxItems = UnocssSettingsState.instance.maxItems
+            service.getCompletion(parameters.originalFile.virtualFile, prefix, maxItems = maxItems)
         }, ProgressManager.getInstance().progressIndicator).forEach { suggestion ->
             val className = if (unocssPrefix.isNotBlank()) {
                 suggestion.className.substring(unocssPrefix.length + 1)
             } else {
                 suggestion.className
             }
-            println("suggestion: $className")
 
             val colors = parseColors(suggestion.css)
             val icon = parseIcons(suggestion.css)

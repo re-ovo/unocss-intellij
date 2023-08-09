@@ -28,6 +28,7 @@ import com.intellij.refactoring.suggested.createSmartPointer
 import com.intellij.refactoring.suggested.startOffset
 import me.rerere.unocssintellij.model.UnocssResolveMeta
 import me.rerere.unocssintellij.rpc.ResolveCSSResult
+import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.util.parseColors
 import me.rerere.unocssintellij.util.toHex
 
@@ -43,6 +44,7 @@ private val attributeNameOnlyElementTypes = setOf(
 class UnocssDocumentTargetProvider : DocumentationTargetProvider {
 
     override fun documentationTargets(file: PsiFile, offset: Int): MutableList<out DocumentationTarget> {
+        if (!UnocssSettingsState.instance.enable) return mutableListOf()
         val element: PsiElement = file.findElementAt(offset) ?: return mutableListOf()
 
         val targets = mutableListOf<UnocssDocumentTarget>()
@@ -133,6 +135,8 @@ class UnocssDocumentTargetProvider : DocumentationTargetProvider {
     }
 }
 
+private val remRE = Regex("-?[\\d.]+rem;")
+
 class UnocssDocumentTarget(
     private val targetElement: PsiElement?,
     private val result: ResolveCSSResult,
@@ -153,7 +157,7 @@ class UnocssDocumentTarget(
 
     override fun computeDocumentation(): DocumentationResult {
         val cssFile: PsiFile = PsiFileFactory.getInstance(targetElement?.project)
-            .createFileFromText(CSSLanguage.INSTANCE, result.css)
+            .createFileFromText(CSSLanguage.INSTANCE, resolveRemToPx(result.css))
         return DocumentationResult.Companion.asyncDocumentation {
             // Format the css
             WriteCommandAction.runWriteCommandAction(cssFile.project) {
@@ -191,5 +195,30 @@ class UnocssDocumentTarget(
                 append(DocumentationMarkup.CONTENT_END)
             })
         }
+    }
+
+    private fun resolveRemToPx(css: String): String {
+        val settingsState = UnocssSettingsState.instance
+        if (css.isBlank()) return css
+
+        val remToPxRatio = if (settingsState.remToPxPreview) {
+            settingsState.remToPxRatio
+        } else {
+            -1.0
+        }
+
+        if (remToPxRatio < 1) return css
+        var index = 0
+        val output = StringBuilder()
+        while (index < css.length) {
+            val rem = remRE.find(css.substring(index)) ?: break
+            val px = """ /* ${rem.value.substring(0, rem.value.length - 4).toFloat() * remToPxRatio}px */"""
+            val end = index + rem.range.first + rem.value.length
+            output.append(css.substring(index, end))
+            output.append(px)
+            index = end
+        }
+        output.append(css.substring(index))
+        return output.toString()
     }
 }

@@ -137,6 +137,8 @@ class UnocssProcess(project: Project, context: VirtualFile) : Disposable {
                 continuation.resumeWithException(
                     RuntimeException(jsonObject["error"]?.asString ?: "unknown error")
                 )
+            } else if (!jsonObject.has("result")) {
+                continuation.resume(Unit as R)
             } else {
                 val res = Unocss.GSON.fromJson(jsonObject["result"].toString(), object : TypeToken<R>() {})
                 continuation.resume(res)

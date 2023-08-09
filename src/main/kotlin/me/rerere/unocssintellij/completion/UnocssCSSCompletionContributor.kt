@@ -11,6 +11,7 @@ import com.intellij.util.ProcessingContext
 import com.intellij.util.ui.ColorIcon
 import me.rerere.unocssintellij.UnocssService
 import me.rerere.unocssintellij.marker.SVGIcon
+import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.util.parseColors
 import me.rerere.unocssintellij.util.parseIcons
 import me.rerere.unocssintellij.util.trimCss
@@ -31,6 +32,7 @@ object UnocssCSSTermListCompletionProvider : CompletionProvider<CompletionParame
         context: ProcessingContext,
         result: CompletionResultSet
     ) {
+        if (!UnocssSettingsState.instance.enable) return
         val element = parameters.position
 
         val project = element.project
@@ -39,7 +41,8 @@ object UnocssCSSTermListCompletionProvider : CompletionProvider<CompletionParame
         val prefix = result.prefixMatcher.prefix
 
         ApplicationUtil.runWithCheckCanceled({
-            service.getCompletion(parameters.originalFile.virtualFile, prefix, prefix.length)
+            val maxItems = UnocssSettingsState.instance.maxItems
+            service.getCompletion(parameters.originalFile.virtualFile, prefix, maxItems = maxItems)
         }, ProgressManager.getInstance().progressIndicator).forEach { suggestion ->
             val colors = parseColors(suggestion.css)
             val icon = parseIcons(suggestion.css)

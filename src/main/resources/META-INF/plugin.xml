@@ -91,6 +91,16 @@
         <lang.inspectionSuppressor
                 language="JavaScript"
                 implementationClass="me.rerere.unocssintellij.inspection.UnocssXmlSuppressionProvider"/>
+
+        <applicationService serviceImplementation="me.rerere.unocssintellij.settings.UnocssSettingsState" />
+        <projectConfigurable
+            parentId="tools"
+            instance="me.rerere.unocssintellij.settings.UnocssSettingsConfigurable"
+            id="me.rerere.unocssintellij.settings.UnocssSettingsConfigurable"
+            displayName="Unocss"
+            nonDefaultProject="true"
+        />
+
     </extensions>
 
     <projectListeners>

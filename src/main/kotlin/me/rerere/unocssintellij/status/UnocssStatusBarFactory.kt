@@ -14,6 +14,7 @@ import com.intellij.openapi.wm.StatusBarWidget
 import com.intellij.openapi.wm.StatusBarWidgetFactory
 import com.intellij.openapi.wm.impl.status.EditorBasedStatusBarPopup
 import kotlinx.coroutines.runBlocking
+import me.rerere.unocssintellij.UnocssBundle
 import me.rerere.unocssintellij.UnocssService
 import me.rerere.unocssintellij.settings.UnocssSettingsState
 
@@ -46,7 +47,7 @@ class UnocssStatusPop(project: Project) : EditorBasedStatusBarPopup(project, fal
         val group = object : ActionGroup() {
             override fun getChildren(e: AnActionEvent?): Array<AnAction> {
                 return arrayOf(
-                    object : AnAction("Update Config") {
+                    object : AnAction(UnocssBundle.message("status.action.updateConfig")) {
                         override fun actionPerformed(e: AnActionEvent) {
                             project.service<UnocssService>().updateConfigIfRunning()
                         }

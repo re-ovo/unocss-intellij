@@ -3,6 +3,7 @@ package me.rerere.unocssintellij.settings
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.dsl.builder.*
+import me.rerere.unocssintellij.UnocssBundle
 
 class UnocssSettingsComponent {
 
@@ -14,10 +15,10 @@ class UnocssSettingsComponent {
     init {
         panel = panel {
             row {
-                enableCheckbox = checkBox("Enable unocss").bindSelected(settings::enable)
+                enableCheckbox = checkBox(UnocssBundle.message("setting.enable")).bindSelected(settings::enable)
             }
 
-            group("Documentation") {
+            group(UnocssBundle.message("setting.documentation.title")) {
                 row {
                     previewRemToPxCheckbox = checkBox("Rem to px Preview")
                         .bindSelected(settings::remToPxPreview)
@@ -35,7 +36,7 @@ class UnocssSettingsComponent {
                 }.enabledIf(previewRemToPxCheckbox.selected)
             }.visibleIf(enableCheckbox.selected)
 
-            group("Autocomplete") {
+            group(UnocssBundle.message("setting.autocomplete.title")) {
                 buttonsGroup {
                     row("Match Type") {
                         radioButton("Prefix", "prefix")

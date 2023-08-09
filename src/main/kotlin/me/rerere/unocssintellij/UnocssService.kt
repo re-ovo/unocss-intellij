@@ -38,6 +38,8 @@ class UnocssService(private val project: Project) : Disposable {
     private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     init {
+        println("test = " + UnocssBundle.message("setting.enable"))
+
         // 监听文件变化
         VirtualFileManager.getInstance().addAsyncFileListener({ events ->
             var detected = false

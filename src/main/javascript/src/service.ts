@@ -1,11 +1,12 @@
-import {GenerateResult, presetUno} from "unocss";
+import {type GenerateResult, presetUno} from "unocss";
 import {createGenerator} from "@unocss/core";
-import {createAutocomplete, searchUsageBoundary} from "@unocss/autocomplete";
+import {type AutoCompleteMatchType, createAutocomplete, searchUsageBoundary} from "@unocss/autocomplete";
 import readline from "readline";
 import {deprecationCheck, resolveNuxtOptions} from "./utils";
 import {getMatchedPositionsFromCode} from "./match";
 import {loadConfig} from "@unocss/config";
 import {sourceObjectFields, sourcePluginFactory} from "unconfig/presets";
+import {log} from "./log";
 
 console.log('[UnoProcess]', `Hello from service.js! ${process.cwd()}`);
 
@@ -48,9 +49,14 @@ export async function resolveConfig(rootDir: string) {
   return generator.config;
 }
 
-export async function getComplete(content: string) {
-  const suggestions = await autocomplete.suggest(content);
-  return Promise.all(suggestions.map(async (suggestion) => {
+export async function updateSettings(matchType: AutoCompleteMatchType) {
+  log('updateSettings: matchType', matchType)
+  autocomplete = createAutocomplete(generator, { matchType });
+}
+
+export async function getComplete(content: string, maxItems: number | undefined) {
+  let suggestions = await autocomplete.suggest(content);
+  return Promise.all(suggestions.slice(0, maxItems).map(async (suggestion) => {
     return {
       className: suggestion,
       css: (await generator.generate(suggestion, {
@@ -71,7 +77,6 @@ export async function resolveCSS(item: string) {
   const result: ResolveCSSResult
     = await generator.generate(item, {preflights: false, safelist: false});
   result.matchedTokens = Array.from(result.matched || []);
-  // todo add remToPxPreview
   return result;
 }
 
@@ -80,7 +85,6 @@ export async function resolveCSSByOffset(content: string, cursor: number) {
   const result: ResolveCSSResult
     = await generator.generate(boundaryContent, {preflights: false, safelist: false});
   result.matchedTokens = Array.from(result.matched || []);
-  // todo add remToPxPreview
   return result;
 }
 
@@ -124,8 +128,10 @@ async function handle_command(command: string, data: any) {
   switch (command) {
     case "resolveConfig":
       return await resolveConfig(data?.rootDir || '');
+    case "updateSettings":
+      return await updateSettings(data.matchType);
     case "getComplete":
-      return await getComplete(data.content);
+      return await getComplete(data.content, data.maxItems);
     case "resolveCSSByOffset":
       return await resolveCSSByOffset(data.content, data.cursor);
     case "resolveCSS":

@@ -9,7 +9,7 @@ import com.intellij.psi.xml.XmlElementType
 import me.rerere.unocssintellij.model.UnocssResolveMeta
 
 open class UnocssHtmlLineMarkerProvider : UnocssLineMarkerProvider() {
-    override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
+    override fun doGetLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
         // match with "Valueless" attributify preset
         if (element.elementType == XmlElementType.XML_NAME) {
             return getFromXmlName(element)

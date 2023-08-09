@@ -3,12 +3,21 @@ package me.rerere.unocssintellij.marker
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProvider
 import com.intellij.openapi.editor.markup.GutterIconRenderer
+import com.intellij.psi.PsiElement
 import com.intellij.util.ui.ColorIcon
 import me.rerere.unocssintellij.model.UnocssResolveMeta
+import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.util.parseColors
 import me.rerere.unocssintellij.util.parseIcons
 
 abstract class UnocssLineMarkerProvider : LineMarkerProvider {
+
+    override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
+        if (!UnocssSettingsState.instance.enable) return null
+        return doGetLineMarkerInfo(element)
+    }
+
+    abstract fun doGetLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>?
 
     protected fun getLineMarkerInfo(meta: UnocssResolveMeta): LineMarkerInfo<*>? {
         val css = meta.resolveCss()?.css ?: return null

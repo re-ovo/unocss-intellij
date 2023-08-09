@@ -7,7 +7,7 @@ import com.intellij.psi.util.elementType
 import me.rerere.unocssintellij.model.UnocssResolveMeta
 
 class UnocssCssLineMarkerProvider : UnocssLineMarkerProvider() {
-    override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
+    override fun doGetLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
         // match when use Directives transformer
         if (element.elementType == CssElementTypes.CSS_IDENT
             || element.elementType == CssElementTypes.CSS_STRING_TOKEN) {

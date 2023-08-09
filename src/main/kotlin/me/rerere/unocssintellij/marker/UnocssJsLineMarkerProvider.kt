@@ -12,8 +12,8 @@ import me.rerere.unocssintellij.model.UnocssResolveMeta
  * For JSX/TSX Support
  */
 class UnocssJsLineMarkerProvider : UnocssHtmlLineMarkerProvider() {
-    override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
-        val lineMarkerInfo = super.getLineMarkerInfo(element)
+    override fun doGetLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
+        val lineMarkerInfo = super.doGetLineMarkerInfo(element)
         if (lineMarkerInfo != null) return lineMarkerInfo
 
         val attrValue: String = (if (element is JSLiteralExpression && element.isStringLiteral) {

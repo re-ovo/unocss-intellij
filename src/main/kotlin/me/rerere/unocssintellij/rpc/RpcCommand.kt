@@ -8,15 +8,21 @@ data class RpcCommand<T>(
 
 enum class RpcAction(val key: String) {
     ResolveConfig("resolveConfig"),
+    UpdateSettings("updateSettings"),
     GetComplete("getComplete"),
     ResolveCss("resolveCSS"),
     ResolveCssByOffset("resolveCSSByOffset"),
     ResolveAnnotations("resolveAnnotations"),
 }
 
+data class UpdateSettingsCommandData(
+    val matchType: String
+)
+
 data class GetCompleteCommandData(
     val content: String,
-    val cursor: Int = content.length
+    val cursor: Int = content.length,
+    val maxItems: Int,
 )
 
 data class SuggestionItem(

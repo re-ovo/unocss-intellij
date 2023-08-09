@@ -15,6 +15,7 @@ import com.intellij.openapi.wm.StatusBarWidgetFactory
 import com.intellij.openapi.wm.impl.status.EditorBasedStatusBarPopup
 import kotlinx.coroutines.runBlocking
 import me.rerere.unocssintellij.UnocssService
+import me.rerere.unocssintellij.settings.UnocssSettingsState
 
 class UnocssStatusBarFactory : StatusBarWidgetFactory {
     companion object {
@@ -60,6 +61,8 @@ class UnocssStatusPop(project: Project) : EditorBasedStatusBarPopup(project, fal
     }
 
     override fun getWidgetState(file: VirtualFile?): WidgetState {
+        if (!UnocssSettingsState.instance.enable) return WidgetState.HIDDEN
+
         val text: String = if (file == null) {
             "Unocss"
         } else {

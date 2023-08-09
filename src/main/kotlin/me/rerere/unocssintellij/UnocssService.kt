@@ -15,6 +15,7 @@ import com.intellij.openapi.wm.impl.status.widget.StatusBarWidgetsManager
 import com.intellij.psi.PsiFile
 import kotlinx.coroutines.*
 import me.rerere.unocssintellij.rpc.*
+import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.status.UnocssStatusBarFactory
 
 private val SENSITIVE_FILES = listOf(
@@ -145,7 +146,26 @@ class UnocssService(private val project: Project) : Disposable {
         })
     }
 
-    fun getCompletion(ctx: VirtualFile, prefix: String, cursor: Int): List<SuggestionItem> {
+    fun updateSettings() {
+        val process = unocssProcess ?: return
+        scope.launch {
+            withTimeout(1000) {
+                process.sendCommand(
+                    RpcAction.UpdateSettings,
+                    UpdateSettingsCommandData(
+                        matchType = UnocssSettingsState.instance.matchType,
+                    )
+                )
+            }
+        }
+    }
+
+    fun getCompletion(
+        ctx: VirtualFile,
+        prefix: String,
+        cursor: Int = prefix.length,
+        maxItems: Int
+    ): List<SuggestionItem> {
         val process = getProcess(ctx) ?: return emptyList()
         val response: SuggestionItemList = runBlocking {
             withTimeout(1000) {
@@ -153,7 +173,8 @@ class UnocssService(private val project: Project) : Disposable {
                     RpcAction.GetComplete,
                     GetCompleteCommandData(
                         content = prefix,
-                        cursor = cursor
+                        cursor = cursor,
+                        maxItems = maxItems
                     )
                 )
             }

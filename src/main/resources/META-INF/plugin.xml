@@ -22,7 +22,9 @@
 
     <change-notes><![CDATA[
       <ul>
-        <li>Support scan <code>@unocss/xxx</code> dependencies</li>
+        <li>Refactoring for a better experience</li>
+        <li>Add settings to customize the plugin behavior</li>
+        <li>Support<code>-at-apply:</code> highlighting/documentation</li>
       </ul>
     ]]></change-notes>
 

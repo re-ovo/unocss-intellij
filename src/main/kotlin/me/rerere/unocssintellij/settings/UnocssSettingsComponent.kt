@@ -35,15 +35,15 @@ class UnocssSettingsComponent {
 
             group(UnocssBundle.message("setting.autocomplete.title")) {
                 buttonsGroup {
-                    row("Match Type") {
-                        radioButton("Prefix", "prefix")
-                        radioButton("Fuzzy", "fuzzy")
+                    row(UnocssBundle.message("setting.autocomplete.match_type.title")) {
+                        radioButton(UnocssBundle.message("setting.autocomplete.match_type.option.prefix"), "prefix")
+                        radioButton(UnocssBundle.message("setting.autocomplete.match_type.option.fuzzy"), "fuzzy")
                     }
                 }.bind(settings::matchType)
 
-                row("Max Items") {
+                row(UnocssBundle.message("setting.autocomplete.max_items.title")) {
                     intTextField(1..1000, 1).bindIntText(settings::maxItems)
-                        .comment("The maximum number of items to show in autocomplete").validationOnInput {
+                        .comment(UnocssBundle.message("setting.autocomplete.max_items.comment")).validationOnInput {
                             val num = it.text.toIntOrNull()
                             if (num == null) error("Invalid number") else null
                         }.errorOnApply("Invalid number") { it.text.toIntOrNull() == null }

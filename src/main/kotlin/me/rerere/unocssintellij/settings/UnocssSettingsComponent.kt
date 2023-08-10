@@ -20,20 +20,17 @@ class UnocssSettingsComponent {
 
             group(UnocssBundle.message("setting.documentation.title")) {
                 row {
-                    previewRemToPxCheckbox = checkBox("Rem to px Preview")
-                        .bindSelected(settings::remToPxPreview)
-                        .comment("Enable/disable rem to px preview in hover document")
+                    previewRemToPxCheckbox =
+                        checkBox(UnocssBundle.message("setting.documentation.rem_to_px.checkbox.title")).bindSelected(
+                                settings::remToPxPreview
+                            ).comment(UnocssBundle.message("setting.documentation.rem_to_px.checkbox.comment"))
                 }
-                row("Rem To Px Ratio") {
-                    spinner(0.0..100.0, 1.0)
-                        .bindValue(settings::remToPxRatio)
-                        .comment("Radio of rem to px, used in rem to px preview")
-                        .validationOnInput {
+                row(UnocssBundle.message("setting.documentation.rem_to_px.ratio.title")) {
+                    spinner(0.0..100.0, 1.0).bindValue(settings::remToPxRatio).validationOnInput {
                             val num = it.value.toString().toDoubleOrNull()
                             if (num == null) error("Invalid number") else null
-                        }
-                        .errorOnApply("Invalid radio number") { it.value.toString().toDoubleOrNull() == null }
-                }.enabledIf(previewRemToPxCheckbox.selected)
+                        }.errorOnApply("Invalid radio number") { it.value.toString().toDoubleOrNull() == null }
+                }.comment(UnocssBundle.message("setting.documentation.rem_to_px.ratio.comment")).enabledIf(previewRemToPxCheckbox.selected)
             }.visibleIf(enableCheckbox.selected)
 
             group(UnocssBundle.message("setting.autocomplete.title")) {
@@ -45,14 +42,11 @@ class UnocssSettingsComponent {
                 }.bind(settings::matchType)
 
                 row("Max Items") {
-                    intTextField(1..1000, 1)
-                        .bindIntText(settings::maxItems)
-                        .comment("The maximum number of items to show in autocomplete")
-                        .validationOnInput {
+                    intTextField(1..1000, 1).bindIntText(settings::maxItems)
+                        .comment("The maximum number of items to show in autocomplete").validationOnInput {
                             val num = it.text.toIntOrNull()
                             if (num == null) error("Invalid number") else null
-                        }
-                        .errorOnApply("Invalid number") { it.text.toIntOrNull() == null }
+                        }.errorOnApply("Invalid number") { it.text.toIntOrNull() == null }
                 }
             }.visibleIf(enableCheckbox.selected)
         }

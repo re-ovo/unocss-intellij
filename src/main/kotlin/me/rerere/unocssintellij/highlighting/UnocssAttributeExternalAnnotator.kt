@@ -14,6 +14,7 @@ import com.intellij.psi.PsiFile
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 import me.rerere.unocssintellij.UnocssService
+import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.util.MatchedPosition
 import me.rerere.unocssintellij.util.getMatchedPositions
 
@@ -40,6 +41,8 @@ data class UnocssAnnotationResult(
 class UnocssAttributeExternalAnnotator : ExternalAnnotator<UnocssInitInfo, UnocssAnnotationResult>() {
 
     override fun collectInformation(psiFile: PsiFile, editor: Editor, hasErrors: Boolean): UnocssInitInfo? {
+        if (!UnocssSettingsState.instance.enable) return null
+
         val project = psiFile.project
 
         val virtualFile = psiFile.virtualFile

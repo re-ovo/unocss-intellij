@@ -167,19 +167,24 @@ class UnocssService(private val project: Project) : Disposable {
         maxItems: Int
     ): List<SuggestionItem> {
         val process = getProcess(ctx) ?: return emptyList()
-        val response: SuggestionItemList = runBlocking {
-            withTimeout(1000) {
-                process.sendCommand(
-                    RpcAction.GetComplete,
-                    GetCompleteCommandData(
-                        content = prefix,
-                        cursor = cursor,
-                        maxItems = maxItems
+        try {
+            val response: SuggestionItemList = runBlocking {
+                withTimeout(1000) {
+                    process.sendCommand(
+                        RpcAction.GetComplete,
+                        GetCompleteCommandData(
+                            content = prefix,
+                            cursor = cursor,
+                            maxItems = maxItems
+                        )
                     )
-                )
+                }
             }
+            return response
+        } catch (e: Exception) {
+            println("(!) Failed to get completion: $e")
+            return emptyList()
         }
-        return response
     }
 
     fun resolveCssByOffset(file: PsiFile, offset: Int): ResolveCSSResult? {

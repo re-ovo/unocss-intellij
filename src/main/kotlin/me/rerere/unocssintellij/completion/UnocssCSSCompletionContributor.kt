@@ -1,20 +1,12 @@
 package me.rerere.unocssintellij.completion
 
-import com.intellij.codeInsight.completion.*
-import com.intellij.codeInsight.lookup.LookupElementBuilder
-import com.intellij.openapi.application.ex.ApplicationUtil
-import com.intellij.openapi.components.service
-import com.intellij.openapi.progress.ProgressManager
+import com.intellij.codeInsight.completion.CompletionContributor
+import com.intellij.codeInsight.completion.CompletionParameters
+import com.intellij.codeInsight.completion.CompletionResultSet
+import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.css.impl.CssElementTypes
-import com.intellij.util.ProcessingContext
-import com.intellij.util.ui.ColorIcon
-import me.rerere.unocssintellij.UnocssService
-import me.rerere.unocssintellij.marker.SVGIcon
-import me.rerere.unocssintellij.settings.UnocssSettingsState
-import me.rerere.unocssintellij.util.parseColors
-import me.rerere.unocssintellij.util.parseIcons
-import me.rerere.unocssintellij.util.trimCss
+import com.intellij.psi.util.elementType
 
 class UnocssCSSCompletionContributor : CompletionContributor() {
     init {
@@ -23,45 +15,24 @@ class UnocssCSSCompletionContributor : CompletionContributor() {
             PlatformPatterns.psiElement(CssElementTypes.CSS_IDENT),
             UnocssCSSTermListCompletionProvider
         )
+        extend(
+            CompletionType.BASIC,
+            PlatformPatterns.psiElement(CssElementTypes.CSS_STRING_TOKEN),
+            UnocssCSSTermListCompletionProvider
+        )
     }
 }
 
-object UnocssCSSTermListCompletionProvider : CompletionProvider<CompletionParameters>() {
-    override fun addCompletions(
-        parameters: CompletionParameters,
-        context: ProcessingContext,
-        result: CompletionResultSet
-    ) {
-        if (!UnocssSettingsState.instance.enable) return
+object UnocssCSSTermListCompletionProvider : UnocssCompletionProvider() {
+
+    override fun resolvePrefix(parameters: CompletionParameters, result: CompletionResultSet): PrefixHolder {
         val element = parameters.position
 
-        val project = element.project
-        val service = project.service<UnocssService>()
+        val rawPrefix = result.prefixMatcher.prefix
+        val prefix = if (element.elementType == CssElementTypes.CSS_STRING_TOKEN)
+            rawPrefix.substring(rawPrefix.lastIndexOf(":") + 1)
+        else rawPrefix
 
-        val prefix = result.prefixMatcher.prefix
-
-        ApplicationUtil.runWithCheckCanceled({
-            val maxItems = UnocssSettingsState.instance.maxItems
-            service.getCompletion(parameters.originalFile.virtualFile, prefix, maxItems = maxItems)
-        }, ProgressManager.getInstance().progressIndicator).forEach { suggestion ->
-            val colors = parseColors(suggestion.css)
-            val icon = parseIcons(suggestion.css)
-            result.addElement(
-                LookupElementBuilder
-                    .create(suggestion.className)
-                    .withPresentableText(suggestion.className)
-                    .withTypeText("Unocss")
-                    .withIcon(
-                        if (colors.isNotEmpty()) {
-                            ColorIcon(16, colors.first())
-                        } else if (icon != null) {
-                            SVGIcon(icon)
-                        } else null
-                    )
-                    .withTailText(trimCss(suggestion.css), true)
-            )
-        }
-
-        result.restartCompletionOnAnyPrefixChange()
+        return PrefixHolder(prefix)
     }
 }

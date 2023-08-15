@@ -18,20 +18,16 @@ import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.util.MatchedPosition
 import me.rerere.unocssintellij.util.getMatchedPositions
 
-data class UnocssState(val enabled: Boolean = true)
-
 data class UnocssInitInfo(
     val project: Project,
     val service: UnocssService,
     val psiFile: PsiFile,
     val fileContent: String,
-    val state: UnocssState,
 )
 
 data class UnocssAnnotationResult(
     val code: String,
-    val state: UnocssState,
-    val annotations: List<MatchedPosition>
+    val annotations: List<MatchedPosition>,
 )
 
 /**
@@ -54,7 +50,7 @@ class UnocssAttributeExternalAnnotator : ExternalAnnotator<UnocssInitInfo, Unocs
             }
 
             val unocssService = project.service<UnocssService>()
-            return UnocssInitInfo(project, unocssService, psiFile, fileContent, UnocssState())
+            return UnocssInitInfo(project, unocssService, psiFile, fileContent)
         }
         return null
     }
@@ -73,7 +69,7 @@ class UnocssAttributeExternalAnnotator : ExternalAnnotator<UnocssInitInfo, Unocs
         } ?: return null
 
         val matchedPositions = getMatchedPositions(code, resolveResult)
-        return UnocssAnnotationResult(code, UnocssState(), matchedPositions)
+        return UnocssAnnotationResult(code, matchedPositions)
     }
 
     override fun apply(file: PsiFile, annotationResult: UnocssAnnotationResult?, holder: AnnotationHolder) {

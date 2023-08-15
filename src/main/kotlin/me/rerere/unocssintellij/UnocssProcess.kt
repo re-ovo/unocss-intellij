@@ -33,9 +33,8 @@ class UnocssProcess(project: Project, context: VirtualFile) : Disposable {
 
     init {
         println("[UnoProcess] Starting UnoProcess")
-        val interpreter = NodeJsInterpreterManager.getInstance(project).interpreter ?: run {
-            error("Node.js interpreter not found")
-        }
+        val interpreter = NodeJsInterpreterManager.getInstance(project).interpreter
+            ?: error("Node.js interpreter not found")
         val configurator = NodeCommandLineConfigurator.find(interpreter)
         val directory = JSLanguageServiceUtil.getPluginDirectory(Unocss::class.java, "unojs")
             ?: error("Plugin directory not found")

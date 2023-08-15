@@ -47,16 +47,17 @@
         />
         <completion.contributor
             language="JavaScript"
+            order="before jsx-attr, before tsx-attr, before VueCompletionContributor, before VuexCompletionContributor"
             implementationClass="me.rerere.unocssintellij.completion.UnocssAttributeCompletionContributor"
         />
         <completion.contributor
             language="CSS"
             implementationClass="me.rerere.unocssintellij.completion.UnocssCSSCompletionContributor" />
+        <typedHandler implementation="me.rerere.unocssintellij.completion.TypedHandler" order="first"/>
 
         <!-- 文档提示 -->
         <platform.backend.documentation.targetProvider
                 implementation="me.rerere.unocssintellij.documentation.UnocssDocumentTargetProvider" />
-        <typedHandler implementation="me.rerere.unocssintellij.completion.TypedHandler"/>
 
         <!-- 图标 -->
         <codeInsight.lineMarkerProvider

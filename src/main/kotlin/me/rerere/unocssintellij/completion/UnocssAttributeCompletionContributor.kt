@@ -1,140 +1,163 @@
 package me.rerere.unocssintellij.completion
 
-import com.intellij.codeInsight.AutoPopupController
-import com.intellij.codeInsight.completion.*
-import com.intellij.codeInsight.completion.impl.CompletionServiceImpl
-import com.intellij.codeInsight.editorActions.TypedHandlerDelegate
-import com.intellij.codeInsight.lookup.LookupElementBuilder
-import com.intellij.codeInsight.lookup.LookupManager
-import com.intellij.codeInsight.lookup.impl.LookupImpl
-import com.intellij.openapi.application.ex.ApplicationUtil
-import com.intellij.openapi.components.service
-import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.editor.EditorModificationUtil
-import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.project.Project
+import com.intellij.codeInsight.completion.CompletionContributor
+import com.intellij.codeInsight.completion.CompletionParameters
+import com.intellij.codeInsight.completion.CompletionResultSet
+import com.intellij.codeInsight.completion.CompletionType
+import com.intellij.lang.javascript.psi.JSLiteralExpression
+import com.intellij.lang.javascript.psi.JSProperty
 import com.intellij.patterns.PlatformPatterns
-import com.intellij.psi.PsiFile
-import com.intellij.psi.html.HtmlTag
+import com.intellij.psi.PsiElement
+import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.psi.util.childrenOfType
 import com.intellij.psi.util.elementType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlElementType
-import com.intellij.util.ProcessingContext
-import com.intellij.util.ui.ColorIcon
-import me.rerere.unocssintellij.UnocssService
-import me.rerere.unocssintellij.marker.SVGIcon
-import me.rerere.unocssintellij.settings.UnocssSettingsState
+import com.intellij.refactoring.suggested.startOffset
+import me.rerere.unocssintellij.rpc.SuggestionItem
 import me.rerere.unocssintellij.util.isClassAttribute
-import me.rerere.unocssintellij.util.parseColors
-import me.rerere.unocssintellij.util.parseIcons
-import me.rerere.unocssintellij.util.trimCss
+
+private val matchVariantGroupPrefixRE = Regex("^(?:.*\\s)?(.*)\\(([^)]*)$")
 
 class UnocssAttributeCompletionContributor : CompletionContributor() {
     init {
+        // match attribute value
         extend(
             CompletionType.BASIC,
             PlatformPatterns.psiElement(XmlElementType.XML_ATTRIBUTE_VALUE_TOKEN),
             UnocssAttributeCompletionProvider
         )
+        // match attribute name when using attributify presets
         extend(
             CompletionType.BASIC,
             PlatformPatterns.psiElement(XmlElementType.XML_NAME),
             UnocssAttributeCompletionProvider
         )
+        // match v-bind string value
+        extend(
+            CompletionType.BASIC,
+            PlatformPatterns.psiElement(LeafPsiElement::class.java)
+                .withParent(JSLiteralExpression::class.java),
+            UnocssJsLiteralCompletionProvider
+        )
+        // match v-bind object value
+        // fixme: not working when typing, workaround: manually trigger code completion (e.g. via keymap)
+        extend(
+            CompletionType.BASIC,
+            PlatformPatterns.psiElement(LeafPsiElement::class.java)
+                .withParent(JSProperty::class.java),
+            UnocssJsLiteralCompletionProvider
+        )
     }
 }
 
-object UnocssAttributeCompletionProvider : CompletionProvider<CompletionParameters>() {
-    override fun addCompletions(
-        parameters: CompletionParameters,
-        context: ProcessingContext,
-        result: CompletionResultSet
-    ) {
-        if (!UnocssSettingsState.instance.enable) return
+object UnocssAttributeCompletionProvider : UnocssCompletionProvider() {
+
+    override fun resolvePrefix(parameters: CompletionParameters, result: CompletionResultSet): PrefixHolder? {
         val element = parameters.position
 
-        var unocssPrefix = ""
-        val completionPrefix = extractTypingPrefix(result.prefixMatcher.prefix)
-        val prefix = if (element.elementType == XmlElementType.XML_ATTRIBUTE_VALUE_TOKEN) {
+        val xmlAttrName = if (element.elementType == XmlElementType.XML_ATTRIBUTE_VALUE_TOKEN) {
             val xmlAttributeEle = PsiTreeUtil.getParentOfType(element, XmlAttribute::class.java, false)
-                ?: return
-            val xmlName = xmlAttributeEle.firstChild
+                ?: return null
+            xmlAttributeEle.firstChild.text
+        } else ""
 
-            if (isClassAttribute(xmlName.text)) {
-                completionPrefix
-            } else {
-                unocssPrefix = xmlName.text
-                "${xmlName.text}-$completionPrefix"
-            }
-        } else {
-            completionPrefix
-        }
-
-        val project = element.project
-        val service = project.service<UnocssService>()
-
-        ApplicationUtil.runWithCheckCanceled({
-            val maxItems = UnocssSettingsState.instance.maxItems
-            service.getCompletion(parameters.originalFile.virtualFile, prefix, maxItems = maxItems)
-        }, ProgressManager.getInstance().progressIndicator).forEach { suggestion ->
-            val className = if (unocssPrefix.isNotBlank()) {
-                suggestion.className.substring(unocssPrefix.length + 1)
-            } else {
-                suggestion.className
-            }
-
-            val colors = parseColors(suggestion.css)
-            val icon = parseIcons(suggestion.css)
-            result.addElement(
-                LookupElementBuilder
-                    .create(className)
-                    .withPresentableText(suggestion.className)
-                    .withTypeText("Unocss")
-                    .withIcon(
-                        if (colors.isNotEmpty()) {
-                            ColorIcon(16, colors.first())
-                        } else if (icon != null) {
-                            SVGIcon(icon)
-                        } else null
-                    )
-                    .withTailText(trimCss(suggestion.css), true)
-            )
-        }
-
-        result.restartCompletionOnAnyPrefixChange()
+        // The value of prefixMatcher.prefix seems like truncated by space by default,
+        // so we may use the substring of element.text to keep the behavior of
+        // class value and other attribute values consistent
+        val prefixToResolve = element.text.substring(0, parameters.offset - element.startOffset)
+        return resolvePrefix(element, prefixToResolve, xmlAttrName)
     }
 
-    private fun extractTypingPrefix(prefix: String) = prefix.trim().split(" ").last()
+    private fun resolvePrefix(element: PsiElement, prefix: String, attrName: String): PrefixHolder? {
+        if (element.elementType != XmlElementType.XML_ATTRIBUTE_VALUE_TOKEN) {
+            return PrefixHolder(prefix)
+        }
+
+        // attributify value
+        if (!isClassAttribute(attrName)) {
+            // use last().trim() to help manually trigger code completion (e.g. via keymap)
+            // the attribute name will be used as prefix to query suggestions
+            val typingPrefix = prefix.split(" ").last().trim()
+            val removeVariantPrefix = typingPrefix.substring(typingPrefix.lastIndexOf(":") + 1)
+            val prefixToSuggest = "$attrName-$removeVariantPrefix"
+            return PrefixHolder(removeVariantPrefix, prefixToSuggest)
+        }
+
+        // class value
+
+        val lastLeftBracket = prefix.lastIndexOf('(')
+        val lastRightBracket = prefix.lastIndexOf(')')
+
+        // no variant group or no need to complete variant group
+        return if (lastLeftBracket < 0 || lastLeftBracket < lastRightBracket) {
+            val typingPrefix = prefix.split(" ").last().trim()
+
+            // ignore completion when typing prefix is blank
+            if (typingPrefix.isBlank()) null
+            else PrefixHolder(typingPrefix)
+        } else {
+            extractFromVariantGroup(prefix)
+        }
+    }
+
+    override fun resolveSuggestionClassName(
+        typingPrefix: String,
+        prefixToSuggest: String,
+        suggestion: SuggestionItem
+    ) = if (typingPrefix != prefixToSuggest) {
+        suggestion.className.substring(prefixToSuggest.length - typingPrefix.length)
+    } else {
+        suggestion.className
+    }
 }
 
-// Make auto popup work when typing '-'
-// https://github.com/JetBrains/intellij-community/blob/4d5322af326084873e16cfafd0239a1713a52adc/plugins/terminal/src/org/jetbrains/plugins/terminal/exp/TerminalCompletionAutoPopupHandler.kt#L19
-class TypedHandler : TypedHandlerDelegate() {
-    override fun checkAutoPopup(charTyped: Char, project: Project, editor: Editor, file: PsiFile): Result {
-        if (!project.service<UnocssService>().isProcessRunning()) return Result.CONTINUE
+object UnocssJsLiteralCompletionProvider : UnocssCompletionProvider() {
+    override fun resolvePrefix(parameters: CompletionParameters, result: CompletionResultSet): PrefixHolder? {
+        val element = parameters.position
+        println("element: $element")
+        val xmlAttributeEle = PsiTreeUtil.getParentOfType(element, XmlAttribute::class.java, false)
+            ?: return null
+        val attrName = xmlAttributeEle.firstChild.text
 
-        val values = file.childrenOfType<HtmlTag>()
-        if (values.isEmpty()) return Result.CONTINUE
-
-        val phase = CompletionServiceImpl.getCompletionPhase()
-        val lookup = LookupManager.getActiveLookup(editor)
-        if (lookup is LookupImpl) {
-            if (editor.selectionModel.hasSelection()) {
-                lookup.performGuardedChange { EditorModificationUtil.deleteSelectedText(editor) }
-            }
-            return Result.STOP
+        // Is anyone use unocss token on other attribute name?
+        if (!isClassAttribute(attrName)) {
+            return null
         }
 
-        if (Character.isLetterOrDigit(charTyped) || charTyped == '-') {
-            if (phase is CompletionPhase.EmptyAutoPopup && phase.allowsSkippingNewAutoPopup(editor, charTyped)) {
-                return Result.CONTINUE
-            }
-            AutoPopupController.getInstance(project).scheduleAutoPopup(editor)
-            return Result.STOP
-        }
+        // The value of prefixMatcher.prefix seems like truncated by space by default,
+        // so we may use the substring of element.text to keep the behavior of
+        // class value and other attribute values consistent
+        val prefixToResolve = element.text.substring(0, parameters.offset - element.startOffset)
+            .trim('\'', '"')
 
-        return Result.CONTINUE
+        // we select the leaf PsiElement with parent JSLiteralExpression,
+        // so we can simply treat the prefix as the whole text of the element
+        return if (!prefixToResolve.contains("(")) {
+            PrefixHolder(prefixToResolve)
+        } else {
+            extractFromVariantGroup(prefixToResolve)
+        }
     }
+
+    override fun resolveSuggestionClassName(
+        typingPrefix: String,
+        prefixToSuggest: String,
+        suggestion: SuggestionItem
+    ) = if (typingPrefix != prefixToSuggest) {
+        suggestion.className.substring(prefixToSuggest.length - typingPrefix.length)
+    } else {
+        suggestion.className
+    }
+}
+
+private fun extractFromVariantGroup(prefixToResolve: String): PrefixHolder? {
+    val matchResult = matchVariantGroupPrefixRE.find(prefixToResolve) ?: return null
+    val variants = matchResult.groupValues[1]
+    // use last().trim() to help manually trigger code completion (e.g. via keymap)
+    // the variant group will be used as prefix to query suggestions
+    val token = matchResult.groupValues[2].split(" ").last().trim()
+
+    val prefixToSuggest = "${variants.substring(variants.lastIndexOf(":") + 1)}$token"
+    return PrefixHolder(token, prefixToSuggest)
 }

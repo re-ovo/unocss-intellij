@@ -44,6 +44,7 @@
         <completion.contributor
             language="HTML"
             implementationClass="me.rerere.unocssintellij.completion.UnocssAttributeCompletionContributor"
+            order="first"
         />
         <completion.contributor
             language="JavaScript"

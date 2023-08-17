@@ -5,6 +5,7 @@ import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionPhase
 import com.intellij.codeInsight.completion.CompletionProvider
 import com.intellij.codeInsight.completion.CompletionResultSet
+import com.intellij.codeInsight.completion.PrioritizedLookupElement
 import com.intellij.codeInsight.completion.impl.CompletionServiceImpl
 import com.intellij.codeInsight.editorActions.TypedHandlerDelegate
 import com.intellij.codeInsight.lookup.LookupElementBuilder
@@ -76,19 +77,22 @@ abstract class UnocssCompletionProvider : CompletionProvider<CompletionParameter
             val colors = parseColors(suggestion.css)
             val icon = parseIcons(suggestion.css)
             completionResult.addElement(
-                LookupElementBuilder
-                    .create(className)
-                    .withLookupString(suggestion.className)
-                    .withPresentableText(className)
-                    .withTypeText("Unocss")
-                    .withIcon(
-                        if (colors.isNotEmpty()) {
-                            ColorIcon(16, colors.first())
-                        } else if (icon != null) {
-                            SVGIcon.tryGetIcon(icon).getOrNull()
-                        } else null
-                    )
-                    .withTailText(trimCss(suggestion.css), true)
+                PrioritizedLookupElement.withPriority(
+                    LookupElementBuilder
+                        .create(className)
+                        .withLookupString(suggestion.className)
+                        .withPresentableText(className)
+                        .withTypeText("Unocss")
+                        .withIcon(
+                            if (colors.isNotEmpty()) {
+                                ColorIcon(16, colors.first())
+                            } else if (icon != null) {
+                                SVGIcon.tryGetIcon(icon).getOrNull()
+                            } else null
+                        )
+                        .withTailText(trimCss(suggestion.css), true),
+                    1000.0
+                )
             )
         }
 

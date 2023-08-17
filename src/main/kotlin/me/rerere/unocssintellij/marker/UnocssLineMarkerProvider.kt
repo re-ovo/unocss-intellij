@@ -37,7 +37,7 @@ abstract class UnocssLineMarkerProvider : LineMarkerProvider {
 
         // svg icon
         val iconValue = parseIcons(css) ?: return null
-        val img = SVGIcon(iconValue)
+        val img = SVGIcon.tryGetIcon(iconValue).getOrNull() ?: return null
         return LineMarkerInfo(
             meta.bindElement,
             meta.bindElement.textRange,

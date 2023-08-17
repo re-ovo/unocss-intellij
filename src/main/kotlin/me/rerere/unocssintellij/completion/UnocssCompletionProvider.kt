@@ -85,7 +85,7 @@ abstract class UnocssCompletionProvider : CompletionProvider<CompletionParameter
                         if (colors.isNotEmpty()) {
                             ColorIcon(16, colors.first())
                         } else if (icon != null) {
-                            SVGIcon(icon)
+                            SVGIcon.tryGetIcon(icon).getOrNull()
                         } else null
                     )
                     .withTailText(trimCss(suggestion.css), true)

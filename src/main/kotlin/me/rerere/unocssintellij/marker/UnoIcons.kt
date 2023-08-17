@@ -44,4 +44,13 @@ class SVGIcon(encodedUrl: String) : Icon {
     override fun getIconHeight(): Int {
         return JBUIScale.scale(ICON_SIZE)
     }
+
+    companion object {
+        @JvmStatic
+        fun tryGetIcon(encodedUrl: String): Result<SVGIcon> = runCatching {
+            SVGIcon(encodedUrl)
+        }.onFailure {
+            it.printStackTrace()
+        }
+    }
 }

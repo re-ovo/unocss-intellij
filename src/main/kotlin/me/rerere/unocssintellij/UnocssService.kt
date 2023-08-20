@@ -60,9 +60,7 @@ class UnocssService(private val project: Project) : Disposable {
                     if (detected && unocssProcess != null) {
                         ctx?.let {
                             // reload config when sensitive file changed
-                            updateConfig(it).onFailure {
-                                println("(!) Failed to update unocss config: $it")
-                            }
+                            updateConfig(it)
                         }
                     }
                 }
@@ -129,7 +127,12 @@ class UnocssService(private val project: Project) : Disposable {
                 println("Updating unocss config...")
 
                 job = scope.launch {
-                    process.sendCommand<Any?, Any?>(RpcAction.ResolveConfig, null)
+                    runCatching {
+                        process.sendCommand<Any?, Any?>(RpcAction.ResolveConfig, null)
+                    }.onFailure {
+                        it.printStackTrace()
+                        println("(!) Failed to resolve unocss config: $it")
+                    }
                 }
 
                 runBlocking {

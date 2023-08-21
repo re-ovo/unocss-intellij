@@ -25,6 +25,7 @@
         <li>Refactoring for a better experience</li>
         <li>Add settings to customize the plugin behavior</li>
         <li>Support<code>-at-apply:</code> highlighting/documentation</li>
+        <li>Bug Fix</li>
       </ul>
     ]]></change-notes>
 

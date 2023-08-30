@@ -77,22 +77,19 @@ abstract class UnocssCompletionProvider : CompletionProvider<CompletionParameter
             val colors = parseColors(suggestion.css)
             val icon = parseIcons(suggestion.css)
             completionResult.addElement(
-                PrioritizedLookupElement.withPriority(
-                    LookupElementBuilder
-                        .create(className)
-                        .withLookupString(suggestion.className)
-                        .withPresentableText(className)
-                        .withTypeText("Unocss")
-                        .withIcon(
-                            if (colors.isNotEmpty()) {
-                                ColorIcon(16, colors.first())
-                            } else if (icon != null) {
-                                SVGIcon.tryGetIcon(icon).getOrNull()
-                            } else null
-                        )
-                        .withTailText(trimCss(suggestion.css), true),
-                    1000.0
-                )
+                LookupElementBuilder
+                    .create(className)
+                    .withLookupString(suggestion.className)
+                    .withPresentableText(className)
+                    .withTypeText("Unocss")
+                    .withIcon(
+                        if (colors.isNotEmpty()) {
+                            ColorIcon(16, colors.first())
+                        } else if (icon != null) {
+                            SVGIcon.tryGetIcon(icon).getOrNull()
+                        } else null
+                    )
+                    .withTailText(trimCss(suggestion.css), true)
             )
         }
 

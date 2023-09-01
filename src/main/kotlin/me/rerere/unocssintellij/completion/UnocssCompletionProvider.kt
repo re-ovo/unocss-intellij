@@ -70,6 +70,7 @@ abstract class UnocssCompletionProvider : CompletionProvider<CompletionParameter
         context: ProcessingContext,
         result: CompletionResultSet
     ) {
+        if (!UnocssSettingsState.instance.enable) return
         val (typingPrefix, prefixToSuggest) = resolvePrefix(parameters, result) ?: return
         val completionResult = result.withPrefixMatcher(typingPrefix)
 

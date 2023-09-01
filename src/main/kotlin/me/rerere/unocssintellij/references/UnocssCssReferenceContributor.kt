@@ -9,6 +9,7 @@ import com.intellij.psi.filters.ElementFilter
 import com.intellij.psi.filters.position.FilterPattern
 import com.intellij.psi.util.elementType
 import com.intellij.util.ProcessingContext
+import me.rerere.unocssintellij.settings.UnocssSettingsState
 
 class UnocssCssReferenceContributor : PsiReferenceContributor() {
 
@@ -26,6 +27,9 @@ class UnocssCssReferenceContributor : PsiReferenceContributor() {
 class UnocssCssConfigReferenceProvider : PsiReferenceProvider() {
 
   override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
+    if (!UnocssSettingsState.instance.enable) {
+      return PsiReference.EMPTY_ARRAY
+    }
     if (element !is CssString) {
       return PsiReference.EMPTY_ARRAY
     }

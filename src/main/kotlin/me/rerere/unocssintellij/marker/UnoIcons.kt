@@ -1,5 +1,6 @@
 package me.rerere.unocssintellij.marker
 
+import com.github.weisj.jsvg.SVGDocument
 import com.github.weisj.jsvg.attributes.ViewBox
 import com.github.weisj.jsvg.parser.SVGLoader
 import com.intellij.ui.scale.JBUIScale
@@ -24,12 +25,12 @@ private fun svgDataUrlToSvgElement(url: String): String {
 
 private val loader = SVGLoader()
 
-class SVGIcon(encodedUrl: String) : Icon {
-    private val svg = svgDataUrlToSvgElement(encodedUrl)
-    private val image = loader.load(svg.byteInputStream()) ?: error("Failed to load svg")
-
+class SVGIcon(
+    private val image: SVGDocument,
+    private val size: Int = ICON_SIZE
+) : Icon {
     override fun paintIcon(c: Component?, g: Graphics?, x: Int, y: Int) {
-        val iconSizeFloat = JBUIScale.scale(ICON_SIZE.toFloat())
+        val iconSizeFloat = JBUIScale.scale(size.toFloat())
         image.render(
             c as JComponent?,
             g as Graphics2D,
@@ -38,19 +39,27 @@ class SVGIcon(encodedUrl: String) : Icon {
     }
 
     override fun getIconWidth(): Int {
-        return JBUIScale.scale(ICON_SIZE)
+        return JBUIScale.scale(size)
     }
 
     override fun getIconHeight(): Int {
-        return JBUIScale.scale(ICON_SIZE)
+        return JBUIScale.scale(size)
     }
 
     companion object {
         @JvmStatic
         fun tryGetIcon(encodedUrl: String): Result<SVGIcon> = runCatching {
-            SVGIcon(encodedUrl)
+            val svg = svgDataUrlToSvgElement(encodedUrl)
+            val image = loader.load(svg.byteInputStream()) ?: error("Failed to load svg")
+            SVGIcon(image)
         }.onFailure {
             it.printStackTrace()
+        }
+
+        @JvmStatic
+        fun fromStream(stream: java.io.InputStream, size: Int = ICON_SIZE): SVGIcon {
+            val image = loader.load(stream) ?: error("Failed to load svg")
+            return SVGIcon(image, size)
         }
     }
 }

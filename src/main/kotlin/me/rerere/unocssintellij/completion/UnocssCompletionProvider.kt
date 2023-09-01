@@ -5,7 +5,6 @@ import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionPhase
 import com.intellij.codeInsight.completion.CompletionProvider
 import com.intellij.codeInsight.completion.CompletionResultSet
-import com.intellij.codeInsight.completion.PrioritizedLookupElement
 import com.intellij.codeInsight.completion.impl.CompletionServiceImpl
 import com.intellij.codeInsight.editorActions.TypedHandlerDelegate
 import com.intellij.codeInsight.lookup.LookupElementBuilder
@@ -45,6 +44,15 @@ data class PrefixHolder(
     val prefixToSuggest: String
 ) {
     constructor(prefix: String) : this(prefix, prefix)
+}
+
+private val PluginIcon by lazy {
+    // Read icon from resources/META-INF/pluginIcon.svg
+    val stream = UnocssCompletionProvider::class.java.classLoader
+        .getResourceAsStream("META-INF/pluginIcon.svg")
+    stream.use {
+        it?.let { it1 -> SVGIcon.fromStream(it1, 16) }
+    }
 }
 
 abstract class UnocssCompletionProvider : CompletionProvider<CompletionParameters>() {
@@ -87,7 +95,7 @@ abstract class UnocssCompletionProvider : CompletionProvider<CompletionParameter
                             ColorIcon(16, colors.first())
                         } else if (icon != null) {
                             SVGIcon.tryGetIcon(icon).getOrNull()
-                        } else null
+                        } else PluginIcon
                     )
                     .withTailText(trimCss(suggestion.css), true)
             )

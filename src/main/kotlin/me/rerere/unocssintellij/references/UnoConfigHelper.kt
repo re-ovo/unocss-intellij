@@ -11,6 +11,7 @@ import com.intellij.psi.css.impl.CssFunctionImpl
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
+import me.rerere.unocssintellij.Unocss
 
 object UnoConfigPsiHelper {
 
@@ -25,11 +26,18 @@ object UnoConfigPsiHelper {
         val jsFiles = FileTypeIndex.getFiles(JavaScriptFileType.INSTANCE, GlobalSearchScope.allScope(project))
 
         val candidateFiles = (tsFiles + jsFiles)
-        val configFile = candidateFiles.first { it.name.startsWith("uno.config") }
+        val configFile = candidateFiles.firstOrNull { file -> Unocss.ConfigFiles.contains(file.name) } ?: return null
         val psiFile = PsiManager.getInstance(project).findFile(configFile) ?: return null
 
-        return PsiTreeUtil.findChildOfType(psiFile, JSObjectLiteralExpression::class.java)
-            ?.findProperty("theme")
+        PsiTreeUtil.findChildrenOfType(psiFile, JSObjectLiteralExpression::class.java)
+            .forEach { jsObjectLiteralExpression ->
+                val themeProperty = jsObjectLiteralExpression.findProperty("theme")
+                if (themeProperty != null) {
+                    return themeProperty
+                }
+            }
+
+        return null
     }
 
     fun findThemeConfigValue(element: PsiElement, objectPath: List<String>): String? {

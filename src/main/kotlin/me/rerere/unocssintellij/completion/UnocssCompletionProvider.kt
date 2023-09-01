@@ -77,7 +77,11 @@ abstract class UnocssCompletionProvider : CompletionProvider<CompletionParameter
         val service = project.service<UnocssService>()
         ApplicationUtil.runWithCheckCanceled({
             val maxItems = UnocssSettingsState.instance.maxItems
-            service.getCompletion(parameters.originalFile.virtualFile, prefixToSuggest, maxItems = maxItems)
+            service.getCompletion(
+                ctx = parameters.originalFile.virtualFile,
+                prefix = prefixToSuggest,
+                maxItems = maxItems
+            )
         }, ProgressManager.getInstance().progressIndicator).forEach { suggestion ->
 
             val className = resolveSuggestionClassName(typingPrefix, prefixToSuggest, suggestion)

@@ -55,7 +55,7 @@ export async function updateSettings(matchType: AutoCompleteMatchType) {
 }
 
 export async function getComplete(content: string, maxItems: number | undefined) {
-  let suggestions = await autocomplete.suggest(content);
+  let suggestions = await autocomplete.suggest(content, true);
   return Promise.all(suggestions.slice(0, maxItems).map(async (suggestion) => {
     return {
       className: suggestion,

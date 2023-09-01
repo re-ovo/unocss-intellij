@@ -22,10 +22,8 @@
 
     <change-notes><![CDATA[
       <ul>
-        <li>Refactoring for a better experience</li>
-        <li>Add settings to customize the plugin behavior</li>
-        <li>Support<code>-at-apply:</code> highlighting/documentation</li>
-        <li>Bug Fix</li>
+        <li>Use icons to mark UnoCSS completion items</li>
+        <li>Fix the problem of not getting completions when typing one character</li>
       </ul>
     ]]></change-notes>
 

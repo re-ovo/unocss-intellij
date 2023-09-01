@@ -3,7 +3,7 @@ import {createGenerator} from "@unocss/core";
 import {type AutoCompleteMatchType, createAutocomplete, searchUsageBoundary} from "@unocss/autocomplete";
 import readline from "readline";
 import {deprecationCheck, resolveNuxtOptions} from "./utils";
-import {getMatchedPositionsFromCode} from "./match";
+import {applyTransformers, getMatchedPositionsFromCode} from "./match";
 import {loadConfig} from "@unocss/config";
 import {sourceObjectFields, sourcePluginFactory} from "unconfig/presets";
 import {log} from "./log";
@@ -74,8 +74,13 @@ type ResolveCSSResult = GenerateResult & {
 }
 
 export async function resolveCSS(item: string) {
+  const annotations = await applyTransformers(generator, item)
+  const input = annotations && annotations.length > 0
+    ? annotations.map(it => it.className).join(' ')
+    : item
+
   const result: ResolveCSSResult
-    = await generator.generate(item, {preflights: false, safelist: false});
+    = await generator.generate(input, {preflights: false, safelist: false});
   result.matchedTokens = Array.from(result.matched || []);
   return result;
 }

@@ -13,6 +13,18 @@ object Unocss {
     // Logger
     val Logger = logger<Unocss>()
 
+    // Config file name
+    val ConfigFiles: Set<String> = listOf(
+        "vite.config",
+        "svelte.config",
+        "iles.config",
+        "astro.config",
+        "nuxt.config",
+        "uno.config"
+    ).flatMap {
+        listOf("$it.js", "$it.ts")
+    }.toSet()
+
     // Global JSON instance
     val GSON: Gson by lazy { GsonBuilder().create() }
 

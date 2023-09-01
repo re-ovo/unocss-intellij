@@ -8,6 +8,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.css.impl.CssLazyStylesheet
 import com.intellij.psi.util.childrenOfType
+
 import com.intellij.psi.util.elementType
 import com.intellij.ui.JBColor
 import java.awt.Color
@@ -20,17 +21,33 @@ private val CSS_CONTENT_PATTERN = """(?<=\{)[^}]*(?=})""".toRegex()
 
 private val CSS_UNO_ICON_PATTERN = """--un-icon:\s?url\(.+\);""".toRegex()
 
+private val CSS_HEX_COLOR_SHORT_RE = "^#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])?$".toRegex()
+private val CSS_HEX_COLOR_RE = "^#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})?$".toRegex()
+
 // parse colors from css
 // pattern: rgba(255, 255, 255, var(--opacity))
 fun parseColors(css: String): Set<JBColor> {
     val colors = mutableSetOf<JBColor>()
-    CSS_RGBA_COLOR_PATTERN.findAll(css).forEach {
-        val value = it.value.removePrefix("rgba(").removeSuffix(")")
+    CSS_RGBA_COLOR_PATTERN.findAll(css).forEach { matchResult ->
+        val value = matchResult.value.removePrefix("rgba(").removeSuffix(")")
         val (r, g, b) = value.split(",").map { it.trim().toIntOrNull() ?: 1 }
         val color = JBColor(Color(r, g, b), Color(r, g, b).darker())
         colors.add(color)
     }
     return colors
+}
+
+fun parseHexColor(colorHex: String): JBColor? {
+    val matchResult = CSS_HEX_COLOR_SHORT_RE.find(colorHex)
+        ?: CSS_HEX_COLOR_RE.find(colorHex) ?: return null
+
+    val (_, r, g, b, a) = matchResult.groupValues
+    val colorHexInt = "${a.repeatIfChar()}${r.repeatIfChar()}${g.repeatIfChar()}${b.repeatIfChar()}".toInt(16)
+    return JBColor(colorHexInt, colorHexInt)
+}
+
+private fun String.repeatIfChar(): String {
+    return if (length == 1) repeat(2) else this
 }
 
 fun Color.toHex(): String {

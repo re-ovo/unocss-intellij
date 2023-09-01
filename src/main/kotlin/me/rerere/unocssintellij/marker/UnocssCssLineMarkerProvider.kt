@@ -1,10 +1,14 @@
 package me.rerere.unocssintellij.marker
 
 import com.intellij.codeInsight.daemon.LineMarkerInfo
+import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.psi.PsiElement
 import com.intellij.psi.css.impl.CssElementTypes
 import com.intellij.psi.util.elementType
+import com.intellij.util.ui.ColorIcon
 import me.rerere.unocssintellij.model.UnocssResolveMeta
+import me.rerere.unocssintellij.references.UnoConfigPsiHelper
+import me.rerere.unocssintellij.util.parseHexColor
 
 class UnocssCssLineMarkerProvider : UnocssLineMarkerProvider() {
     override fun doGetLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
@@ -18,7 +22,27 @@ class UnocssCssLineMarkerProvider : UnocssLineMarkerProvider() {
     }
 
     private fun getFromCssIdent(element: PsiElement): LineMarkerInfo<*>? {
-        val cssValue = element.text.trim('"')
-        return getLineMarkerInfo(UnocssResolveMeta(element, cssValue, null))
+        val cssValue = element.text.trim('\'', '"')
+
+        return if (UnoConfigPsiHelper.inCssThemeFunction(element)) {
+            getLineMarkerInfoFromConfigFile(element, cssValue)
+        } else {
+            getLineMarkerInfo(UnocssResolveMeta(element, cssValue, null))
+        }
+    }
+
+    private fun getLineMarkerInfoFromConfigFile(element: PsiElement, themeArg: String): LineMarkerInfo<*>? {
+        val configValue = UnoConfigPsiHelper.findThemeConfigValue(element, themeArg.split("."))
+            ?: return null
+        // color icon
+        val colorValue = parseHexColor(configValue) ?: return null
+        return LineMarkerInfo(
+            element,
+            element.textRange,
+            ColorIcon(12, colorValue),
+            null,
+            null,
+            GutterIconRenderer.Alignment.LEFT,
+        ) { "UNOCSS" }
     }
 }

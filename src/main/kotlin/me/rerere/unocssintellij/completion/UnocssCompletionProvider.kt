@@ -46,7 +46,7 @@ data class PrefixHolder(
     constructor(prefix: String) : this(prefix, prefix)
 }
 
-private val PluginIcon by lazy {
+internal val PluginIcon by lazy {
     // Read icon from resources/META-INF/pluginIcon.svg
     val stream = UnocssCompletionProvider::class.java.classLoader
         .getResourceAsStream("META-INF/pluginIcon.svg")
@@ -70,6 +70,7 @@ abstract class UnocssCompletionProvider : CompletionProvider<CompletionParameter
         context: ProcessingContext,
         result: CompletionResultSet
     ) {
+        if (!UnocssSettingsState.instance.enable) return
         val (typingPrefix, prefixToSuggest) = resolvePrefix(parameters, result) ?: return
         val completionResult = result.withPrefixMatcher(typingPrefix)
 

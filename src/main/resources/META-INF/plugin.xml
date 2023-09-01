@@ -104,6 +104,9 @@
             nonDefaultProject="true"
         />
 
+        <psi.referenceContributor
+            language="CSS"
+            implementation="me.rerere.unocssintellij.references.UnocssCssReferenceContributor" />
     </extensions>
 
     <projectListeners>

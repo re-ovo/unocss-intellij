@@ -46,7 +46,7 @@ data class PrefixHolder(
     constructor(prefix: String) : this(prefix, prefix)
 }
 
-private val PluginIcon by lazy {
+internal val PluginIcon by lazy {
     // Read icon from resources/META-INF/pluginIcon.svg
     val stream = UnocssCompletionProvider::class.java.classLoader
         .getResourceAsStream("META-INF/pluginIcon.svg")

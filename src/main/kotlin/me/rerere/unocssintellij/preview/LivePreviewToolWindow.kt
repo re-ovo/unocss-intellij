@@ -1,5 +1,10 @@
 package me.rerere.unocssintellij.preview
 
+import com.intellij.lang.javascript.JSElementType
+import com.intellij.lang.javascript.JSElementTypes
+import com.intellij.lang.javascript.JSStringLiteralLexer
+import com.intellij.lang.javascript.psi.JSElement
+import com.intellij.lang.javascript.psi.JSLiteralExpression
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.CaretEvent
@@ -9,7 +14,9 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiElement
 import com.intellij.psi.css.impl.CssElementTypes
+import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.elementType
 import com.intellij.psi.xml.XmlElementType
 import com.intellij.ui.jcef.JBCefApp
@@ -77,6 +84,10 @@ private val sensitiveElementTypes = setOf(
     CssElementTypes.CSS_STRING_TOKEN,
 )
 
+private fun isJsString(element: PsiElement): Boolean {
+    return element is LeafPsiElement && element.parent is JSLiteralExpression
+}
+
 class LivePreviewListener(private val window: LivePreviewWindow) : CaretListener {
     override fun caretPositionChanged(event: CaretEvent) {
         resolve(event)
@@ -98,7 +109,7 @@ class LivePreviewListener(private val window: LivePreviewWindow) : CaretListener
                 PsiDocumentManager.getInstance(project).getPsiFile(event.editor.document) ?: return@runReadAction
             val element = psiFile.viewProvider.findElementAt(editor.caretModel.offset) ?: return@runReadAction
 
-            if (element.elementType in sensitiveElementTypes) {
+            if (element.elementType in sensitiveElementTypes || isJsString(element)) {
                 val matchedElement = arrayListOf<ResolveCSSResult>()
                 runBlocking {
                     UnocssResolveMeta(

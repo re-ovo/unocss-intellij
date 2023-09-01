@@ -116,6 +116,7 @@ class UnocssProcess(project: Project, context: VirtualFile) : Disposable {
         ToolWindowManager.getInstance(project).registerToolWindow("UnoCSS") {
             icon = IconResources.PluginIcon
             contentFactory = LivePreviewToolWindowFactory()
+            sideTool = true
         }
     }
 

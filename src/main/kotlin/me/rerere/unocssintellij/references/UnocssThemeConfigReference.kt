@@ -27,7 +27,6 @@ class UnocssThemeConfigReference(element: PsiElement, textRange: TextRange) :
     }
 
     override fun multiResolve(incompleteCode: Boolean): Array<ResolveResult> {
-        println(UnoConfigPsiHelper.findThemeConfig(element))
         val themeConfig = UnoConfigPsiHelper.findThemeConfig(element) ?: return emptyArray()
 
         val result = mutableListOf<ResolveResult>()

@@ -12,10 +12,14 @@ import com.intellij.lang.javascript.buildTools.npm.PackageJsonUtil
 import com.intellij.lang.javascript.service.JSLanguageServiceUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.wm.ToolWindowManager
 import kotlinx.coroutines.suspendCancellableCoroutine
+import me.rerere.unocssintellij.preview.LivePreviewToolWindowFactory
 import me.rerere.unocssintellij.rpc.RpcAction
 import me.rerere.unocssintellij.rpc.RpcCommand
+import me.rerere.unocssintellij.util.IconResources
 import me.rerere.unocssintellij.util.toLocalVirtualFile
 import java.io.File
 import java.util.*
@@ -106,6 +110,12 @@ class UnocssProcess(project: Project, context: VirtualFile) : Disposable {
                     }
                 }
             }
+        }
+
+        // Init tool window
+        ToolWindowManager.getInstance(project).registerToolWindow("UnoCSS") {
+            icon = IconResources.PluginIcon
+            contentFactory = LivePreviewToolWindowFactory()
         }
     }
 

@@ -10,7 +10,7 @@ import com.intellij.psi.*
 import com.intellij.util.ui.ColorIcon
 import me.rerere.unocssintellij.util.parseHexColor
 
-class UnocssThemeReference(element: PsiElement, textRange: TextRange) :
+class UnocssThemeConfigReference(element: PsiElement, textRange: TextRange) :
     PsiReferenceBase<PsiElement>(element, textRange),
     PsiPolyVariantReference {
 
@@ -93,7 +93,7 @@ class UnocssThemeReference(element: PsiElement, textRange: TextRange) :
         val content = if (value is JSObjectLiteralExpression) {
             "{...}"
         } else {
-            value!!.text
+            value!!.text.trim('\'', '"')
         }
         return " $content "
     }

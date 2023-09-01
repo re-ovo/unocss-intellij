@@ -41,7 +41,7 @@ class UnocssCssConfigReferenceProvider : PsiReferenceProvider() {
 
     // ignore quotes
     val range = TextRange(1, stringToken.textLength - 1)
-    return arrayOf(UnocssThemeReference(element, range))
+    return arrayOf(UnocssThemeConfigReference(element, range))
   }
 
   class ReferenceFilter : ElementFilter {

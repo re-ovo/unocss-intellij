@@ -89,7 +89,6 @@ abstract class UnocssCompletionProvider : CompletionProvider<CompletionParameter
                     .create(className)
                     .withLookupString(suggestion.className)
                     .withPresentableText(className)
-                    .withTypeText("Unocss")
                     .withIcon(
                         if (colors.isNotEmpty()) {
                             ColorIcon(16, colors.first())

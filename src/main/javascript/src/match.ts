@@ -1,21 +1,17 @@
-import {UnoGenerator} from "@unocss/core";
+import {type UnoGenerator} from "@unocss/core";
 import MagicString from "magic-string";
 
 // remove @unocss/transformer-directives transformer to get matched result from source code
-const ignoreTransformers = [
+export const ignoreTransformers = [
     '@unocss/transformer-directives',
     '@unocss/transformer-compile-class',
 ]
 
-/**
- * Ported from VSCode extension and removed pug support, maybe support it in the future.
- *
- * @param generator
- * @param code
- * @param id
- * @see https://github.com/unocss/unocss/blob/main/packages/shared-common/src/index.ts#L188
- */
-export async function getMatchedPositionsFromCode(generator: UnoGenerator, code: string, id = '') {
+export async function applyTransformers(
+  generator: UnoGenerator,
+  code: string,
+  id = ''
+) {
     const s = new MagicString(code)
     const tokens = new Set()
     const ctx = {uno: generator, tokens} as any
@@ -33,6 +29,20 @@ export async function getMatchedPositionsFromCode(generator: UnoGenerator, code:
         }
     }
 
-    const genResult = await generator.generate(s.toString(), {preflights: false})
+    return annotations
+}
+
+/**
+ * Ported from VSCode extension and removed pug support, maybe support it in the future.
+ *
+ * @param generator
+ * @param code
+ * @param id
+ * @see https://github.com/unocss/unocss/blob/main/packages/shared-common/src/index.ts#L188
+ */
+export async function getMatchedPositionsFromCode(generator: UnoGenerator, code: string, id = '') {
+    const annotations = await applyTransformers(generator, code, id)
+
+    const genResult = await generator.generate(code, {preflights: false})
     return {matched: [...genResult.matched], extraAnnotations: annotations}
 }

@@ -15,12 +15,12 @@ object Unocss {
 
     // Config file name
     val ConfigFiles: Set<String> = listOf(
+        "uno.config",
         "vite.config",
         "svelte.config",
         "iles.config",
         "astro.config",
         "nuxt.config",
-        "uno.config"
     ).flatMap {
         listOf("$it.js", "$it.ts")
     }.toSet()

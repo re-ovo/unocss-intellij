@@ -13,6 +13,7 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.elementType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlElementType
+import com.intellij.psi.xml.XmlTag
 import com.intellij.refactoring.suggested.startOffset
 import me.rerere.unocssintellij.rpc.SuggestionItem
 import me.rerere.unocssintellij.util.isClassAttribute
@@ -52,6 +53,13 @@ class UnocssAttributeCompletionContributor : CompletionContributor() {
 }
 
 object UnocssAttributeCompletionProvider : UnocssCompletionProvider() {
+
+    private val skipTagNames = setOf("script", "style", "template")
+
+    override fun shouldSkip(position: PsiElement): Boolean {
+        val xmlTag = PsiTreeUtil.getParentOfType(position, XmlTag::class.java) ?: return false
+        return xmlTag.name in skipTagNames
+    }
 
     override fun resolvePrefix(parameters: CompletionParameters, result: CompletionResultSet): PrefixHolder? {
         val element = parameters.position
@@ -115,7 +123,6 @@ object UnocssAttributeCompletionProvider : UnocssCompletionProvider() {
 object UnocssJsLiteralCompletionProvider : UnocssCompletionProvider() {
     override fun resolvePrefix(parameters: CompletionParameters, result: CompletionResultSet): PrefixHolder? {
         val element = parameters.position
-        println("element: $element")
         val xmlAttributeEle = PsiTreeUtil.getParentOfType(element, XmlAttribute::class.java, false)
             ?: return null
         val attrName = xmlAttributeEle.firstChild.text

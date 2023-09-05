@@ -10,14 +10,23 @@
 
 - Auto complete
 - Syntax highlight
-- Css hover preview
-- Code Folding
+- Documentation
+- Directive support (e.g. `@apply, @screen, @theme`)
+- Attributify support
+- Line marker for colors and icons
 
 ## Screenshots
+### Highlighting
+<img src="docs/screenshots/highlighting.png">
 
-| Auto Complete                               | Css Doc                                        | Icon/Color Preview                            | Fold                                  |
-|---------------------------------------------|------------------------------------------------|-----------------------------------------------|---------------------------------------|
-| <img src="docs/screenshots/completion.png"> | <img src="docs/screenshots/documentation.png"> | <img src="docs/screenshots/highlighting.png"> | <img src="docs/screenshots/fold.png"> |
+### Documentation
+<img src="docs/screenshots/documentation.png">
+
+### Auto Complete
+<img src="docs/screenshots/autocomplete.png">
+
+### Directive
+<img src="docs/screenshots/directive.png">
 
 ## Contribution
 

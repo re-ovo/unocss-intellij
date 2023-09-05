@@ -5,6 +5,7 @@ import com.intellij.platform.backend.documentation.DocumentationTarget
 import com.intellij.platform.backend.documentation.DocumentationTargetProvider
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.css.impl.CssAtRuleImpl
 import com.intellij.psi.css.impl.CssElementType
 import com.intellij.psi.css.impl.CssElementTypes
 import com.intellij.psi.impl.source.xml.XmlAttributeValueImpl
@@ -37,6 +38,8 @@ class UnocssDocumentTargetProvider : DocumentationTargetProvider {
         val meta: UnocssResolveMeta
         // attribute without value
         if (attributeNameOnlyElementTypes.contains(elementType)) {
+            val parent = element.parent
+            if (parent !is CssAtRuleImpl && parent.lastChild != element) return targets
             meta = UnocssResolveMeta(
                 element,
                 element.text.trim('"'),

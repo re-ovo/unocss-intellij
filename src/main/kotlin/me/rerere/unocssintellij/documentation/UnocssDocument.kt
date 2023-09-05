@@ -5,6 +5,7 @@ import com.intellij.platform.backend.documentation.DocumentationTarget
 import com.intellij.platform.backend.documentation.DocumentationTargetProvider
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.css.impl.CssAtRuleImpl
 import com.intellij.psi.css.impl.CssElementType
 import com.intellij.psi.css.impl.CssElementTypes
 import com.intellij.psi.impl.source.xml.XmlAttributeValueImpl
@@ -37,6 +38,8 @@ class UnocssDocumentTargetProvider : DocumentationTargetProvider {
         val meta: UnocssResolveMeta
         // attribute without value
         if (attributeNameOnlyElementTypes.contains(elementType)) {
+            val parent = element.parent
+            if (parent !is CssAtRuleImpl && parent.lastChild != element) return targets
             meta = UnocssResolveMeta(
                 element,
                 element.text.trim('"'),
@@ -66,13 +69,19 @@ class UnocssDocumentTargetProvider : DocumentationTargetProvider {
         meta: UnocssResolveMeta,
         targets: MutableList<in DocumentationTarget>
     ) {
-        if (UnoConfigPsiHelper.inCssThemeFunction(meta.bindElement)) {
-            targets.add(UnocssThemeConfigDocumentTarget(meta.bindElement))
-        } else {
-            val matchResult = meta.resolveCss() ?: return
-
-            if (matchResult.matchedTokens.isNotEmpty()) {
-                targets.add(UnocssDocumentTarget(meta.bindElement, matchResult))
+        val element = meta.bindElement
+        when {
+            UnoConfigPsiHelper.inCssThemeFunction(element) -> {
+                targets.add(UnocssThemeConfigDocumentTarget(element))
+            }
+            UnoConfigPsiHelper.inScreenDirective(element) -> {
+                targets.add(UnocssThemeScreenDocumentTarget(element))
+            }
+            else -> {
+                val matchResult = meta.resolveCss() ?: return
+                if (matchResult.matchedTokens.isNotEmpty()) {
+                    targets.add(UnocssDocumentTarget(element, matchResult))
+                }
             }
         }
     }

@@ -13,6 +13,7 @@ enum class RpcAction(val key: String) {
     ResolveCss("resolveCSS"),
     ResolveCssByOffset("resolveCSSByOffset"),
     ResolveAnnotations("resolveAnnotations"),
+    ResolveBreakpoints("resolveBreakpoints"),
 }
 
 data class UpdateSettingsCommandData(
@@ -59,3 +60,7 @@ data class ResolveAnnotationsResult(
 ) {
     data class HighlightAnnotation(val offset: Int, val length: Int, val className: String)
 }
+
+data class ResolveBreakpointsResult(
+    val breakpoints: Map<String, String>
+)

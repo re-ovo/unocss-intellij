@@ -16,6 +16,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorModificationUtil
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ui.ColorIcon
@@ -70,7 +71,9 @@ abstract class UnocssCompletionProvider : CompletionProvider<CompletionParameter
         context: ProcessingContext,
         result: CompletionResultSet
     ) {
-        if (!UnocssSettingsState.instance.enable) return
+        if (!UnocssSettingsState.instance.enable || shouldSkip(parameters.position)) {
+            return
+        }
         val (typingPrefix, prefixToSuggest) = resolvePrefix(parameters, result) ?: return
         val completionResult = result.withPrefixMatcher(typingPrefix)
 
@@ -92,13 +95,12 @@ abstract class UnocssCompletionProvider : CompletionProvider<CompletionParameter
             completionResult.addElement(
                 LookupElementBuilder
                     .create(className)
-                    .withLookupString(suggestion.className)
                     .withPresentableText(className)
                     .withIcon(
                         if (colors.isNotEmpty()) {
                             ColorIcon(16, colors.first())
                         } else if (icon != null) {
-                            SVGIcon.tryGetIcon(icon, 16).getOrNull()
+                            SVGIcon.tryGetIcon(icon, 20).getOrNull()
                         } else PluginIcon
                     )
                     .withTailText(trimCss(suggestion.css), true)
@@ -106,6 +108,10 @@ abstract class UnocssCompletionProvider : CompletionProvider<CompletionParameter
         }
 
         result.restartCompletionOnAnyPrefixChange()
+    }
+
+    protected open fun shouldSkip(position: PsiElement): Boolean {
+        return false
     }
 }
 

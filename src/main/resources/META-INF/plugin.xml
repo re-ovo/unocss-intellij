@@ -24,8 +24,8 @@
       <ul>
         <li>Use icons to mark UnoCSS completion items</li>
         <li>Fix the problem of not getting completions when typing one character</li>
-        <li>Support theme() directive in CSS(completion, documentation, line marker, go to definition)</li>
-        <li>Support previewing CSS final look in IDE (Beta)</li>
+        <li>Support theme(), @apply, @screen directives
+        <li>Bug fix</li>
       </ul>
     ]]></change-notes>
 

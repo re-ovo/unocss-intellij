@@ -48,7 +48,7 @@ class SVGIcon(
 
     companion object {
         @JvmStatic
-        fun tryGetIcon(encodedUrl: String): Result<SVGIcon> = runCatching {
+        fun tryGetIcon(encodedUrl: String, size: Int = ICON_SIZE): Result<SVGIcon> = runCatching {
             val svg = svgDataUrlToSvgElement(encodedUrl)
             val image = loader.load(svg.byteInputStream()) ?: error("Failed to load svg")
             SVGIcon(image)

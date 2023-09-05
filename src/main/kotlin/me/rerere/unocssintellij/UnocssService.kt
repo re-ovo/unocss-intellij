@@ -41,6 +41,8 @@ class UnocssService(private val project: Project) : Disposable {
     private var _themeKeys: MutableMap<String, String> = hashMapOf()
     val themeKeys: Set<String>
         get() = _themeKeys.keys
+    val themeEntries: Set<Map.Entry<String, String>>
+        get() = _themeKeys.entries
 
     private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 

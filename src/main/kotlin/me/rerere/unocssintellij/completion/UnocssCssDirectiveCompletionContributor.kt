@@ -10,8 +10,11 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.ProcessingContext
+import com.intellij.util.ui.ColorIcon
 import me.rerere.unocssintellij.UnocssService
 import me.rerere.unocssintellij.references.UnoConfigPsiHelper
+import me.rerere.unocssintellij.util.parseColors
+import me.rerere.unocssintellij.util.parseHexColor
 
 /**
  * Provide `@apply`, `@screen`, `theme()` directive completion
@@ -54,12 +57,19 @@ object UnocssCssDirectiveCompletionProvider : CompletionProvider<CompletionParam
                 val parent = position.parentOfType<CssFunctionImpl>()
                 if(parent != null && parent.name == "theme") {
                     val service = position.project.service<UnocssService>()
-                    service.themeKeys
-                        .forEach {
+                    service.themeEntries
+                        .forEach { (k, v) ->
+                            val color = parseHexColor(v)
                             result.addElement(
                                 LookupElementBuilder
-                                    .create(it)
-                                    .withIcon(PluginIcon)
+                                    .create(k)
+                                    .withTailText("  $v")
+                                    .withTypeText("theme")
+                                    .withIcon(
+                                        if(color != null) {
+                                            ColorIcon(16, color)
+                                        } else PluginIcon
+                                    )
                             )
                         }
                 }

@@ -1,5 +1,6 @@
 package me.rerere.unocssintellij
 
+import com.google.gson.JsonObject
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -35,7 +36,12 @@ private val SENSITIVE_FILES = listOf(
 @Service(Service.Level.PROJECT)
 class UnocssService(private val project: Project) : Disposable {
     private var unocssProcess: UnocssProcess? = null
+
     private var config: ResolveConfigResult? = null
+    private var _themeKeys: MutableList<String> = arrayListOf()
+    val themeKeys: List<String>
+        get() = _themeKeys
+
     private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     init {
@@ -132,6 +138,7 @@ class UnocssService(private val project: Project) : Disposable {
                         config = process.sendCommand<Any?, ResolveConfigResult>(RpcAction.ResolveConfig, null)
                         println("[UnoCSS] Presets: ${config?.presets?.joinToString { it.name }}")
                         println("[UnoCSS] Transformers: ${config?.transformers?.joinToString { it.name }}")
+                        updateThemeKeys()
                     }.onFailure {
                         it.printStackTrace()
                         println("(!) Failed to resolve unocss config: $it")
@@ -172,6 +179,26 @@ class UnocssService(private val project: Project) : Disposable {
 
     fun hasTransformer(transformer: String): Boolean {
         return config?.transformers?.any { it.name == transformer } ?: false
+    }
+
+    fun updateThemeKeys() {
+        fun getKeys(element: JsonObject, result: MutableList<String>, prefix: String = "") {
+            element.keySet().forEach { key ->
+                val value = element.get(key)
+                if (value.isJsonObject) {
+                    getKeys(value.asJsonObject, result, "$prefix$key.")
+                } else {
+                    result.add("$prefix$key")
+                }
+            }
+        }
+
+        config?.let {
+            _themeKeys.clear()
+
+            getKeys(it.theme, _themeKeys)
+            println("[UnoCSS] Parsed ${themeKeys.size} theme keys")
+        }
     }
 
     fun getCompletion(

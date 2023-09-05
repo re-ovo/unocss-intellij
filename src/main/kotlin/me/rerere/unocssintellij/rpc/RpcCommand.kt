@@ -1,5 +1,7 @@
 package me.rerere.unocssintellij.rpc
 
+import com.google.gson.JsonObject
+
 data class RpcCommand<T>(
     private val id: String,
     private val action: String,
@@ -19,6 +21,7 @@ enum class RpcAction(val key: String) {
 data class ResolveConfigResult(
     val presets: List<ResolveConfigResultPresetItem>,
     val transformers: List<ResolveConfigResultTransformerItem>,
+    val theme: JsonObject
 )
 
 data class ResolveConfigResultPresetItem(

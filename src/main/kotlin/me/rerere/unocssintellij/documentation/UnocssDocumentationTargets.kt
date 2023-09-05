@@ -144,10 +144,8 @@ class UnocssThemeConfigDocumentTarget(
                 return@doc null
             }
 
-            val objectPath = themeConfigPath.split(".")
-            val configValue = withContext(Dispatchers.EDT) rd@{
-                UnoConfigPsiHelper.findThemeConfigValue(targetElement, objectPath)
-            } ?: return@doc null
+            val service = targetElement.project.service<UnocssService>()
+            val configValue = service.getThemeValue(themeConfigPath) ?: return@doc null
 
             DocumentationResult.documentation(buildString {
                 append(DocumentationMarkup.DEFINITION_START)

@@ -34,11 +34,7 @@ class UnocssCssDirectiveCompletionContributor : CompletionContributor() {
         extend(
             CompletionType.BASIC,
             PlatformPatterns
-                .psiElement(CssElementTypes.CSS_STRING_TOKEN)
-                .withSuperParent(4,
-                    StandardPatterns
-                        .instanceOf(CssFunctionImpl::class.java)
-                ),
+                .psiElement(CssElementTypes.CSS_STRING_TOKEN),
             UnocssCssDirectiveCompletionProvider
         )
     }

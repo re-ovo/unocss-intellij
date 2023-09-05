@@ -37,7 +37,6 @@ class UnocssDocumentTargetProvider : DocumentationTargetProvider {
         val meta: UnocssResolveMeta
         // attribute without value
         if (attributeNameOnlyElementTypes.contains(elementType)) {
-            if (element.parent.lastChild != element) return targets
             meta = UnocssResolveMeta(
                 element,
                 element.text.trim('"'),

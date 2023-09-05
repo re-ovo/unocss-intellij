@@ -151,7 +151,7 @@ object UnocssJsLiteralCompletionProvider : UnocssCompletionProvider() {
         // we select the leaf PsiElement with parent JSLiteralExpression,
         // so we can simply treat the prefix as the whole text of the element
         return if (!prefixToResolve.contains("(")) {
-            PrefixHolder(prefixToResolve)
+            PrefixHolder(prefixToResolve.split(" ").last().trim())
         } else {
             extractFromVariantGroup(prefixToResolve)
         }

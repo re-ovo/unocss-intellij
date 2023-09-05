@@ -15,6 +15,7 @@ import me.rerere.unocssintellij.Unocss
 
 object UnoConfigPsiHelper {
     val screenPrefixes = setOf("lt-", "at-")
+    val defaultApplyVariable = setOf("--at-apply", "--uno-apply", "--uno")
 
     fun inCssThemeFunction(element: PsiElement): Boolean {
         val parent = PsiTreeUtil.getParentOfType(element, CssFunctionImpl::class.java)

@@ -227,4 +227,12 @@ class UnocssService(private val project: Project) : Disposable {
             )
         )
     }
+
+    suspend fun resolveBreakpoints(file: VirtualFile?): ResolveBreakpointsResult? {
+        val process = getProcess(file) ?: return null
+        return process.sendCommand<Unit, ResolveBreakpointsResult>(
+            RpcAction.ResolveBreakpoints,
+            null
+        )
+    }
 }

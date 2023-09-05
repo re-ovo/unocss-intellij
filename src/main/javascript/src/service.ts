@@ -103,6 +103,15 @@ export async function resolveAnnotations(id: string, code: string) {
   return await getMatchedPositionsFromCode(generator, code, id);
 }
 
+export async function resolveBreakpoints() {
+  let breakpoints;
+  if (generator.userConfig && generator.userConfig.theme)
+    breakpoints = generator.userConfig.theme.breakpoints;
+  if (!breakpoints)
+    breakpoints = generator.config.theme.breakpoints;
+  return { breakpoints };
+}
+
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
@@ -143,5 +152,7 @@ async function handle_command(command: string, data: any) {
       return await resolveCSS(data.content);
     case "resolveAnnotations":
       return await resolveAnnotations(data.id, data.content)
+    case "resolveBreakpoints":
+      return await resolveBreakpoints()
   }
 }

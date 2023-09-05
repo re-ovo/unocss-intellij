@@ -69,13 +69,19 @@ class UnocssDocumentTargetProvider : DocumentationTargetProvider {
         meta: UnocssResolveMeta,
         targets: MutableList<in DocumentationTarget>
     ) {
-        if (UnoConfigPsiHelper.inCssThemeFunction(meta.bindElement)) {
-            targets.add(UnocssThemeConfigDocumentTarget(meta.bindElement))
-        } else {
-            val matchResult = meta.resolveCss() ?: return
-
-            if (matchResult.matchedTokens.isNotEmpty()) {
-                targets.add(UnocssDocumentTarget(meta.bindElement, matchResult))
+        val element = meta.bindElement
+        when {
+            UnoConfigPsiHelper.inCssThemeFunction(element) -> {
+                targets.add(UnocssThemeConfigDocumentTarget(element))
+            }
+            UnoConfigPsiHelper.inScreenDirective(element) -> {
+                targets.add(UnocssThemeScreenDocumentTarget(element))
+            }
+            else -> {
+                val matchResult = meta.resolveCss() ?: return
+                if (matchResult.matchedTokens.isNotEmpty()) {
+                    targets.add(UnocssDocumentTarget(element, matchResult))
+                }
             }
         }
     }

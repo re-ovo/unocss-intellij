@@ -54,7 +54,10 @@
         />
         <completion.contributor
                 language="CSS"
-                implementationClass="me.rerere.unocssintellij.completion.UnocssCSSCompletionContributor"/>
+                implementationClass="me.rerere.unocssintellij.completion.UnocssCssDirectiveCompletionContributor" />
+        <completion.contributor
+                language="CSS"
+                implementationClass="me.rerere.unocssintellij.completion.UnocssCssTermCompletionContributor"/>
         <typedHandler implementation="me.rerere.unocssintellij.completion.TypedHandler" order="first"/>
 
         <!-- 文档提示 -->

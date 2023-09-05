@@ -3,11 +3,14 @@ package me.rerere.unocssintellij.completion
 import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.patterns.PlatformPatterns
+import com.intellij.psi.css.impl.CssDeclarationImpl
 import com.intellij.psi.css.impl.CssElementTypes
 import com.intellij.psi.css.impl.CssRulesetImpl
+import com.intellij.psi.css.impl.CssTermImpl
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.elementType
 import com.intellij.util.ProcessingContext
+import me.rerere.unocssintellij.references.UnoConfigPsiHelper
 
 /**
  * Provide `@apply`, `@screen`, `theme()` directive completion
@@ -36,25 +39,34 @@ object UnocssCssDirectiveCompletionProvider : CompletionProvider<CompletionParam
         val position = parameters.position
         when (position.elementType) {
             CssElementTypes.CSS_IDENT -> {
-                result.addPriorityElement(
-                    LookupElementBuilder
-                        .create("--at-apply")
-                        .withIcon(PluginIcon)
-                        .withInsertHandler { insertionCtx, _ ->
-                            insertionCtx.document.insertString(insertionCtx.selectionEndOffset, ": ")
-                            insertionCtx.editor.caretModel.moveToOffset(insertionCtx.selectionEndOffset)
-                        }
-                )
-                result.addPriorityElement(
-                    LookupElementBuilder
-                        .create("theme")
-                        .withIcon(PluginIcon)
-                        .withTailText("('themeRef')", true)
-                        .withInsertHandler { insertionCtx, _ ->
-                            insertionCtx.document.insertString(insertionCtx.selectionEndOffset, "('')")
-                            insertionCtx.editor.caretModel.moveToOffset(insertionCtx.selectionEndOffset - 2)
-                        }
-                )
+                // allow apply variable only in declaration key
+                if (position.parent is CssDeclarationImpl) {
+                    UnoConfigPsiHelper.defaultApplyVariable.forEach {
+                        result.addPriorityElement(
+                            LookupElementBuilder
+                                .create(it)
+                                .withIcon(PluginIcon)
+                                .withInsertHandler { insertionCtx, _ ->
+                                    insertionCtx.document.insertString(insertionCtx.selectionEndOffset, ": ")
+                                    insertionCtx.editor.caretModel.moveToOffset(insertionCtx.selectionEndOffset)
+                                }
+                        )
+                    }
+                }
+
+                // allow theme() only  in declaration value
+                if (position.parent is CssTermImpl) {
+                    result.addPriorityElement(
+                        LookupElementBuilder
+                            .create("theme")
+                            .withIcon(PluginIcon)
+                            .withTailText("('themeRef')", true)
+                            .withInsertHandler { insertionCtx, _ ->
+                                insertionCtx.document.insertString(insertionCtx.selectionEndOffset, "('')")
+                                insertionCtx.editor.caretModel.moveToOffset(insertionCtx.selectionEndOffset - 2)
+                            }
+                    )
+                }
             }
 
             CssElementTypes.CSS_ATKEYWORD -> {

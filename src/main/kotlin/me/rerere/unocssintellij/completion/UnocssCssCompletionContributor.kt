@@ -11,6 +11,7 @@ import com.intellij.psi.filters.ElementFilter
 import com.intellij.psi.filters.position.FilterPattern
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.elementType
+import me.rerere.unocssintellij.references.UnoConfigPsiHelper
 
 class UnocssCssTermCompletionContributor : CompletionContributor() {
     init {
@@ -29,8 +30,6 @@ class UnocssCssTermCompletionContributor : CompletionContributor() {
     }
 
     private object UnocssCssTermCompletionFilter : ElementFilter {
-
-        private val defaultApplyVariable = setOf("--at-apply", "--uno-apply", "--uno")
 
         /**
          * Unocss completion in css scope only support `@apply` and `--at-apply` value
@@ -59,7 +58,7 @@ class UnocssCssTermCompletionContributor : CompletionContributor() {
             ) ?: return false
 
             val propKey = cssDeclaration.firstChild
-            return propKey.text == "@apply" || propKey.text in defaultApplyVariable
+            return propKey.text == "@apply" || propKey.text in UnoConfigPsiHelper.defaultApplyVariable
         }
 
         override fun isClassAcceptable(hintClass: Class<*>?): Boolean = true

@@ -29,13 +29,15 @@ class SVGIcon(
     private val image: SVGDocument,
     private val size: Int = ICON_SIZE
 ) : Icon {
-    override fun paintIcon(c: Component?, g: Graphics?, x: Int, y: Int) {
-        val iconSizeFloat = JBUIScale.scale(size.toFloat())
-        image.render(
-            c as JComponent?,
-            g as Graphics2D,
-            ViewBox(x.toFloat(), y.toFloat(), iconSizeFloat, iconSizeFloat)
+    override fun paintIcon(c: Component, g: Graphics, x: Int, y: Int) {
+        // enable anti-aliasing
+        (g as Graphics2D).setRenderingHint(
+            java.awt.RenderingHints.KEY_ANTIALIASING,
+            java.awt.RenderingHints.VALUE_ANTIALIAS_ON
         )
+
+        val iconSizeFloat = JBUIScale.scale(size.toFloat())
+        image.render(c as JComponent?, g, ViewBox(x.toFloat(), y.toFloat(), iconSizeFloat, iconSizeFloat))
     }
 
     override fun getIconWidth(): Int {
@@ -51,7 +53,7 @@ class SVGIcon(
         fun tryGetIcon(encodedUrl: String, size: Int = ICON_SIZE): Result<SVGIcon> = runCatching {
             val svg = svgDataUrlToSvgElement(encodedUrl)
             val image = loader.load(svg.byteInputStream()) ?: error("Failed to load svg")
-            SVGIcon(image)
+            SVGIcon(image, size)
         }.onFailure {
             it.printStackTrace()
         }

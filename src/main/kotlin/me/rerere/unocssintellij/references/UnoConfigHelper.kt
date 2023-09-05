@@ -2,9 +2,13 @@ package me.rerere.unocssintellij.references
 
 import com.intellij.lang.javascript.JavaScriptFileType
 import com.intellij.lang.javascript.TypeScriptFileType
+import com.intellij.lang.javascript.psi.JSElement
+import com.intellij.lang.javascript.psi.JSExpression
 import com.intellij.lang.javascript.psi.JSLiteralExpression
 import com.intellij.lang.javascript.psi.JSObjectLiteralExpression
 import com.intellij.lang.javascript.psi.JSProperty
+import com.intellij.lang.javascript.psi.JSReferenceExpression
+import com.intellij.lang.javascript.psi.ecma6.TypeScriptVariable
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.css.impl.CssFunctionImpl
@@ -14,13 +18,12 @@ import com.intellij.psi.util.PsiTreeUtil
 import me.rerere.unocssintellij.Unocss
 
 object UnoConfigPsiHelper {
-
     fun inCssThemeFunction(element: PsiElement): Boolean {
         val parent = PsiTreeUtil.getParentOfType(element, CssFunctionImpl::class.java)
         return parent != null && parent.name == "theme"
     }
 
-    fun findThemeConfig(element: PsiElement): JSProperty? {
+    fun findThemeConfig(element: PsiElement): JSElement? {
         val project = element.project
         val tsFiles = FileTypeIndex.getFiles(TypeScriptFileType.INSTANCE, GlobalSearchScope.allScope(project))
         val jsFiles = FileTypeIndex.getFiles(JavaScriptFileType.INSTANCE, GlobalSearchScope.allScope(project))
@@ -33,7 +36,18 @@ object UnoConfigPsiHelper {
             .forEach { jsObjectLiteralExpression ->
                 val themeProperty = jsObjectLiteralExpression.findProperty("theme")
                 if (themeProperty != null) {
-                    return themeProperty
+
+                    // 如果是引用，找到引用的对象
+                    if(themeProperty.value is JSReferenceExpression) {
+                        val reference = themeProperty.value as JSReferenceExpression
+                        val resolved = reference.resolve()
+                        val objectLiteral = PsiTreeUtil.findChildOfType(resolved, JSObjectLiteralExpression::class.java)
+                        if(objectLiteral != null) {
+                            return objectLiteral
+                        }
+                    }
+
+                    return themeProperty.value
                 }
             }
 
@@ -41,8 +55,7 @@ object UnoConfigPsiHelper {
     }
 
     fun findThemeConfigValue(element: PsiElement, objectPath: List<String>): String? {
-        val themeConfig = findThemeConfig(element) ?: return null
-        val themeConfigValue = themeConfig.value
+        val themeConfigValue = findThemeConfig(element) ?: return null
         if (themeConfigValue !is JSObjectLiteralExpression) {
             return null
         }

@@ -27,10 +27,9 @@ class UnocssThemeConfigReference(element: PsiElement, textRange: TextRange) :
     }
 
     override fun multiResolve(incompleteCode: Boolean): Array<ResolveResult> {
-        val themeConfig = UnoConfigPsiHelper.findThemeConfig(element) ?: return emptyArray()
+        val themeConfigValue = UnoConfigPsiHelper.findThemeConfig(element) ?: return emptyArray()
 
         val result = mutableListOf<ResolveResult>()
-        val themeConfigValue = themeConfig.value
         if (themeConfigValue is JSObjectLiteralExpression) {
             val referencedProperty = UnoConfigPsiHelper
                 .findThemeConfigProperty(themeConfigValue, themeValue.split("."), 0)
@@ -44,8 +43,7 @@ class UnocssThemeConfigReference(element: PsiElement, textRange: TextRange) :
     }
 
     override fun getVariants(): Array<Any> {
-        val themeConfig = UnoConfigPsiHelper.findThemeConfig(element) ?: return emptyArray()
-        val themeConfigValue = themeConfig.value
+        val themeConfigValue = UnoConfigPsiHelper.findThemeConfig(element) ?: return emptyArray()
         if (themeConfigValue !is JSObjectLiteralExpression) return emptyArray()
 
         val variants = mutableListOf<LookupElement>()
@@ -79,7 +77,7 @@ class UnocssThemeConfigReference(element: PsiElement, textRange: TextRange) :
             variants.add(
                 LookupElementBuilder
                     .create(prop, lookupString)
-                    .withTypeText(themeConfig.containingFile.name)
+                    .withTypeText(themeConfigValue.containingFile.name)
                     .withTailText(computeTailText(prop), true)
                     .withIcon(if (color != null) ColorIcon(16, color) else AllIcons.Nodes.Property)
             )

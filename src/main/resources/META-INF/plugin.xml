@@ -88,6 +88,9 @@
         <externalAnnotator
                 language="JavaScript"
                 implementationClass="me.rerere.unocssintellij.highlighting.UnocssAttributeExternalAnnotator"/>
+        <externalAnnotator
+                language="CSS"
+                implementationClass="me.rerere.unocssintellij.highlighting.UnocssAttributeExternalAnnotator"/>
 
         <!-- preset/attributify 下抑制警告 -->
         <lang.inspectionSuppressor

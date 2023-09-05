@@ -35,6 +35,7 @@ private val SENSITIVE_FILES = listOf(
 @Service(Service.Level.PROJECT)
 class UnocssService(private val project: Project) : Disposable {
     private var unocssProcess: UnocssProcess? = null
+    private var config: ResolveConfigResult? = null
     private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     init {
@@ -128,7 +129,9 @@ class UnocssService(private val project: Project) : Disposable {
 
                 job = scope.launch {
                     runCatching {
-                        process.sendCommand<Any?, Any?>(RpcAction.ResolveConfig, null)
+                        config = process.sendCommand<Any?, ResolveConfigResult>(RpcAction.ResolveConfig, null)
+                        println("[UnoCSS] Presets: ${config?.presets?.joinToString { it.name }}")
+                        println("[UnoCSS] Transformers: ${config?.transformers?.joinToString { it.name }}")
                     }.onFailure {
                         it.printStackTrace()
                         println("(!) Failed to resolve unocss config: $it")
@@ -161,6 +164,14 @@ class UnocssService(private val project: Project) : Disposable {
                 )
             }
         }
+    }
+
+    fun hasPreset(preset: String): Boolean {
+        return config?.presets?.any { it.name == preset } ?: false
+    }
+
+    fun hasTransformer(transformer: String): Boolean {
+        return config?.transformers?.any { it.name == transformer } ?: false
     }
 
     fun getCompletion(

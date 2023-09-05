@@ -16,6 +16,19 @@ enum class RpcAction(val key: String) {
     ResolveBreakpoints("resolveBreakpoints"),
 }
 
+data class ResolveConfigResult(
+    val presets: List<ResolveConfigResultPresetItem>,
+    val transformers: List<ResolveConfigResultTransformerItem>,
+)
+
+data class ResolveConfigResultPresetItem(
+    val name: String,
+)
+
+data class ResolveConfigResultTransformerItem(
+    val name: String,
+)
+
 data class UpdateSettingsCommandData(
     val matchType: String
 )

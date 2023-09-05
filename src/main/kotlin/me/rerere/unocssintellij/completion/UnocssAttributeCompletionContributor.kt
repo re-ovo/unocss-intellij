@@ -6,6 +6,7 @@ import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.lang.javascript.psi.JSLiteralExpression
 import com.intellij.lang.javascript.psi.JSProperty
+import com.intellij.openapi.components.service
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
@@ -15,6 +16,8 @@ import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlElementType
 import com.intellij.psi.xml.XmlTag
 import com.intellij.refactoring.suggested.startOffset
+import me.rerere.unocssintellij.UNOCSS_PRESET_ATTRIBUTIFY
+import me.rerere.unocssintellij.UnocssService
 import me.rerere.unocssintellij.rpc.SuggestionItem
 import me.rerere.unocssintellij.util.isClassAttribute
 
@@ -57,6 +60,13 @@ object UnocssAttributeCompletionProvider : UnocssCompletionProvider() {
     private val skipTagNames = setOf("script", "style", "template")
 
     override fun shouldSkip(position: PsiElement): Boolean {
+        val service = position.project.service<UnocssService>()
+
+        // If user has not installed attributify preset, skip
+        if(!service.hasPreset(UNOCSS_PRESET_ATTRIBUTIFY) && position.elementType == XmlElementType.XML_NAME) {
+            return true
+        }
+
         val xmlTag = PsiTreeUtil.getParentOfType(position, XmlTag::class.java) ?: return false
         return xmlTag.name in skipTagNames
     }

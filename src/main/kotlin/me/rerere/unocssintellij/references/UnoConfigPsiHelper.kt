@@ -2,15 +2,11 @@ package me.rerere.unocssintellij.references
 
 import com.intellij.lang.javascript.JavaScriptFileType
 import com.intellij.lang.javascript.TypeScriptFileType
-import com.intellij.lang.javascript.psi.JSElement
-import com.intellij.lang.javascript.psi.JSExpression
-import com.intellij.lang.javascript.psi.JSLiteralExpression
-import com.intellij.lang.javascript.psi.JSObjectLiteralExpression
-import com.intellij.lang.javascript.psi.JSProperty
-import com.intellij.lang.javascript.psi.JSReferenceExpression
-import com.intellij.lang.javascript.psi.ecma6.TypeScriptVariable
+import com.intellij.lang.javascript.psi.*
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+import com.intellij.psi.css.impl.CssAtRuleImpl
 import com.intellij.psi.css.impl.CssFunctionImpl
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.GlobalSearchScope
@@ -18,31 +14,42 @@ import com.intellij.psi.util.PsiTreeUtil
 import me.rerere.unocssintellij.Unocss
 
 object UnoConfigPsiHelper {
+    val screenPrefixes = setOf("lt-", "at-")
+
     fun inCssThemeFunction(element: PsiElement): Boolean {
         val parent = PsiTreeUtil.getParentOfType(element, CssFunctionImpl::class.java)
         return parent != null && parent.name == "theme"
     }
 
-    fun findThemeConfig(element: PsiElement): JSElement? {
+    fun inScreenDirective(element: PsiElement): Boolean {
+        val parent = PsiTreeUtil.getParentOfType(element, CssAtRuleImpl::class.java)
+        return parent != null && parent.name == "@screen"
+    }
+
+    fun findUnoConfigFile(element: PsiElement): PsiFile? {
         val project = element.project
         val tsFiles = FileTypeIndex.getFiles(TypeScriptFileType.INSTANCE, GlobalSearchScope.allScope(project))
         val jsFiles = FileTypeIndex.getFiles(JavaScriptFileType.INSTANCE, GlobalSearchScope.allScope(project))
 
         val candidateFiles = (tsFiles + jsFiles)
         val configFile = candidateFiles.firstOrNull { file -> Unocss.ConfigFiles.contains(file.name) } ?: return null
-        val psiFile = PsiManager.getInstance(project).findFile(configFile) ?: return null
+        return PsiManager.getInstance(project).findFile(configFile)
+    }
 
-        PsiTreeUtil.findChildrenOfType(psiFile, JSObjectLiteralExpression::class.java)
+    fun findThemeConfig(element: PsiElement): JSElement? {
+        val configFile = findUnoConfigFile(element)
+
+        PsiTreeUtil.findChildrenOfType(configFile, JSObjectLiteralExpression::class.java)
             .forEach { jsObjectLiteralExpression ->
                 val themeProperty = jsObjectLiteralExpression.findProperty("theme")
                 if (themeProperty != null) {
 
                     // 如果是引用，找到引用的对象
-                    if(themeProperty.value is JSReferenceExpression) {
+                    if (themeProperty.value is JSReferenceExpression) {
                         val reference = themeProperty.value as JSReferenceExpression
                         val resolved = reference.resolve()
                         val objectLiteral = PsiTreeUtil.findChildOfType(resolved, JSObjectLiteralExpression::class.java)
-                        if(objectLiteral != null) {
+                        if (objectLiteral != null) {
                             return objectLiteral
                         }
                     }
@@ -59,7 +66,7 @@ object UnoConfigPsiHelper {
         if (themeConfigValue !is JSObjectLiteralExpression) {
             return null
         }
-        val property = findThemeConfigProperty(themeConfigValue, objectPath, 0) ?: return null
+        val property = findThemeConfigProperty(themeConfigValue, objectPath) ?: return null
         val propertyValue = property.value ?: return null
         if (propertyValue is JSLiteralExpression && propertyValue.isStringLiteral) {
             return propertyValue.stringValue
@@ -70,7 +77,7 @@ object UnoConfigPsiHelper {
     fun findThemeConfigProperty(
         themeConfig: JSObjectLiteralExpression,
         objectPath: List<String>,
-        index: Int,
+        index: Int = 0,
     ): JSProperty? {
         if (index >= objectPath.size) {
             return null

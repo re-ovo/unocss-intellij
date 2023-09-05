@@ -10,7 +10,7 @@ import com.intellij.psi.*
 import com.intellij.util.ui.ColorIcon
 import me.rerere.unocssintellij.util.parseHexColor
 
-class UnocssThemeConfigReference(element: PsiElement, textRange: TextRange) :
+open class UnocssThemeConfigReference(element: PsiElement, protected val textRange: TextRange) :
     PsiReferenceBase<PsiElement>(element, textRange),
     PsiPolyVariantReference {
 
@@ -32,7 +32,7 @@ class UnocssThemeConfigReference(element: PsiElement, textRange: TextRange) :
         val result = mutableListOf<ResolveResult>()
         if (themeConfigValue is JSObjectLiteralExpression) {
             val referencedProperty = UnoConfigPsiHelper
-                .findThemeConfigProperty(themeConfigValue, themeValue.split("."), 0)
+                .findThemeConfigProperty(themeConfigValue, themeValue.split("."))
 
             if (referencedProperty != null) {
                 result.add(PsiElementResolveResult(referencedProperty))
@@ -52,7 +52,7 @@ class UnocssThemeConfigReference(element: PsiElement, textRange: TextRange) :
         val properties = if (objectPath.isEmpty()) {
             themeConfigValue.properties
         } else {
-            val parentObj = UnoConfigPsiHelper.findThemeConfigProperty(themeConfigValue, objectPath, 0)
+            val parentObj = UnoConfigPsiHelper.findThemeConfigProperty(themeConfigValue, objectPath)
                 ?: return emptyArray()
 
             val parentObjectValue = parentObj.value
@@ -86,7 +86,7 @@ class UnocssThemeConfigReference(element: PsiElement, textRange: TextRange) :
         return variants.toTypedArray()
     }
 
-    private fun computeTailText(property: JSProperty): String {
+    protected fun computeTailText(property: JSProperty): String {
         val value = property.value
         val content = if (value is JSObjectLiteralExpression) {
             "{...}"

@@ -7,17 +7,17 @@
   },
   "devDependencies": {
     "@antfu/utils": "^0.7.6",
-    "@types/node": "^20.5.7",
-    "@unocss/autocomplete": "^0.55.4",
-    "@unocss/config": "^0.55.4",
-    "@unocss/core": "^0.55.4",
-    "@unocss/nuxt": "^0.55.4",
+    "@types/node": "^20.5.9",
+    "@unocss/autocomplete": "^0.55.7",
+    "@unocss/config": "^0.55.7",
+    "@unocss/core": "^0.55.7",
+    "@unocss/nuxt": "^0.55.7",
     "defu": "^6.1.2",
     "jiti": "^1.19.3",
     "lru-cache": "^10.0.1",
     "magic-string": "^0.30.3",
     "unconfig": "^0.3.10",
-    "unocss": "^0.55.4"
+    "unocss": "^0.55.7"
   },
   "dependencies": {
     "esbuild": "0.18.7"

@@ -37,13 +37,6 @@ private val SENSITIVE_FILES = listOf(
 class UnocssService(private val project: Project) : Disposable {
     private var unocssProcess: UnocssProcess? = null
 
-    private var config: ResolveConfigResult? = null
-    private var _themeKeys: MutableMap<String, String> = hashMapOf()
-    val themeKeys: Set<String>
-        get() = _themeKeys.keys
-    val themeEntries: Set<Map.Entry<String, String>>
-        get() = _themeKeys.entries
-
     private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     init {
@@ -137,10 +130,9 @@ class UnocssService(private val project: Project) : Disposable {
 
                 job = scope.launch {
                     runCatching {
-                        config = process.sendCommand<Any?, ResolveConfigResult>(RpcAction.ResolveConfig, null)
-                        println("[UnoCSS] Presets: ${config?.presets?.joinToString { it.name }}")
-                        println("[UnoCSS] Transformers: ${config?.transformers?.joinToString { it.name }}")
-                        updateThemeKeys()
+                        UnocssConfigManager.updateConfig(
+                            process.sendCommand<Any?, ResolveConfigResult>(RpcAction.ResolveConfig, null)
+                        )
                     }.onFailure {
                         it.printStackTrace()
                         println("(!) Failed to resolve unocss config: $it")
@@ -173,37 +165,6 @@ class UnocssService(private val project: Project) : Disposable {
                 )
             }
         }
-    }
-
-    fun hasPreset(preset: String): Boolean {
-        return config?.presets?.any { it.name == preset } ?: false
-    }
-
-    fun hasTransformer(transformer: String): Boolean {
-        return config?.transformers?.any { it.name == transformer } ?: false
-    }
-
-    fun updateThemeKeys() {
-        fun getKeys(element: JsonObject, result: MutableMap<String, String>, prefix: String = "") {
-            element.keySet().forEach { key ->
-                val value = element.get(key)
-                if (value.isJsonObject) {
-                    getKeys(value.asJsonObject, result, "$prefix$key.")
-                } else if (value.isJsonPrimitive) {
-                    result["$prefix$key"] = value.asString
-                }
-            }
-        }
-
-        config?.let {
-            _themeKeys.clear()
-            getKeys(it.theme, _themeKeys)
-            println("[UnoCSS] Parsed ${themeKeys.size} theme keys")
-        }
-    }
-
-    fun getThemeValue(key: String): String? {
-        return _themeKeys[key]
     }
 
     fun getCompletion(

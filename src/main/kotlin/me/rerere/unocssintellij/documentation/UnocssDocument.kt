@@ -9,8 +9,8 @@ import com.intellij.psi.css.impl.CssAtRuleImpl
 import com.intellij.psi.css.impl.CssElementType
 import com.intellij.psi.css.impl.CssElementTypes
 import com.intellij.psi.impl.source.xml.XmlAttributeValueImpl
-import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.elementType
+import com.intellij.psi.util.parentOfTypes
 import com.intellij.psi.xml.XmlElementType
 import com.intellij.psi.xml.XmlTokenType
 import com.intellij.refactoring.suggested.startOffset
@@ -48,9 +48,8 @@ class UnocssDocumentTargetProvider : DocumentationTargetProvider {
                 elementType !is CssElementType
             )
         } else {
-            val attributeValueEle = PsiTreeUtil.getParentOfType(
-                element,
-                XmlAttributeValueImpl::class.java, JSXmlAttributeValueImpl::class.java
+            val attributeValueEle = element.parentOfTypes(
+                XmlAttributeValueImpl::class, JSXmlAttributeValueImpl::class
             ) ?: return targets
 
             val isLiteralValue = elementType == XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN || isJsString(element)

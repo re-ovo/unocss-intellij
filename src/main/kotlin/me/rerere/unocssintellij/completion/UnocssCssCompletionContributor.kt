@@ -6,11 +6,15 @@ import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.PsiElement
-import com.intellij.psi.css.impl.*
+import com.intellij.psi.css.impl.CssAtRuleImpl
+import com.intellij.psi.css.impl.CssDeclarationImpl
+import com.intellij.psi.css.impl.CssElementTypes
+import com.intellij.psi.css.impl.CssRulesetImpl
 import com.intellij.psi.filters.ElementFilter
 import com.intellij.psi.filters.position.FilterPattern
-import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.elementType
+import com.intellij.psi.util.parentOfType
+import com.intellij.psi.util.parentOfTypes
 import me.rerere.unocssintellij.references.UnoConfigPsiHelper
 
 class UnocssCssTermCompletionContributor : CompletionContributor() {
@@ -41,20 +45,20 @@ class UnocssCssTermCompletionContributor : CompletionContributor() {
             if (!psiElement.isValid) {
                 return false
             }
-            if (PsiTreeUtil.getParentOfType(psiElement, CssRulesetImpl::class.java) == null) {
+            if (psiElement.parentOfType<CssRulesetImpl>() == null) {
                 return false
             }
             // skip
             if (psiElement.elementType === CssElementTypes.CSS_IDENT
-                && psiElement.parent is CssDeclarationImpl) {
+                && psiElement.parent is CssDeclarationImpl
+            ) {
                 return false
             }
-            val cssDeclaration: PsiElement = PsiTreeUtil.getParentOfType(
-                psiElement,
+            val cssDeclaration: PsiElement = psiElement.parentOfTypes(
                 // for apply variable
-                CssDeclarationImpl::class.java,
+                CssDeclarationImpl::class,
                 // for @apply
-                CssAtRuleImpl::class.java
+                CssAtRuleImpl::class
             ) ?: return false
 
             val propKey = cssDeclaration.firstChild

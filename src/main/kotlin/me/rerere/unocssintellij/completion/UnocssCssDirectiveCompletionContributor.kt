@@ -2,18 +2,14 @@ package me.rerere.unocssintellij.completion
 
 import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.lookup.LookupElementBuilder
-import com.intellij.openapi.components.service
 import com.intellij.patterns.PlatformPatterns
-import com.intellij.patterns.StandardPatterns
 import com.intellij.psi.css.impl.*
-import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ui.ColorIcon
-import me.rerere.unocssintellij.UnocssService
+import me.rerere.unocssintellij.UnocssConfigManager
 import me.rerere.unocssintellij.references.UnoConfigPsiHelper
-import me.rerere.unocssintellij.util.parseColors
 import me.rerere.unocssintellij.util.parseHexColor
 
 /**
@@ -46,14 +42,17 @@ object UnocssCssDirectiveCompletionProvider : CompletionProvider<CompletionParam
         context: ProcessingContext,
         result: CompletionResultSet
     ) {
+        if (!UnocssConfigManager.hasTransformerDirective) {
+            return
+        }
+
         val position = parameters.position
         when (position.elementType) {
             CssElementTypes.CSS_STRING_TOKEN -> {
                 // completion for path: theme('path')
                 val parent = position.parentOfType<CssFunctionImpl>()
-                if(parent != null && parent.name == "theme") {
-                    val service = position.project.service<UnocssService>()
-                    service.themeEntries
+                if (parent != null && parent.name == "theme") {
+                    UnocssConfigManager.themeEntries
                         .forEach { (k, v) ->
                             val color = parseHexColor(v)
                             result.addElement(
@@ -62,7 +61,7 @@ object UnocssCssDirectiveCompletionProvider : CompletionProvider<CompletionParam
                                     .withTailText("  $v")
                                     .withTypeText("theme")
                                     .withIcon(
-                                        if(color != null) {
+                                        if (color != null) {
                                             ColorIcon(16, color)
                                         } else PluginIcon
                                     )
@@ -72,7 +71,7 @@ object UnocssCssDirectiveCompletionProvider : CompletionProvider<CompletionParam
             }
 
             CssElementTypes.CSS_IDENT -> {
-                // allow apply variable only in declaration key
+                // allow <apply variable> only in declaration key
                 if (position.parent is CssDeclarationImpl) {
                     UnoConfigPsiHelper.defaultApplyVariable.forEach {
                         result.addPriorityElement(
@@ -87,7 +86,7 @@ object UnocssCssDirectiveCompletionProvider : CompletionProvider<CompletionParam
                     }
                 }
 
-                // allow theme() only  in declaration value
+                // allow theme() only in declaration value
                 if (position.parent is CssTermImpl) {
                     result.addPriorityElement(
                         LookupElementBuilder
@@ -103,7 +102,7 @@ object UnocssCssDirectiveCompletionProvider : CompletionProvider<CompletionParam
             }
 
             CssElementTypes.CSS_ATKEYWORD -> {
-                val cssDeclaration = PsiTreeUtil.getParentOfType(position, CssRulesetImpl::class.java)
+                val cssDeclaration = position.parentOfType<CssRulesetImpl>()
                 if (cssDeclaration != null) {
                     result.addPriorityElement(
                         LookupElementBuilder

@@ -23,6 +23,7 @@ import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.refactoring.suggested.createSmartPointer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import me.rerere.unocssintellij.UnocssConfigManager
 import me.rerere.unocssintellij.UnocssService
 import me.rerere.unocssintellij.references.UnoConfigPsiHelper
 import me.rerere.unocssintellij.rpc.ResolveCSSResult
@@ -145,8 +146,7 @@ class UnocssThemeConfigDocumentTarget(
                 return@doc null
             }
 
-            val service = targetElement.project.service<UnocssService>()
-            val configValue = service.getThemeValue(themeConfigPath) ?: return@doc null
+            val configValue = UnocssConfigManager.getThemeValue(themeConfigPath) ?: return@doc null
 
             DocumentationResult.documentation(buildString {
                 append(DocumentationMarkup.DEFINITION_START)

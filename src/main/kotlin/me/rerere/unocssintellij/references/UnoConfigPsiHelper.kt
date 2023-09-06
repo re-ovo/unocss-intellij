@@ -10,20 +10,22 @@ import com.intellij.psi.css.impl.CssAtRuleImpl
 import com.intellij.psi.css.impl.CssFunctionImpl
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.util.parentOfType
 import me.rerere.unocssintellij.Unocss
+import me.rerere.unocssintellij.util.childOfTypeDeeply
+import me.rerere.unocssintellij.util.childrenOfTypeDeeply
 
 object UnoConfigPsiHelper {
     val screenPrefixes = setOf("lt-", "at-")
     val defaultApplyVariable = setOf("--at-apply", "--uno-apply", "--uno")
 
     fun inCssThemeFunction(element: PsiElement): Boolean {
-        val parent = PsiTreeUtil.getParentOfType(element, CssFunctionImpl::class.java)
+        val parent = element.parentOfType<CssFunctionImpl>()
         return parent != null && parent.name == "theme"
     }
 
     fun inScreenDirective(element: PsiElement): Boolean {
-        val parent = PsiTreeUtil.getParentOfType(element, CssAtRuleImpl::class.java)
+        val parent = element.parentOfType<CssAtRuleImpl>()
         return parent != null && parent.name == "@screen"
     }
 
@@ -40,8 +42,8 @@ object UnoConfigPsiHelper {
     fun findThemeConfig(element: PsiElement): JSElement? {
         val configFile = findUnoConfigFile(element)
 
-        PsiTreeUtil.findChildrenOfType(configFile, JSObjectLiteralExpression::class.java)
-            .forEach { jsObjectLiteralExpression ->
+        configFile?.childrenOfTypeDeeply<JSObjectLiteralExpression>()
+            ?.forEach { jsObjectLiteralExpression ->
                 val themeProperty = jsObjectLiteralExpression.findProperty("theme")
                 if (themeProperty != null) {
 
@@ -49,7 +51,7 @@ object UnoConfigPsiHelper {
                     if (themeProperty.value is JSReferenceExpression) {
                         val reference = themeProperty.value as JSReferenceExpression
                         val resolved = reference.resolve()
-                        val objectLiteral = PsiTreeUtil.findChildOfType(resolved, JSObjectLiteralExpression::class.java)
+                        val objectLiteral = resolved?.childOfTypeDeeply<JSObjectLiteralExpression>()
                         if (objectLiteral != null) {
                             return objectLiteral
                         }

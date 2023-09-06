@@ -2,8 +2,8 @@ package me.rerere.unocssintellij.marker
 
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.psi.PsiElement
-import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.elementType
+import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlElementType
 import me.rerere.unocssintellij.model.UnocssResolveMeta
@@ -25,12 +25,12 @@ open class UnocssHtmlLineMarkerProvider : UnocssLineMarkerProvider() {
     private fun getFromXmlName(element: PsiElement): LineMarkerInfo<*>? {
         // only attribute name
         return if (element.nextSibling == null) {
-             getLineMarkerInfo(UnocssResolveMeta(element, element.text, null))
+            getLineMarkerInfo(UnocssResolveMeta(element, element.text, null))
         } else null
     }
 
     private fun getFromXmlAttributeValueToken(element: PsiElement): LineMarkerInfo<*>? {
-        val xmlAttrValueEle = PsiTreeUtil.getParentOfType(element, XmlAttributeValue::class.java) ?: return null
+        val xmlAttrValueEle = element.parentOfType<XmlAttributeValue>() ?: return null
         val xmlName = xmlAttrValueEle.parent.firstChild.text
 
         return getLineMarkerInfo(UnocssResolveMeta(element, xmlName, element.text))

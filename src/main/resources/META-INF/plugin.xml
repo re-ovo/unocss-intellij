@@ -1,10 +1,10 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
-    <id>me.rerere.unocss-intellij</id>
-    <name>Unocss</name>
-    <vendor email="re_dev@qq.com" url="https://github.com/re-ovo">RE_OVO</vendor>
+  <id>me.rerere.unocss-intellij</id>
+  <name>Unocss</name>
+  <vendor email="re_dev@qq.com" url="https://github.com/re-ovo">RE_OVO</vendor>
 
-    <description><![CDATA[
+  <description><![CDATA[
     <h2>Unocss Support on Intellij Family</h2>
     <div>
        <h3>Features</h3>
@@ -20,7 +20,7 @@
     </div>
   ]]></description>
 
-    <change-notes><![CDATA[
+  <change-notes><![CDATA[
       <ul>
         <li>Use icons to mark UnoCSS completion items</li>
         <li>Fix the problem of not getting completions when typing one character</li>
@@ -29,98 +29,100 @@
       </ul>
     ]]></change-notes>
 
-    <category>Style Sheets</category>
+  <category>Style Sheets</category>
 
-    <!-- Product and plugin compatibility requirements.
-         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
-    <depends>com.intellij.modules.platform</depends>
-    <depends>com.intellij.css</depends>
-    <depends>JavaScript</depends>
+  <!-- Product and plugin compatibility requirements.
+       Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
+  <depends>com.intellij.modules.platform</depends>
+  <depends>com.intellij.css</depends>
+  <depends>JavaScript</depends>
 
-    <!-- Extension points defined by the plugin.
-         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
-    <extensions defaultExtensionNs="com.intellij">
+  <!-- Extension points defined by the plugin.
+       Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
+  <extensions defaultExtensionNs="com.intellij">
 
-        <!-- 代码补全 -->
-        <completion.contributor
-                language="HTML"
-                implementationClass="me.rerere.unocssintellij.completion.UnocssAttributeCompletionContributor"
-                order="first"
-        />
-        <completion.contributor
-                language="JavaScript"
-                order="before jsx-attr, before tsx-attr, before VueCompletionContributor, before VuexCompletionContributor"
-                implementationClass="me.rerere.unocssintellij.completion.UnocssAttributeCompletionContributor"
-        />
-        <completion.contributor
-                language="CSS"
-                implementationClass="me.rerere.unocssintellij.completion.UnocssCssDirectiveCompletionContributor" />
-        <completion.contributor
-                language="CSS"
-                implementationClass="me.rerere.unocssintellij.completion.UnocssCssTermCompletionContributor"/>
-        <typedHandler implementation="me.rerere.unocssintellij.completion.TypedHandler" order="first"/>
+    <!-- 代码补全 -->
+    <completion.contributor
+        language="HTML"
+        implementationClass="me.rerere.unocssintellij.completion.UnocssAttributeCompletionContributor"
+        order="first"
+    />
+    <completion.contributor
+        language="JavaScript"
+        order="before jsx-attr, before tsx-attr, before VueCompletionContributor, before VuexCompletionContributor"
+        implementationClass="me.rerere.unocssintellij.completion.UnocssAttributeCompletionContributor"
+    />
+    <completion.contributor
+        language="CSS"
+        implementationClass="me.rerere.unocssintellij.completion.UnocssCssDirectiveCompletionContributor"/>
+    <completion.contributor
+        language="CSS"
+        implementationClass="me.rerere.unocssintellij.completion.UnocssCssTermCompletionContributor"/>
+    <typedHandler implementation="me.rerere.unocssintellij.completion.TypedHandler" order="first"/>
 
-        <!-- 文档提示 -->
-        <platform.backend.documentation.targetProvider
-                implementation="me.rerere.unocssintellij.documentation.UnocssDocumentTargetProvider"/>
+    <!-- 文档提示 -->
+    <platform.backend.documentation.targetProvider
+        implementation="me.rerere.unocssintellij.documentation.UnocssDocumentTargetProvider"/>
 
-        <!-- 图标 -->
-        <codeInsight.lineMarkerProvider
-                language="HTML"
-                implementationClass="me.rerere.unocssintellij.marker.UnocssHtmlLineMarkerProvider"
-        />
-        <codeInsight.lineMarkerProvider
-                language="JavaScript"
-                implementationClass="me.rerere.unocssintellij.marker.UnocssJsLineMarkerProvider"
-        />
-        <codeInsight.lineMarkerProvider
-                language="CSS"
-                implementationClass="me.rerere.unocssintellij.marker.UnocssCssLineMarkerProvider"
-        />
+    <!-- 图标 -->
+    <codeInsight.lineMarkerProvider
+        language="HTML"
+        implementationClass="me.rerere.unocssintellij.marker.UnocssHtmlLineMarkerProvider"
+    />
+    <codeInsight.lineMarkerProvider
+        language="JavaScript"
+        implementationClass="me.rerere.unocssintellij.marker.UnocssJsLineMarkerProvider"
+    />
+    <codeInsight.lineMarkerProvider
+        language="CSS"
+        implementationClass="me.rerere.unocssintellij.marker.UnocssCssLineMarkerProvider"
+    />
+    <codeInsight.inlayProviderFactory
+        implementation="me.rerere.unocssintellij.marker.inlay.UnocssColorPreviewInlayHitsProviderFactory" />
 
-        <!-- 工具栏 -->
-        <statusBarWidgetFactory
-                id="UnocssStatusBar"
-                implementation="me.rerere.unocssintellij.status.UnocssStatusBarFactory"
-        />
+    <!-- 工具栏 -->
+    <statusBarWidgetFactory
+        id="UnocssStatusBar"
+        implementation="me.rerere.unocssintellij.status.UnocssStatusBarFactory"
+    />
 
-        <!-- 属性标注 -->
-        <externalAnnotator
-                language="HTML"
-                implementationClass="me.rerere.unocssintellij.highlighting.UnocssAttributeExternalAnnotator"/>
-        <externalAnnotator
-                language="JavaScript"
-                implementationClass="me.rerere.unocssintellij.highlighting.UnocssAttributeExternalAnnotator"/>
-        <externalAnnotator
-                language="CSS"
-                implementationClass="me.rerere.unocssintellij.highlighting.UnocssAttributeExternalAnnotator"/>
+    <!-- 属性标注 -->
+    <externalAnnotator
+        language="HTML"
+        implementationClass="me.rerere.unocssintellij.highlighting.UnocssAttributeExternalAnnotator"/>
+    <externalAnnotator
+        language="JavaScript"
+        implementationClass="me.rerere.unocssintellij.highlighting.UnocssAttributeExternalAnnotator"/>
+    <externalAnnotator
+        language="CSS"
+        implementationClass="me.rerere.unocssintellij.highlighting.UnocssAttributeExternalAnnotator"/>
 
-        <!-- preset/attributify 下抑制警告 -->
-        <lang.inspectionSuppressor
-                language="HTML"
-                implementationClass="me.rerere.unocssintellij.inspection.UnocssXmlSuppressionProvider"/>
-        <lang.inspectionSuppressor
-                language="JavaScript"
-                implementationClass="me.rerere.unocssintellij.inspection.UnocssXmlSuppressionProvider"/>
+    <!-- preset/attributify 下抑制警告 -->
+    <lang.inspectionSuppressor
+        language="HTML"
+        implementationClass="me.rerere.unocssintellij.inspection.UnocssXmlSuppressionProvider"/>
+    <lang.inspectionSuppressor
+        language="JavaScript"
+        implementationClass="me.rerere.unocssintellij.inspection.UnocssXmlSuppressionProvider"/>
 
-        <applicationService serviceImplementation="me.rerere.unocssintellij.settings.UnocssSettingsState"/>
-        <projectConfigurable
-                parentId="tools"
-                instance="me.rerere.unocssintellij.settings.UnocssSettingsConfigurable"
-                id="me.rerere.unocssintellij.settings.UnocssSettingsConfigurable"
-                displayName="Unocss"
-                nonDefaultProject="true"
-        />
+    <applicationService serviceImplementation="me.rerere.unocssintellij.settings.UnocssSettingsState"/>
+    <projectConfigurable
+        parentId="tools"
+        instance="me.rerere.unocssintellij.settings.UnocssSettingsConfigurable"
+        id="me.rerere.unocssintellij.settings.UnocssSettingsConfigurable"
+        displayName="Unocss"
+        nonDefaultProject="true"
+    />
 
-        <psi.referenceContributor
-                language="CSS"
-                implementation="me.rerere.unocssintellij.references.UnocssCssReferenceContributor"/>
-    </extensions>
+    <psi.referenceContributor
+        language="CSS"
+        implementation="me.rerere.unocssintellij.references.UnocssCssReferenceContributor"/>
+  </extensions>
 
-    <projectListeners>
-        <listener
-                class="me.rerere.unocssintellij.listener.FileListener"
-                topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"
-        />
-    </projectListeners>
+  <projectListeners>
+    <listener
+        class="me.rerere.unocssintellij.listener.FileListener"
+        topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"
+    />
+  </projectListeners>
 </idea-plugin>

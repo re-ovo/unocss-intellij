@@ -1,6 +1,5 @@
 package me.rerere.unocssintellij
 
-import com.google.gson.JsonObject
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -160,7 +159,7 @@ class UnocssService(private val project: Project) : Disposable {
                 process.sendCommand(
                     RpcAction.UpdateSettings,
                     UpdateSettingsCommandData(
-                        matchType = UnocssSettingsState.instance.matchType,
+                        matchType = UnocssSettingsState.instance.matchType.name.lowercase(),
                     )
                 )
             }

@@ -1,6 +1,7 @@
 package me.rerere.unocssintellij.settings
 
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
+import com.intellij.codeInsight.hints.InlayHintsPassFactory
 import com.intellij.openapi.components.service
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.project.Project
@@ -33,6 +34,7 @@ class UnocssSettingsConfigurable(private val project: Project) : Configurable {
         if (matchTypeBefore != matchTypeAfter) {
             project.service<UnocssService>().updateSettings()
         }
+        InlayHintsPassFactory.forceHintsUpdateOnNextPass()
         DaemonCodeAnalyzer.getInstance(project).restart()
     }
 

@@ -19,11 +19,11 @@ class UnocssSettingsState : PersistentStateComponent<UnocssSettingsState> {
     }
 
     var enable = true
-    // var colorPreview = true
-    var matchType = "prefix"
+    var matchType = MatchType.PREFIX
     var maxItems = 50
     var remToPxPreview = true
     var remToPxRatio = 16.0
+    var colorPreviewType = ColorPreviewType.LINE_MARKER
 
     override fun getState(): UnocssSettingsState = this
 
@@ -32,6 +32,17 @@ class UnocssSettingsState : PersistentStateComponent<UnocssSettingsState> {
     }
 
     override fun toString(): String {
-        return "UnocssSettingsState(enable=$enable, matchType='$matchType', maxItems=$maxItems, remToPxPreview=$remToPxPreview, remToPxRatio=$remToPxRatio)"
+        return "UnocssSettingsState(enable=$enable, matchType=$matchType, maxItems=$maxItems, remToPxPreview=$remToPxPreview, remToPxRatio=$remToPxRatio, colorPreviewType=$colorPreviewType)"
+    }
+
+    enum class ColorPreviewType {
+        NONE,
+        LINE_MARKER,
+        INLAY_HINT
+    }
+
+    enum class MatchType {
+        PREFIX,
+        FUZZY
     }
 }

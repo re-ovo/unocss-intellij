@@ -13,7 +13,7 @@ import com.intellij.util.ProcessingContext
 import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.util.UnoConfigHelper
 import me.rerere.unocssintellij.util.inCssThemeFunction
-import me.rerere.unocssintellij.util.inScreenDirective
+import me.rerere.unocssintellij.util.isScreenDirectiveIdent
 
 object UnocssCssThemeReferenceProvider : PsiReferenceProvider() {
 
@@ -80,7 +80,7 @@ object UnocssCssScreenReferenceProvider : PsiReferenceProvider() {
                 return false
             }
 
-            return psiElement.inScreenDirective()
+            return psiElement.isScreenDirectiveIdent()
         }
 
         override fun isClassAcceptable(hintClass: Class<*>?): Boolean {

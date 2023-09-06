@@ -3,13 +3,19 @@ package me.rerere.unocssintellij.completion
 import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.patterns.PlatformPatterns
-import com.intellij.psi.css.impl.*
+import com.intellij.psi.PsiElement
+import com.intellij.psi.css.impl.CssDeclarationImpl
+import com.intellij.psi.css.impl.CssElementTypes
+import com.intellij.psi.css.impl.CssRulesetImpl
+import com.intellij.psi.css.impl.CssTermImpl
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ui.ColorIcon
 import me.rerere.unocssintellij.UnocssConfigManager
 import me.rerere.unocssintellij.util.UnoConfigHelper
+import me.rerere.unocssintellij.util.inCssThemeFunction
+import me.rerere.unocssintellij.util.isScreenDirectiveIdent
 import me.rerere.unocssintellij.util.parseHexColor
 
 /**
@@ -29,8 +35,7 @@ class UnocssCssDirectiveCompletionContributor : CompletionContributor() {
         )
         extend(
             CompletionType.BASIC,
-            PlatformPatterns
-                .psiElement(CssElementTypes.CSS_STRING_TOKEN),
+            PlatformPatterns.psiElement(CssElementTypes.CSS_STRING_TOKEN),
             UnocssCssDirectiveCompletionProvider
         )
     }
@@ -50,29 +55,28 @@ object UnocssCssDirectiveCompletionProvider : CompletionProvider<CompletionParam
         when (position.elementType) {
             CssElementTypes.CSS_STRING_TOKEN -> {
                 // completion for path: theme('path')
-                val parent = position.parentOfType<CssFunctionImpl>()
-                if (parent != null && parent.name == "theme") {
-                    UnocssConfigManager.themeEntries
-                        .forEach { (k, v) ->
-                            val color = parseHexColor(v)
-                            result.addElement(
-                                LookupElementBuilder
-                                    .create(k)
-                                    .withTailText("  $v")
-                                    .withTypeText("theme")
-                                    .withIcon(
-                                        if (color != null) {
-                                            ColorIcon(16, color)
-                                        } else PluginIcon
-                                    )
-                            )
-                        }
+                if (position.inCssThemeFunction()) {
+                    UnocssConfigManager.themeEntries.forEach { (k, v) ->
+                        val color = parseHexColor(v)
+                        result.addElement(
+                            LookupElementBuilder
+                                .create(k)
+                                .withTailText("  $v")
+                                .withTypeText("Unocss theme")
+                                .withIcon(
+                                    if (color != null) {
+                                        ColorIcon(16, color)
+                                    } else PluginIcon
+                                )
+                        )
+                    }
                 }
             }
 
             CssElementTypes.CSS_IDENT -> {
+                val parent = position.parent
                 // allow <apply variable> only in declaration key
-                if (position.parent is CssDeclarationImpl) {
+                if (parent is CssDeclarationImpl) {
                     UnoConfigHelper.defaultApplyVariable.forEach {
                         result.addPriorityElement(
                             LookupElementBuilder
@@ -87,7 +91,7 @@ object UnocssCssDirectiveCompletionProvider : CompletionProvider<CompletionParam
                 }
 
                 // allow theme() only in declaration value
-                if (position.parent is CssTermImpl) {
+                if (parent is CssTermImpl) {
                     result.addPriorityElement(
                         LookupElementBuilder
                             .create("theme")
@@ -99,6 +103,9 @@ object UnocssCssDirectiveCompletionProvider : CompletionProvider<CompletionParam
                             }
                     )
                 }
+
+                // @screen breakpoints completions
+                addBreakpointsLookupElements(position, result)
             }
 
             CssElementTypes.CSS_ATKEYWORD -> {
@@ -130,6 +137,30 @@ object UnocssCssDirectiveCompletionProvider : CompletionProvider<CompletionParam
         }
 
         result.restartCompletionOnAnyPrefixChange()
+    }
+
+    private fun addBreakpointsLookupElements(position: PsiElement, result: CompletionResultSet) {
+        if (!position.isScreenDirectiveIdent()) {
+            return
+        }
+        val breakpoints = UnocssConfigManager.theme["breakpoints"] ?: return
+        if (breakpoints.isJsonObject) {
+            val breakpointsObj = breakpoints.asJsonObject
+            breakpointsObj.keySet()
+                .filter { breakpointsObj[it].isJsonPrimitive }
+                .forEach {
+                    val propName = it
+                    val propValue = breakpointsObj[it].asJsonPrimitive.asString
+
+                    result.addElement(
+                        LookupElementBuilder
+                            .create(propName)
+                            .withIcon(PluginIcon)
+                            .withTypeText("Unocss breakpoints")
+                            .withTailText(" $propValue ", true)
+                    )
+                }
+        }
     }
 
     private fun CompletionResultSet.addPriorityElement(

@@ -1,5 +1,6 @@
 package me.rerere.unocssintellij.util
 
+import com.intellij.lang.ecmascript6.psi.ES6ImportedBinding
 import com.intellij.lang.javascript.JavaScriptFileType
 import com.intellij.lang.javascript.TypeScriptFileType
 import com.intellij.lang.javascript.psi.*
@@ -110,6 +111,9 @@ inline fun <reified T : PsiElement> PsiElement.childOfTypeDeeply(): T? {
  * Return if a [PsiElement] is a descendant of a [CssFunctionImpl] named "theme"
  */
 internal fun PsiElement.inCssThemeFunction(): Boolean {
+    if (elementType != CssElementTypes.CSS_STRING_TOKEN) {
+        return false
+    }
     val parent = parentOfType<CssFunctionImpl>()
     return parent != null && parent.name == "theme"
 }
@@ -117,9 +121,12 @@ internal fun PsiElement.inCssThemeFunction(): Boolean {
 /**
  * Return if a [PsiElement] is a descendant of a [CssAtRuleImpl] named "screen"
  */
-internal fun PsiElement.inScreenDirective(): Boolean {
-    val parent = parentOfType<CssAtRuleImpl>()
-    return parent != null && parent.name == "@screen"
+internal fun PsiElement.isScreenDirectiveIdent(): Boolean {
+    if (elementType != CssElementTypes.CSS_IDENT && elementType != CssElementTypes.CSS_NUMBER) {
+        return false
+    }
+    val parent = this.parent
+    return parent is CssAtRuleImpl && parent.name == "@screen"
 }
 
 internal fun Project.findUnoConfigFile(): PsiFile? {
@@ -142,21 +149,27 @@ object UnoConfigHelper {
         val configFile = element.project.findUnoConfigFile()
 
         configFile?.childrenOfTypeDeeply<JSObjectLiteralExpression>()
-            ?.forEach { jsObjectLiteralExpression ->
-                val themeProperty = jsObjectLiteralExpression.findProperty("theme")
-                if (themeProperty != null) {
-
+            ?.let { objectLiterals ->
+                for (jsObjectLiteralExpression in objectLiterals) {
+                    val themeProperty = jsObjectLiteralExpression.findProperty("theme") ?: continue
+                    val themeValue = themeProperty.value
+                    if (themeValue is JSObjectLiteralExpression) {
+                        return themeValue
+                    }
                     // 如果是引用，找到引用的对象
-                    if (themeProperty.value is JSReferenceExpression) {
-                        val reference = themeProperty.value as JSReferenceExpression
-                        val resolved = reference.resolve()
-                        val objectLiteral = resolved?.childOfTypeDeeply<JSObjectLiteralExpression>()
-                        if (objectLiteral != null) {
-                            return objectLiteral
+                    if (themeValue is JSReferenceExpression) {
+                        val resolved = themeValue.resolve()
+                        if (resolved is ES6ImportedBinding) {
+                            return resolved.findReferencedElements().firstNotNullOfOrNull {
+                                it.childOfTypeDeeply<JSObjectLiteralExpression>()
+                            }
+                        } else {
+                            val objectLiteral = resolved?.childOfTypeDeeply<JSObjectLiteralExpression>()
+                            if (objectLiteral != null) {
+                                return objectLiteral
+                            }
                         }
                     }
-
-                    return themeProperty.value
                 }
             }
 

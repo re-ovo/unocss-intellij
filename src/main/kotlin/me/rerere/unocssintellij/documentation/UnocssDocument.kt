@@ -16,7 +16,7 @@ import com.intellij.psi.xml.XmlTokenType
 import com.intellij.refactoring.suggested.startOffset
 import me.rerere.unocssintellij.model.UnocssResolveMeta
 import me.rerere.unocssintellij.util.inCssThemeFunction
-import me.rerere.unocssintellij.util.inScreenDirective
+import me.rerere.unocssintellij.util.isScreenDirectiveIdent
 import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.util.isLeafJsLiteral
 
@@ -76,7 +76,7 @@ class UnocssDocumentTargetProvider : DocumentationTargetProvider {
                 targets.add(UnocssThemeConfigDocumentTarget(element))
             }
 
-            element.inScreenDirective() -> {
+            element.isScreenDirectiveIdent() -> {
                 targets.add(UnocssThemeScreenDocumentTarget(element))
             }
 

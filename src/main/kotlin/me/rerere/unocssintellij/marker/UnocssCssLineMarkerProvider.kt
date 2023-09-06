@@ -8,7 +8,7 @@ import com.intellij.psi.util.elementType
 import com.intellij.util.ui.ColorIcon
 import me.rerere.unocssintellij.UnocssConfigManager
 import me.rerere.unocssintellij.model.UnocssResolveMeta
-import me.rerere.unocssintellij.references.UnoConfigPsiHelper
+import me.rerere.unocssintellij.util.inCssThemeFunction
 import me.rerere.unocssintellij.util.parseHexColor
 
 class UnocssCssLineMarkerProvider : UnocssLineMarkerProvider() {
@@ -26,7 +26,7 @@ class UnocssCssLineMarkerProvider : UnocssLineMarkerProvider() {
     private fun getFromCssIdent(element: PsiElement): LineMarkerInfo<*>? {
         val cssValue = element.text.trim('\'', '"')
 
-        return if (UnoConfigPsiHelper.inCssThemeFunction(element)) {
+        return if (element.inCssThemeFunction()) {
             getLineMarkerInfoFromConfigFile(element, cssValue)
         } else {
             getLineMarkerInfo(UnocssResolveMeta(element, cssValue, null))

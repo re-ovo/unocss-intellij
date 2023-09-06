@@ -8,5 +8,6 @@ const val BUNDLE = "messages.UnocssBundle"
 
 object UnocssBundle : DynamicBundle(BUNDLE) {
     @Nls
-    fun message(@PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String = getMessage(key, *params)
+    fun message(@PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String =
+        getMessage(key, *params)
 }

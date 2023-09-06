@@ -9,7 +9,7 @@ import com.intellij.psi.util.parentOfType
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ui.ColorIcon
 import me.rerere.unocssintellij.UnocssConfigManager
-import me.rerere.unocssintellij.references.UnoConfigPsiHelper
+import me.rerere.unocssintellij.util.UnoConfigHelper
 import me.rerere.unocssintellij.util.parseHexColor
 
 /**
@@ -73,7 +73,7 @@ object UnocssCssDirectiveCompletionProvider : CompletionProvider<CompletionParam
             CssElementTypes.CSS_IDENT -> {
                 // allow <apply variable> only in declaration key
                 if (position.parent is CssDeclarationImpl) {
-                    UnoConfigPsiHelper.defaultApplyVariable.forEach {
+                    UnoConfigHelper.defaultApplyVariable.forEach {
                         result.addPriorityElement(
                             LookupElementBuilder
                                 .create(it)

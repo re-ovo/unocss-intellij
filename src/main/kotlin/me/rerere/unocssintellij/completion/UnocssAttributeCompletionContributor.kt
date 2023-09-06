@@ -89,7 +89,7 @@ object UnocssAttributeCompletionProvider : UnocssCompletionProvider() {
         }
 
         // attributify value
-        if (!isClassAttribute(attrName)) {
+        if (!attrName.isClassAttribute()) {
             // use last().trim() to help manually trigger code completion (e.g. via keymap)
             // the attribute name will be used as prefix to query suggestions
             val typingPrefix = prefix.split(" ").last().trim()
@@ -134,7 +134,7 @@ object UnocssJsLiteralCompletionProvider : UnocssCompletionProvider() {
         val attrName = xmlAttributeEle.firstChild.text
 
         // Is anyone use unocss token on other attribute name?
-        if (!isClassAttribute(attrName)) {
+        if (!attrName.isClassAttribute()) {
             return null
         }
 

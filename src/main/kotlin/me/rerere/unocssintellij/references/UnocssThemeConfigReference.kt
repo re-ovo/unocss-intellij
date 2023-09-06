@@ -4,6 +4,7 @@ import com.intellij.lang.javascript.psi.JSObjectLiteralExpression
 import com.intellij.lang.javascript.psi.JSProperty
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.*
+import me.rerere.unocssintellij.util.UnoConfigHelper
 
 open class UnocssThemeConfigReference(element: PsiElement, protected val textRange: TextRange) :
     PsiReferenceBase<PsiElement>(element, textRange),
@@ -22,11 +23,11 @@ open class UnocssThemeConfigReference(element: PsiElement, protected val textRan
     }
 
     override fun multiResolve(incompleteCode: Boolean): Array<ResolveResult> {
-        val themeConfigValue = UnoConfigPsiHelper.findThemeConfig(element) ?: return emptyArray()
+        val themeConfigValue = UnoConfigHelper.findThemeConfig(element) ?: return emptyArray()
 
         val result = mutableListOf<ResolveResult>()
         if (themeConfigValue is JSObjectLiteralExpression) {
-            val referencedProperty = UnoConfigPsiHelper
+            val referencedProperty = UnoConfigHelper
                 .findThemeConfigProperty(themeConfigValue, themeValue.split("."))
 
             if (referencedProperty != null) {

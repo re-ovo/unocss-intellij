@@ -25,7 +25,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.rerere.unocssintellij.UnocssConfigManager
 import me.rerere.unocssintellij.UnocssService
-import me.rerere.unocssintellij.references.UnoConfigPsiHelper
+import me.rerere.unocssintellij.util.UnoConfigHelper
 import me.rerere.unocssintellij.rpc.ResolveCSSResult
 import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.util.parseColors
@@ -197,11 +197,11 @@ class UnocssThemeScreenDocumentTarget(
             val breakpointName = match.groupValues[2]
 
             val doc = withContext(Dispatchers.EDT) rd@{
-                val themeConfigValue = UnoConfigPsiHelper.findThemeConfig(targetElement) ?: return@rd null
+                val themeConfigValue = UnoConfigHelper.findThemeConfig(targetElement) ?: return@rd null
                 if (themeConfigValue !is JSObjectLiteralExpression) {
                     return@rd null
                 }
-                val breakpointsProp = UnoConfigPsiHelper
+                val breakpointsProp = UnoConfigHelper
                     .findThemeConfigProperty(themeConfigValue, listOf("breakpoints"))
 
                 renderScreenBreakpointsDoc(breakpointsProp?.value, prefix, breakpointName)

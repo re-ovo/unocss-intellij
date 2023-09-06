@@ -6,18 +6,16 @@ import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.lang.javascript.psi.JSLiteralExpression
 import com.intellij.lang.javascript.psi.JSProperty
-import com.intellij.openapi.components.service
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
-import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.elementType
+import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlElementType
 import com.intellij.psi.xml.XmlTag
 import com.intellij.refactoring.suggested.startOffset
-import me.rerere.unocssintellij.UNOCSS_PRESET_ATTRIBUTIFY
-import me.rerere.unocssintellij.UnocssService
+import me.rerere.unocssintellij.UnocssConfigManager
 import me.rerere.unocssintellij.rpc.SuggestionItem
 import me.rerere.unocssintellij.util.isClassAttribute
 
@@ -60,14 +58,12 @@ object UnocssAttributeCompletionProvider : UnocssCompletionProvider() {
     private val skipTagNames = setOf("script", "style", "template")
 
     override fun shouldSkip(position: PsiElement): Boolean {
-        val service = position.project.service<UnocssService>()
-
         // If user has not installed attributify preset, skip
-        if(!service.hasPreset(UNOCSS_PRESET_ATTRIBUTIFY) && position.elementType == XmlElementType.XML_NAME) {
+        if (!UnocssConfigManager.hasPresetAttributify && position.elementType == XmlElementType.XML_NAME) {
             return true
         }
 
-        val xmlTag = PsiTreeUtil.getParentOfType(position, XmlTag::class.java) ?: return false
+        val xmlTag = position.parentOfType<XmlTag>() ?: return false
         return xmlTag.name in skipTagNames
     }
 
@@ -75,7 +71,7 @@ object UnocssAttributeCompletionProvider : UnocssCompletionProvider() {
         val element = parameters.position
 
         val xmlAttrName = if (element.elementType == XmlElementType.XML_ATTRIBUTE_VALUE_TOKEN) {
-            val xmlAttributeEle = PsiTreeUtil.getParentOfType(element, XmlAttribute::class.java, false)
+            val xmlAttributeEle = element.parentOfType<XmlAttribute>(true)
                 ?: return null
             xmlAttributeEle.firstChild.text
         } else ""
@@ -133,7 +129,7 @@ object UnocssAttributeCompletionProvider : UnocssCompletionProvider() {
 object UnocssJsLiteralCompletionProvider : UnocssCompletionProvider() {
     override fun resolvePrefix(parameters: CompletionParameters, result: CompletionResultSet): PrefixHolder? {
         val element = parameters.position
-        val xmlAttributeEle = PsiTreeUtil.getParentOfType(element, XmlAttribute::class.java, false)
+        val xmlAttributeEle = element.parentOfType<XmlAttribute>(true)
             ?: return null
         val attrName = xmlAttributeEle.firstChild.text
 

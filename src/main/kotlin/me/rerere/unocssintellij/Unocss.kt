@@ -9,9 +9,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import me.rerere.unocssintellij.util.toLocalVirtualFile
 
-val UNOCSS_PRESET_ATTRIBUTIFY = "@unocss/preset-attributify"
-val UNOCSS_TRANSFORMER_DIRECTIVES = "@unocss/transformer-directives"
-
 object Unocss {
     // Logger
     val Logger = logger<Unocss>()

@@ -4,7 +4,7 @@ import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.lang.javascript.psi.JSLiteralExpression
 import com.intellij.lang.javascript.psi.JSProperty
 import com.intellij.psi.PsiElement
-import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttributeValue
 import me.rerere.unocssintellij.model.UnocssResolveMeta
 
@@ -24,7 +24,7 @@ class UnocssJsLineMarkerProvider : UnocssHtmlLineMarkerProvider() {
             element.firstChild.text
         } else null) ?: return null
 
-        val xmlAttrValueEle = PsiTreeUtil.getParentOfType(element, XmlAttributeValue::class.java) ?: return null
+        val xmlAttrValueEle = element.parentOfType<XmlAttributeValue>() ?: return null
         val xmlName = xmlAttrValueEle.parent.firstChild.text
 
         // Both JSLiteralExpression's first child and JSProperty's first child are LeafPsiElement

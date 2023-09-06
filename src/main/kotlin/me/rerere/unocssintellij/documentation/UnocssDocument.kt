@@ -17,6 +17,7 @@ import com.intellij.refactoring.suggested.startOffset
 import me.rerere.unocssintellij.model.UnocssResolveMeta
 import me.rerere.unocssintellij.references.UnoConfigPsiHelper
 import me.rerere.unocssintellij.settings.UnocssSettingsState
+import me.rerere.unocssintellij.util.isJsString
 
 private val variantGroupPattern = Regex("(.*[:-])\\((.*)\\)")
 private val splitVariantGroupRE = Regex("\\s+(?![^(]*\\))")
@@ -52,7 +53,7 @@ class UnocssDocumentTargetProvider : DocumentationTargetProvider {
                 XmlAttributeValueImpl::class.java, JSXmlAttributeValueImpl::class.java
             ) ?: return targets
 
-            val isLiteralValue = elementType == XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN
+            val isLiteralValue = elementType == XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN || isJsString(element)
 
             val attributeEle = attributeValueEle.parent
             val attributeNameEle = attributeEle.firstChild

@@ -33,7 +33,7 @@ object UnocssConfigManager {
         this.config = config
 
         println("[UnoCSS] Presets: ${config.presets.joinToString { it.name }}")
-        println("[UnoCSS] Transformers: ${config.transformers.joinToString { it.name }}")
+        println("[UnoCSS] Transformers: ${config.transformers?.joinToString { it.name }}")
 
         updateThemeKeys()
     }

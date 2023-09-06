@@ -20,7 +20,7 @@ enum class RpcAction(val key: String) {
 
 data class ResolveConfigResult(
     val presets: List<ResolveConfigResultPresetItem>,
-    val transformers: List<ResolveConfigResultTransformerItem>,
+    val transformers: List<ResolveConfigResultTransformerItem>?,
     val theme: JsonObject
 )
 

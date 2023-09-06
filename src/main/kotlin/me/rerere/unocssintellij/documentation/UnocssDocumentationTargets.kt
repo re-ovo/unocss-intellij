@@ -51,8 +51,9 @@ class UnocssDocumentTarget(
         }
     }
 
-    override fun computeDocumentation(): DocumentationResult {
-        val cssFile: PsiFile = PsiFileFactory.getInstance(targetElement?.project)
+    override fun computeDocumentation(): DocumentationResult? {
+        val project = targetElement?.project ?: return null
+        val cssFile: PsiFile = PsiFileFactory.getInstance(project)
             .createFileFromText(CSSLanguage.INSTANCE, resolveRemToPx(result.css))
         return DocumentationResult.asyncDocumentation {
             // Format the css

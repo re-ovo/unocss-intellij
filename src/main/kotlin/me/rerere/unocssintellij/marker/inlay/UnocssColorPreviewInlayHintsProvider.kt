@@ -200,7 +200,7 @@ object UnocssColorPreviewInlayHintsProvider : InlayHintsProvider<NoSettings> {
 
         private fun buildPresentation(icon: String, editor: Editor): InlayPresentation {
             val svgIcon = SVGIcon.tryGetIcon(icon,16).getOrNull() ?: return buildPresentation(JBColor(0x000000, 0xFFFFFF), editor)
-            val padding = InlayPresentationFactory.Padding(3, 3, 2, 2)
+            val padding = InlayPresentationFactory.Padding(2, 2, 1, 1)
             val bgColor = editor.colorsScheme
                 .getColor(DefaultLanguageHighlighterColors.INLINE_REFACTORING_SETTINGS_DEFAULT)
             val roundedCorners = InlayPresentationFactory.RoundedCorners(6, 6)
@@ -208,7 +208,7 @@ object UnocssColorPreviewInlayHintsProvider : InlayHintsProvider<NoSettings> {
             val scaleFactory = scaleAwarePresentationFactory
             val base = scaleFactory.lineCentered(
                 scaleFactory.container(
-                    scaleFactory.smallScaledIcon(svgIcon),
+                    scaleFactory.icon(svgIcon),
                     padding,
                     roundedCorners,
                     bgColor

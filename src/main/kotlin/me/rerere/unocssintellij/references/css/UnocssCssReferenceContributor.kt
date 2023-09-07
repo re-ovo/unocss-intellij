@@ -1,4 +1,4 @@
-package me.rerere.unocssintellij.references
+package me.rerere.unocssintellij.references.css
 
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.PsiReferenceContributor

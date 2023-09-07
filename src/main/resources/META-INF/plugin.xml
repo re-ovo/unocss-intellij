@@ -131,7 +131,13 @@
 
         <psi.referenceContributor
                 language="CSS"
-                implementation="me.rerere.unocssintellij.references.UnocssCssReferenceContributor"/>
+                implementation="me.rerere.unocssintellij.references.css.UnocssCssReferenceContributor"/>
+        <psi.referenceContributor
+                implementation="me.rerere.unocssintellij.references.classname.UnocssClassNameReferenceContributor"
+                language="HTML"/>
+        <psi.referenceContributor
+                implementation="me.rerere.unocssintellij.references.classname.UnocssClassNameReferenceContributor"
+                language="JavaScript"/>
     </extensions>
 
     <projectListeners>

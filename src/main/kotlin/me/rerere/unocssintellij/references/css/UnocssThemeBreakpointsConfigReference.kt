@@ -1,4 +1,4 @@
-package me.rerere.unocssintellij.references
+package me.rerere.unocssintellij.references.css
 
 import com.intellij.lang.javascript.psi.JSObjectLiteralExpression
 import com.intellij.openapi.util.TextRange

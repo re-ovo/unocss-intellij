@@ -1,4 +1,4 @@
-package me.rerere.unocssintellij.marker
+package me.rerere.unocssintellij.marker.line
 
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.lang.javascript.psi.JSLiteralExpression

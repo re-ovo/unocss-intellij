@@ -1,10 +1,11 @@
-package me.rerere.unocssintellij.marker
+package me.rerere.unocssintellij.marker.line
 
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProvider
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.psi.PsiElement
 import com.intellij.util.ui.ColorIcon
+import me.rerere.unocssintellij.marker.SVGIcon
 import me.rerere.unocssintellij.model.UnocssResolveMeta
 import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.settings.UnocssSettingsState.ColorPreviewType

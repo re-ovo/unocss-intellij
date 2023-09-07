@@ -23,7 +23,7 @@ class UnocssSettingsState : PersistentStateComponent<UnocssSettingsState> {
     var maxItems = 50
     var remToPxPreview = true
     var remToPxRatio = 16.0
-    var colorPreviewType = ColorPreviewType.LINE_MARKER
+    var colorPreviewType = ColorPreviewType.INLAY_HINT
 
     override fun getState(): UnocssSettingsState = this
 

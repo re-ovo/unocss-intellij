@@ -26,14 +26,12 @@ import com.intellij.util.ui.ColorIcon
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 import me.rerere.unocssintellij.UnocssService
+import me.rerere.unocssintellij.marker.SVGIcon
 import me.rerere.unocssintellij.marker.inlay.UnocssColorPreviewInlayHitsProviderFactory.Meta
 import me.rerere.unocssintellij.model.UnocssResolveMeta
 import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.settings.UnocssSettingsState.ColorPreviewType
-import me.rerere.unocssintellij.util.MatchedPosition
-import me.rerere.unocssintellij.util.getMatchedPositions
-import me.rerere.unocssintellij.util.isUnocssCandidate
-import me.rerere.unocssintellij.util.parseColors
+import me.rerere.unocssintellij.util.*
 import javax.swing.JPanel
 
 @Suppress("UnstableApiUsage")
@@ -166,6 +164,16 @@ object UnocssColorPreviewInlayHintsProvider : InlayHintsProvider<NoSettings> {
                             false
                         )
                     }
+
+                    val iconValue = parseIcons(css)
+                    if(iconValue != null) {
+                        sink.addInlineElement(
+                            startOffset,
+                            true,
+                            buildPresentation(iconValue, editor),
+                            false
+                        )
+                    }
                 }
 
             return true
@@ -181,6 +189,26 @@ object UnocssColorPreviewInlayHintsProvider : InlayHintsProvider<NoSettings> {
             val base = scaleFactory.lineCentered(
                 scaleFactory.container(
                     scaleFactory.smallScaledIcon(ColorIcon(16, color)),
+                    padding,
+                    roundedCorners,
+                    bgColor
+                )
+            )
+            val inset = scaleFactory.inset(factory.text(""), 0, 4, 0, 0)
+            return factory.seq(base, inset)
+        }
+
+        private fun buildPresentation(icon: String, editor: Editor): InlayPresentation {
+            val svgIcon = SVGIcon.tryGetIcon(icon,16).getOrNull() ?: return buildPresentation(JBColor(0x000000, 0xFFFFFF), editor)
+            val padding = InlayPresentationFactory.Padding(3, 3, 2, 2)
+            val bgColor = editor.colorsScheme
+                .getColor(DefaultLanguageHighlighterColors.INLINE_REFACTORING_SETTINGS_DEFAULT)
+            val roundedCorners = InlayPresentationFactory.RoundedCorners(6, 6)
+
+            val scaleFactory = scaleAwarePresentationFactory
+            val base = scaleFactory.lineCentered(
+                scaleFactory.container(
+                    scaleFactory.smallScaledIcon(svgIcon),
                     padding,
                     roundedCorners,
                     bgColor

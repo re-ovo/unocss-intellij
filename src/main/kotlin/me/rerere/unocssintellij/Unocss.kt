@@ -34,7 +34,7 @@ object Unocss {
      * @param project The project
      * @param context The context file
      */
-    fun isUnocssInstalled(project: Project, context: VirtualFile) : Boolean {
+    fun isUnocssInstalled(project: Project, context: VirtualFile): Boolean {
         val packageJson = PackageJsonUtil.findUpPackageJson(context.toLocalVirtualFile()) ?: return false
         val unocssPackage = NodeInstalledPackageFinder(project, packageJson)
             .findInstalledPackage("unocss")

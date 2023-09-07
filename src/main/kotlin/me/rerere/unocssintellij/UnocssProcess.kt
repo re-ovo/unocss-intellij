@@ -63,7 +63,7 @@ class UnocssProcess(project: Project, context: VirtualFile) : Disposable {
                         if (line.startsWith("[UnoProcess]")) {
                             println(line)
                         } else {
-                            val jsonObject = runCatching {  JsonParser.parseString(line).asJsonObject }
+                            val jsonObject = runCatching { JsonParser.parseString(line).asJsonObject }
                                 .onFailure {
                                     println("[UnoProcess] Failed to parse json: $line")
                                 }
@@ -78,7 +78,7 @@ class UnocssProcess(project: Project, context: VirtualFile) : Disposable {
                     // Check timeout
                     val end = System.currentTimeMillis()
                     waitingCommands.removeIf {
-                        if(end - it.start > MAX_WAIT_TIME.inWholeMilliseconds) {
+                        if (end - it.start > MAX_WAIT_TIME.inWholeMilliseconds) {
                             println("[UnoProcess] Command ${it.id} timeout")
                             it.callback(
                                 JsonObject().apply {
@@ -116,39 +116,40 @@ class UnocssProcess(project: Project, context: VirtualFile) : Disposable {
 
     // 发送命令并等待结果
     // 这里使用 suspendCancellableCoroutine 将回调转换为挂起并可取消的协程
-    suspend inline fun <C, reified R> sendCommand(action: RpcAction, command: C?): R = suspendCancellableCoroutine { continuation ->
-        val start = System.currentTimeMillis()
-        val id = UUID.randomUUID().toString()
+    suspend inline fun <C, reified R> sendCommand(action: RpcAction, command: C?): R =
+        suspendCancellableCoroutine { continuation ->
+            val start = System.currentTimeMillis()
+            val id = UUID.randomUUID().toString()
 
-        // Send command to process
-        val json = Unocss.GSON.toJson(RpcCommand(id, action.key, command)) + "\n"
-        process.outputStream?.let {
-            it.write(json.toByteArray())
-            it.flush()
-        } ?: run {
-            continuation.resumeWithException(RuntimeException("Process output stream not found"))
-            return@suspendCancellableCoroutine
-        }
-
-        // Wait for response
-        this.waitingCommands.add(AwaitingCommand(id, start) { jsonObject ->
-            if(jsonObject.has("error")) {
-                continuation.resumeWithException(
-                    RuntimeException(jsonObject["error"]?.asString ?: "unknown error")
-                )
-            } else if (!jsonObject.has("result")) {
-                continuation.resume(Unit as R)
-            } else {
-                val res = Unocss.GSON.fromJson(jsonObject["result"].toString(), object : TypeToken<R>() {})
-                continuation.resume(res)
+            // Send command to process
+            val json = Unocss.GSON.toJson(RpcCommand(id, action.key, command)) + "\n"
+            process.outputStream?.let {
+                it.write(json.toByteArray())
+                it.flush()
+            } ?: run {
+                continuation.resumeWithException(RuntimeException("Process output stream not found"))
+                return@suspendCancellableCoroutine
             }
-        })
 
-        // Handle cancellation
-        continuation.invokeOnCancellation {
-            waitingCommands.removeIf { it.id == id }
+            // Wait for response
+            this.waitingCommands.add(AwaitingCommand(id, start) { jsonObject ->
+                if (jsonObject.has("error")) {
+                    continuation.resumeWithException(
+                        RuntimeException(jsonObject["error"]?.asString ?: "unknown error")
+                    )
+                } else if (!jsonObject.has("result")) {
+                    continuation.resume(Unit as R)
+                } else {
+                    val res = Unocss.GSON.fromJson(jsonObject["result"].toString(), object : TypeToken<R>() {})
+                    continuation.resume(res)
+                }
+            })
+
+            // Handle cancellation
+            continuation.invokeOnCancellation {
+                waitingCommands.removeIf { it.id == id }
+            }
         }
-    }
 }
 
 data class AwaitingCommand(

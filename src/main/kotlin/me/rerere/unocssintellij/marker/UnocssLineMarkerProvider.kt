@@ -7,13 +7,18 @@ import com.intellij.psi.PsiElement
 import com.intellij.util.ui.ColorIcon
 import me.rerere.unocssintellij.model.UnocssResolveMeta
 import me.rerere.unocssintellij.settings.UnocssSettingsState
+import me.rerere.unocssintellij.settings.UnocssSettingsState.ColorPreviewType
 import me.rerere.unocssintellij.util.parseColors
 import me.rerere.unocssintellij.util.parseIcons
 
 abstract class UnocssLineMarkerProvider : LineMarkerProvider {
 
     override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
-        if (!UnocssSettingsState.instance.enable) return null
+        if (!UnocssSettingsState.instance.enable
+            || UnocssSettingsState.instance.colorPreviewType != ColorPreviewType.LINE_MARKER
+        ) {
+            return null
+        }
         return doGetLineMarkerInfo(element)
     }
 

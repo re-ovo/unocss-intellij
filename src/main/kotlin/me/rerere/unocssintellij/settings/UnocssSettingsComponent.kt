@@ -4,6 +4,8 @@ import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.dsl.builder.*
 import me.rerere.unocssintellij.UnocssBundle
+import me.rerere.unocssintellij.settings.UnocssSettingsState.ColorPreviewType
+import me.rerere.unocssintellij.settings.UnocssSettingsState.MatchType
 
 class UnocssSettingsComponent {
 
@@ -22,22 +24,45 @@ class UnocssSettingsComponent {
                 row {
                     previewRemToPxCheckbox =
                         checkBox(UnocssBundle.message("setting.documentation.rem_to_px.checkbox.title")).bindSelected(
-                                settings::remToPxPreview
-                            ).comment(UnocssBundle.message("setting.documentation.rem_to_px.checkbox.comment"))
+                            settings::remToPxPreview
+                        ).comment(UnocssBundle.message("setting.documentation.rem_to_px.checkbox.comment"))
                 }
                 row(UnocssBundle.message("setting.documentation.rem_to_px.ratio.title")) {
                     spinner(0.0..100.0, 1.0).bindValue(settings::remToPxRatio).validationOnInput {
-                            val num = it.value.toString().toDoubleOrNull()
-                            if (num == null) error("Invalid number") else null
-                        }.errorOnApply("Invalid radio number") { it.value.toString().toDoubleOrNull() == null }
-                }.comment(UnocssBundle.message("setting.documentation.rem_to_px.ratio.comment")).enabledIf(previewRemToPxCheckbox.selected)
+                        val num = it.value.toString().toDoubleOrNull()
+                        if (num == null) error("Invalid number") else null
+                    }.errorOnApply("Invalid radio number") { it.value.toString().toDoubleOrNull() == null }
+                }.comment(UnocssBundle.message("setting.documentation.rem_to_px.ratio.comment"))
+                    .enabledIf(previewRemToPxCheckbox.selected)
+                buttonsGroup {
+                    row(UnocssBundle.message("setting.documentation.color_preview.title")) {
+                        radioButton(
+                            UnocssBundle.message("setting.documentation.color_preview.option.none"),
+                            ColorPreviewType.NONE
+                        )
+                        radioButton(
+                            UnocssBundle.message("setting.documentation.color_preview.option.line_marker"),
+                            ColorPreviewType.LINE_MARKER
+                        )
+                        radioButton(
+                            UnocssBundle.message("setting.documentation.color_preview.option.inlay_hint"),
+                            ColorPreviewType.INLAY_HINT
+                        )
+                    }
+                }.bind(settings::colorPreviewType)
             }.visibleIf(enableCheckbox.selected)
 
             group(UnocssBundle.message("setting.autocomplete.title")) {
                 buttonsGroup {
                     row(UnocssBundle.message("setting.autocomplete.match_type.title")) {
-                        radioButton(UnocssBundle.message("setting.autocomplete.match_type.option.prefix"), "prefix")
-                        radioButton(UnocssBundle.message("setting.autocomplete.match_type.option.fuzzy"), "fuzzy")
+                        radioButton(
+                            UnocssBundle.message("setting.autocomplete.match_type.option.prefix"),
+                            MatchType.PREFIX
+                        )
+                        radioButton(
+                            UnocssBundle.message("setting.autocomplete.match_type.option.fuzzy"),
+                            MatchType.FUZZY
+                        )
                     }
                 }.bind(settings::matchType)
 

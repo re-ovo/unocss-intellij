@@ -15,7 +15,7 @@ import com.intellij.psi.filters.position.FilterPattern
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.parentOfTypes
-import me.rerere.unocssintellij.references.UnoConfigPsiHelper
+import me.rerere.unocssintellij.util.UnoConfigHelper
 
 class UnocssCssTermCompletionContributor : CompletionContributor() {
     init {
@@ -62,7 +62,7 @@ class UnocssCssTermCompletionContributor : CompletionContributor() {
             ) ?: return false
 
             val propKey = cssDeclaration.firstChild
-            return propKey.text == "@apply" || propKey.text in UnoConfigPsiHelper.defaultApplyVariable
+            return propKey.text == "@apply" || propKey.text in UnoConfigHelper.defaultApplyVariable
         }
 
         override fun isClassAcceptable(hintClass: Class<*>?): Boolean = true

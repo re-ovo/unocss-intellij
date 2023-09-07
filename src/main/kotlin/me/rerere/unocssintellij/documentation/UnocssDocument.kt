@@ -15,9 +15,10 @@ import com.intellij.psi.xml.XmlElementType
 import com.intellij.psi.xml.XmlTokenType
 import com.intellij.refactoring.suggested.startOffset
 import me.rerere.unocssintellij.model.UnocssResolveMeta
-import me.rerere.unocssintellij.references.UnoConfigPsiHelper
+import me.rerere.unocssintellij.util.inCssThemeFunction
+import me.rerere.unocssintellij.util.isScreenDirectiveIdent
 import me.rerere.unocssintellij.settings.UnocssSettingsState
-import me.rerere.unocssintellij.util.isJsString
+import me.rerere.unocssintellij.util.isLeafJsLiteral
 
 private val variantGroupPattern = Regex("(.*[:-])\\((.*)\\)")
 private val splitVariantGroupRE = Regex("\\s+(?![^(]*\\))")
@@ -52,7 +53,7 @@ class UnocssDocumentTargetProvider : DocumentationTargetProvider {
                 XmlAttributeValueImpl::class, JSXmlAttributeValueImpl::class
             ) ?: return targets
 
-            val isLiteralValue = elementType == XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN || isJsString(element)
+            val isLiteralValue = elementType == XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN || element.isLeafJsLiteral()
 
             val attributeEle = attributeValueEle.parent
             val attributeNameEle = attributeEle.firstChild
@@ -71,12 +72,14 @@ class UnocssDocumentTargetProvider : DocumentationTargetProvider {
     ) {
         val element = meta.bindElement
         when {
-            UnoConfigPsiHelper.inCssThemeFunction(element) -> {
+            element.inCssThemeFunction() -> {
                 targets.add(UnocssThemeConfigDocumentTarget(element))
             }
-            UnoConfigPsiHelper.inScreenDirective(element) -> {
+
+            element.isScreenDirectiveIdent() -> {
                 targets.add(UnocssThemeScreenDocumentTarget(element))
             }
+
             else -> {
                 val matchResult = meta.resolveCss() ?: return
                 if (matchResult.matchedTokens.isNotEmpty()) {

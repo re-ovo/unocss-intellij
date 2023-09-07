@@ -11,6 +11,9 @@ import com.intellij.psi.filters.ElementFilter
 import com.intellij.psi.util.elementType
 import com.intellij.util.ProcessingContext
 import me.rerere.unocssintellij.settings.UnocssSettingsState
+import me.rerere.unocssintellij.util.UnoConfigHelper
+import me.rerere.unocssintellij.util.inCssThemeFunction
+import me.rerere.unocssintellij.util.isScreenDirectiveIdent
 
 object UnocssCssThemeReferenceProvider : PsiReferenceProvider() {
 
@@ -39,7 +42,7 @@ object UnocssCssThemeReferenceProvider : PsiReferenceProvider() {
             if (!psiElement.isValid) {
                 return false
             }
-            return UnoConfigPsiHelper.inCssThemeFunction(psiElement)
+            return psiElement.inCssThemeFunction()
         }
 
         override fun isClassAcceptable(hintClass: Class<*>?): Boolean {
@@ -59,7 +62,7 @@ object UnocssCssScreenReferenceProvider : PsiReferenceProvider() {
         }
 
         val keyword = element.text
-        val prefix = UnoConfigPsiHelper.screenPrefixes.firstOrNull { keyword.startsWith(it) }
+        val prefix = UnoConfigHelper.screenPrefixes.firstOrNull { keyword.startsWith(it) }
 
         val range = if (prefix != null) {
             TextRange(prefix.length, keyword.length)
@@ -77,7 +80,7 @@ object UnocssCssScreenReferenceProvider : PsiReferenceProvider() {
                 return false
             }
 
-            return UnoConfigPsiHelper.inScreenDirective(psiElement)
+            return psiElement.isScreenDirectiveIdent()
         }
 
         override fun isClassAcceptable(hintClass: Class<*>?): Boolean {

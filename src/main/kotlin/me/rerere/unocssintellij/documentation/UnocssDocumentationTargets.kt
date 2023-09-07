@@ -1,15 +1,14 @@
+@file:Suppress("UnstableApiUsage")
+
 package me.rerere.unocssintellij.documentation
 
 import com.intellij.lang.css.CSSLanguage
 import com.intellij.lang.documentation.DocumentationMarkup
 import com.intellij.lang.documentation.DocumentationSettings
-import com.intellij.lang.javascript.psi.JSExpression
-import com.intellij.lang.javascript.psi.JSObjectLiteralExpression
 import com.intellij.model.Pointer
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.richcopy.HtmlSyntaxInfoUtil
 import com.intellij.openapi.project.Project
 import com.intellij.platform.backend.documentation.DocumentationResult
@@ -24,8 +23,6 @@ import com.intellij.refactoring.suggested.createSmartPointer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.rerere.unocssintellij.UnocssConfigManager
-import me.rerere.unocssintellij.UnocssService
-import me.rerere.unocssintellij.references.UnoConfigPsiHelper
 import me.rerere.unocssintellij.rpc.ResolveCSSResult
 import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.util.parseColors
@@ -196,16 +193,7 @@ class UnocssThemeScreenDocumentTarget(
             val prefix = match.groupValues[1]
             val breakpointName = match.groupValues[2]
 
-            val doc = withContext(Dispatchers.EDT) rd@{
-                val themeConfigValue = UnoConfigPsiHelper.findThemeConfig(targetElement) ?: return@rd null
-                if (themeConfigValue !is JSObjectLiteralExpression) {
-                    return@rd null
-                }
-                val breakpointsProp = UnoConfigPsiHelper
-                    .findThemeConfigProperty(themeConfigValue, listOf("breakpoints"))
-
-                renderScreenBreakpointsDoc(breakpointsProp?.value, prefix, breakpointName)
-            } ?: return@doc null
+            val doc = computeScreenBreakpointsDoc(prefix, breakpointName) ?: return@doc null
 
             DocumentationResult.documentation(buildString {
                 append(DocumentationMarkup.DEFINITION_START)
@@ -225,21 +213,20 @@ class UnocssThemeScreenDocumentTarget(
         }
     }
 
-    private suspend fun renderScreenBreakpointsDoc(
-        breakpointsValue: JSExpression?,
+    private fun computeScreenBreakpointsDoc(
         prefix: String,
         breakpointName: String
     ): String? {
-        if (breakpointsValue == null || breakpointsValue !is JSObjectLiteralExpression) {
+        val breakpointsConf = UnocssConfigManager.theme["breakpoints"] ?: return null
+        if (!breakpointsConf.isJsonObject) {
             return null
         }
-
-        val unocssService = breakpointsValue.project.service<UnocssService>()
-        val breakpoints = unocssService.resolveBreakpoints(breakpointsValue.containingFile.virtualFile)
-            ?.breakpoints
-            ?.toList()
-            ?.mapIndexed { index, (name, value) -> BreakpointEntry(name, value, index) }
-            ?: return null
+        val breakpointsObj = breakpointsConf.asJsonObject
+        val breakpoints = breakpointsObj.keySet()
+            .filter { breakpointsObj[it].isJsonPrimitive }
+            .mapIndexed { index, key ->
+                BreakpointEntry(key, breakpointsObj[key].asJsonPrimitive.asString, index)
+            }
 
         val (_, size, index) = breakpoints.find { it.point == breakpointName }
             ?: return UNDEFINED_BREAKPOINT

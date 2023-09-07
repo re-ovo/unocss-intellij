@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "me.rerere"
-version = "1.3.2"
+version = "1.3.3"
 
 repositories {
     mavenCentral()

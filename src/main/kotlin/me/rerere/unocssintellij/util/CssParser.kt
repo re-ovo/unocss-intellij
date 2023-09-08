@@ -30,9 +30,11 @@ fun parseColors(css: String): Set<JBColor> {
     val colors = mutableSetOf<JBColor>()
     CSS_RGBA_COLOR_PATTERN.findAll(css).forEach { matchResult ->
         val value = matchResult.value.removePrefix("rgba(").removeSuffix(")")
-        val (r, g, b) = value.split(",").map { it.trim().toIntOrNull() ?: 1 }
-        val color = JBColor(Color(r, g, b), Color(r, g, b).darker())
-        colors.add(color)
+        val parts = value.split(",")
+        val (r, g, b) = parts.map { it.trim().toIntOrNull() ?: 1 }
+        val alpha = ((parts.last().trim().toFloatOrNull() ?: 1f).coerceIn(0f, 1f) * 255).toInt()
+        val jbColor = JBColor(Color(r, g, b, alpha), Color(r, g, b, alpha))
+        colors.add(jbColor)
     }
     return colors
 }

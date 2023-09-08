@@ -180,7 +180,7 @@ object UnocssColorPreviewInlayHintsProvider : InlayHintsProvider<NoSettings> {
         }
 
         private fun buildPresentation(color: JBColor, editor: Editor): InlayPresentation {
-            val padding = InlayPresentationFactory.Padding(3, 3, 2, 2)
+            val padding = InlayPresentationFactory.Padding(2, 2, 1, 1)
             val bgColor = editor.colorsScheme
                 .getColor(DefaultLanguageHighlighterColors.INLINE_REFACTORING_SETTINGS_DEFAULT)
             val roundedCorners = InlayPresentationFactory.RoundedCorners(6, 6)

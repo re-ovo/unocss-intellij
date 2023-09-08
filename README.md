@@ -1,6 +1,12 @@
 <p align="center">
     <img src="docs/logo.svg" style="width: 5rem; height: 5rem"/>
 </p>
+<p align="center">
+<img alt="JetBrains Plugins" src="https://img.shields.io/jetbrains/plugin/r/rating/22204?style=flat-square" />
+<img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/re-ovo/unocss-intellij?style=flat-square"/>
+<img alt="GitHub contributors" src="https://img.shields.io/github/contributors/re-ovo/unocss-intellij?style=flat-square"/>
+<img alt="GitHub issues" src="https://img.shields.io/github/issues/re-ovo/unocss-intellij?style=flat-square" />
+</p>
 
 # Unocss Intellij
 
@@ -14,6 +20,7 @@
 - Directive support (e.g. `@apply, @screen, @theme`)
 - Attributify support
 - Line marker for colors and icons
+- Reference Lookup for class name and theme directive
 
 ## Screenshots
 ### Highlighting
@@ -31,6 +38,10 @@
 ## Contribution
 
 See [developer.md](docs/developer.md)
+
+<a href="https://github.com/re-ovo/unocss-intellij/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=re-ovo/unocss-intellij" />
+</a>
 
 ## License
 

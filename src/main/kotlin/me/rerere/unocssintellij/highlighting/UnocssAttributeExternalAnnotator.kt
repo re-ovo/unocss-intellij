@@ -16,8 +16,8 @@ import kotlinx.coroutines.withTimeoutOrNull
 import me.rerere.unocssintellij.UnocssService
 import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.util.MatchedPosition
-import me.rerere.unocssintellij.util.getMatchedPositions
 import me.rerere.unocssintellij.util.isUnocssCandidate
+import me.rerere.unocssintellij.util.getMatchedPositions
 
 data class UnocssInitInfo(
     val project: Project,

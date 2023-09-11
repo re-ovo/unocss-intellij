@@ -2,36 +2,27 @@ package me.rerere.unocssintellij.marker.inlay
 
 import com.intellij.codeInsight.hints.*
 import com.intellij.codeInsight.hints.presentation.InlayPresentation
-import com.intellij.codeInsight.hints.presentation.PresentationListener
 import com.intellij.codeInsight.hints.presentation.ScaleAwarePresentationFactory
 import com.intellij.lang.Language
 import com.intellij.lang.css.CSSLanguage
 import com.intellij.lang.html.HTMLLanguage
 import com.intellij.lang.javascript.JavascriptLanguage
-import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.editor.ElementColorProvider
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiFileFactory
-import com.intellij.psi.XmlElementFactory
-import com.intellij.psi.XmlElementFactoryImpl
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlElementType
 import com.intellij.refactoring.suggested.endOffset
 import com.intellij.refactoring.suggested.startOffset
-import com.intellij.ui.ColorChooserService
 import com.intellij.ui.JBColor
-import com.intellij.ui.awt.RelativePoint
 import com.intellij.util.ui.ColorIcon
-import com.sun.xml.bind.v2.util.XmlFactory
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 import me.rerere.unocssintellij.UnocssService
@@ -41,10 +32,6 @@ import me.rerere.unocssintellij.model.UnocssResolveMeta
 import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.settings.UnocssSettingsState.ColorPreviewType
 import me.rerere.unocssintellij.util.*
-import java.awt.Color
-import java.awt.Cursor
-import java.awt.Point
-import java.awt.event.MouseEvent
 import javax.swing.JPanel
 
 @Suppress("UnstableApiUsage")
@@ -173,17 +160,17 @@ object UnocssColorPreviewInlayHintsProvider : InlayHintsProvider<NoSettings> {
                         sink.addInlineElement(
                             startOffset,
                             true,
-                            buildPresentation(colorValue.first(), editor, element, startOffset),
+                            buildPresentation(colorValue.first(), editor),
                             false
                         )
                     }
 
                     val iconValue = parseIcons(css)
-                    if (iconValue != null) {
+                    if(iconValue != null) {
                         sink.addInlineElement(
                             startOffset,
                             true,
-                            buildPresentation(iconValue, editor, element, startOffset),
+                            buildPresentation(iconValue, editor),
                             false
                         )
                     }
@@ -192,70 +179,27 @@ object UnocssColorPreviewInlayHintsProvider : InlayHintsProvider<NoSettings> {
             return true
         }
 
-        private fun buildPresentation(
-            color: JBColor,
-            editor: Editor,
-            element: PsiElement,
-            startOffset: Int
-        ): InlayPresentation {
+        private fun buildPresentation(color: JBColor, editor: Editor): InlayPresentation {
             val padding = InlayPresentationFactory.Padding(2, 2, 1, 1)
             val bgColor = editor.colorsScheme
                 .getColor(DefaultLanguageHighlighterColors.INLINE_REFACTORING_SETTINGS_DEFAULT)
             val roundedCorners = InlayPresentationFactory.RoundedCorners(6, 6)
 
             val scaleFactory = scaleAwarePresentationFactory
-            val base = scaleFactory.mouseHandling(
-                scaleFactory.lineCentered(
-                    scaleFactory.container(
-                        scaleFactory.smallScaledIcon(ColorIcon(16, color)),
-                        padding,
-                        roundedCorners,
-                        bgColor
-                    )
-                ), { event, _ ->
-                    val relatedPoint = RelativePoint(event)
-                    ColorChooserService.getInstance().showColorPickerPopup(
-                        editor.project,
-                        color,
-                        { targetColor, _ ->
-                            if (element.elementType == XmlElementType.XML_ATTRIBUTE_VALUE_TOKEN) {
-                                runWriteAction {
-                                    // TODO: parse color value and replace it
-                                    val document = PsiFileFactory.getInstance(element.project)
-                                        .createFileFromText(
-                                            "dummy",
-                                            element.language,
-                                            "<tag class=\"${element.text}\"/>"
-                                        )
-                                    val newElement = document.childOfTypeDeeply<XmlAttributeValue>()?.children?.find {
-                                        it.elementType == XmlElementType.XML_ATTRIBUTE_VALUE_TOKEN
-                                    } ?: return@runWriteAction
-                                    println(newElement)
-                                    element.replace(newElement)
-                                }
-                            }
-                        },
-                        relatedPoint,
-                        true
-                    )
-                }, null
+            val base = scaleFactory.lineCentered(
+                scaleFactory.container(
+                    scaleFactory.smallScaledIcon(ColorIcon(16, color)),
+                    padding,
+                    roundedCorners,
+                    bgColor
+                )
             )
             val inset = scaleFactory.inset(factory.text(""), 0, 4, 0, 0)
             return factory.seq(base, inset)
         }
 
-        private fun buildPresentation(
-            icon: String,
-            editor: Editor,
-            element: PsiElement,
-            startOffset: Int
-        ): InlayPresentation {
-            val svgIcon = SVGIcon.tryGetIcon(icon, 16).getOrNull() ?: return buildPresentation(
-                JBColor(0x000000, 0xFFFFFF),
-                editor,
-                element,
-                startOffset
-            )
+        private fun buildPresentation(icon: String, editor: Editor): InlayPresentation {
+            val svgIcon = SVGIcon.tryGetIcon(icon,16).getOrNull() ?: return buildPresentation(JBColor(0x000000, 0xFFFFFF), editor)
             val padding = InlayPresentationFactory.Padding(2, 2, 1, 1)
             val bgColor = editor.colorsScheme
                 .getColor(DefaultLanguageHighlighterColors.INLINE_REFACTORING_SETTINGS_DEFAULT)

@@ -14,6 +14,7 @@ import com.intellij.openapi.wm.StatusBarWidget
 import com.intellij.openapi.wm.StatusBarWidgetFactory
 import com.intellij.openapi.wm.impl.status.EditorBasedStatusBarPopup
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
 import me.rerere.unocssintellij.UnocssBundle
 import me.rerere.unocssintellij.UnocssService
 import me.rerere.unocssintellij.settings.UnocssSettingsState
@@ -73,10 +74,12 @@ class UnocssStatusPop(project: Project) : EditorBasedStatusBarPopup(project, fal
             } else {
                 val matched = runBlocking {
                     val content = file.contentsToByteArray().decodeToString()
-                    project.service<UnocssService>()
-                        .resolveCss(file, content)
-                        ?.matchedTokens ?: emptyList()
-                }
+                    withTimeoutOrNull(500) {
+                        project.service<UnocssService>()
+                            .resolveCss(file, content)
+                            ?.matchedTokens ?: emptyList()
+                    }
+                } ?: emptyList()
 
                 if (matched.isNotEmpty()) "Unocss: ${matched.size}" else "Unocss"
             }

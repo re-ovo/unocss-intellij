@@ -3,7 +3,7 @@
   "type": "module",
   "scripts": {
     "dev": "node src/service.ts",
-    "build": "esbuild src/service.ts --bundle --minify --outfile=../../../unojs/service.js --platform=node"
+    "build": "esbuild src/service.ts --bundle --minify --outfile=../../../unojs/service.js --platform=node --target=node12"
   },
   "devDependencies": {
     "@antfu/utils": "^0.7.6",

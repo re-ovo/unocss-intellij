@@ -22,11 +22,8 @@
 
     <change-notes><![CDATA[
       <ul>
-        <li>Inlay hints for color preview</li>
-        <li>Use icons to mark UnoCSS completion items</li>
-        <li>Fix the problem of not getting completions when typing one character</li>
-        <li>Support theme(), @apply, @screen directives
-        <li>Bug fix</li>
+        <li>fixed matchType lost after update config</li>
+        <li>Support Node12+ now</li>
       </ul>
     ]]></change-notes>
 

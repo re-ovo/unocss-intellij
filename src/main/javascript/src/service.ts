@@ -12,6 +12,7 @@ console.log('[UnoProcess]', `Hello from service.js! ${process.cwd()}`);
 
 const defaultConfig = {presets: [presetUno()]};
 
+let matchType: AutoCompleteMatchType = 'prefix';
 let generator = createGenerator({}, defaultConfig);
 let autocomplete = createAutocomplete(generator);
 
@@ -44,13 +45,15 @@ export async function resolveConfig(rootDir: string) {
   deprecationCheck(loadResult.config);
 
   generator.setConfig(loadResult.config, defaultConfig);
-  autocomplete = createAutocomplete(generator);
+  autocomplete = createAutocomplete(generator, { matchType });
 
   return generator.config;
 }
 
-export async function updateSettings(matchType: AutoCompleteMatchType) {
-  log('updateSettings: matchType', matchType)
+export async function updateSettings(newMatchType: AutoCompleteMatchType) {
+  log('updateSettings: matchType', newMatchType)
+  matchType = newMatchType;
+
   autocomplete = createAutocomplete(generator, { matchType });
 }
 

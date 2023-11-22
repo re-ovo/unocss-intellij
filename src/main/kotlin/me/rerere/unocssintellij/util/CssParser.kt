@@ -14,7 +14,7 @@ import com.intellij.ui.JBColor
 import java.awt.Color
 
 private val CSS_RGBA_COLOR_PATTERN =
-    """rgba\((\d{1,3}), (\d{1,3}), (\d{1,3}), var\(--[a-z0-9-]+\)\)|rgb\((\d{1,3}) (\d{1,3}) (\d{1,3}) / var\(--[a-z0-9-]+\)\)""".toRegex()
+    """rgba\(\d{1,3},\s*\d{1,3},\s*\d{1,3},\s*var\(--[a-z-]+\)\)|rgba\(\d{1,3},\s*\d{1,3},\s*\d{1,3},\s*0\.\d+\)|rgb\(\d{1,3}\s*\d{1,3}\s*\d{1,3}\s*/\s*var\(--[a-z-]+\)\)""".toRegex()
 
 private val CSS_COMMENT_PATTERN = """/\*.*?\*/""".toRegex()
 private val CSS_CONTENT_PATTERN = """(?<=\{)[^}]*(?=})""".toRegex()
@@ -26,10 +26,12 @@ private val CSS_HEX_COLOR_RE = "^#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2
 
 // parse colors from css
 // pattern: rgba(255, 255, 255, var(--opacity))
+// pattern: rgba(255, 255, 255, 0.5)
 // pattern: rgb(219 39 119 / var(--un-bg-opacity))
 fun parseColors(css: String): Set<JBColor> {
     val colors = mutableSetOf<JBColor>()
     CSS_RGBA_COLOR_PATTERN.findAll(css).forEach { matchResult ->
+        println(matchResult.value)
         val value = matchResult.value.removePrefix("rgba(").removePrefix("rgb(").removeSuffix(")")
         val parts = if (value.contains("/")) {
             value.split(" ", "/")

@@ -14,7 +14,7 @@ import com.intellij.ui.JBColor
 import java.awt.Color
 
 private val CSS_RGBA_COLOR_PATTERN =
-    """rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*(?:[\d.]+|var\(--[a-zA-Z0-9-_]+\))\s*\)""".toRegex()
+    """rgba\((\d{1,3}), (\d{1,3}), (\d{1,3}), var\(--[a-z0-9-]+\)\)|rgb\((\d{1,3}) (\d{1,3}) (\d{1,3}) / var\(--[a-z0-9-]+\)\)""".toRegex()
 
 private val CSS_COMMENT_PATTERN = """/\*.*?\*/""".toRegex()
 private val CSS_CONTENT_PATTERN = """(?<=\{)[^}]*(?=})""".toRegex()
@@ -26,13 +26,19 @@ private val CSS_HEX_COLOR_RE = "^#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2
 
 // parse colors from css
 // pattern: rgba(255, 255, 255, var(--opacity))
+// pattern: rgb(219 39 119 / var(--un-bg-opacity))
 fun parseColors(css: String): Set<JBColor> {
     val colors = mutableSetOf<JBColor>()
     CSS_RGBA_COLOR_PATTERN.findAll(css).forEach { matchResult ->
-        val value = matchResult.value.removePrefix("rgba(").removeSuffix(")")
-        val parts = value.split(",")
+        val value = matchResult.value.removePrefix("rgba(").removePrefix("rgb(").removeSuffix(")")
+        val parts = if (value.contains("/")) {
+            value.split(" ", "/")
+        } else {
+            value.split(",")
+        }
         val (r, g, b) = parts.map { it.trim().toIntOrNull() ?: 1 }
-        val alpha = ((parts.last().trim().toFloatOrNull() ?: 1f).coerceIn(0f, 1f) * 255).toInt()
+        val alphaPart = parts.getOrNull(3) ?: parts.getOrNull(2)?.split("/")?.getOrNull(1)
+        val alpha = ((alphaPart?.trim()?.toFloatOrNull() ?: 1f).coerceIn(0f, 1f) * 255).toInt()
         val jbColor = JBColor(Color(r, g, b, alpha), Color(r, g, b, alpha))
         colors.add(jbColor)
     }

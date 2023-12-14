@@ -31,7 +31,6 @@ private val CSS_HEX_COLOR_RE = "^#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2
 fun parseColors(css: String): Set<JBColor> {
     val colors = mutableSetOf<JBColor>()
     CSS_RGBA_COLOR_PATTERN.findAll(css).forEach { matchResult ->
-        println(matchResult.value)
         val value = matchResult.value.removePrefix("rgba(").removePrefix("rgb(").removeSuffix(")")
         val parts = if (value.contains("/")) {
             value.split(" ", "/")

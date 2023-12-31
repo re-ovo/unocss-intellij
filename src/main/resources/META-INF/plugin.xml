@@ -60,7 +60,7 @@
 
         <!-- 文档提示 -->
         <platform.backend.documentation.targetProvider
-                implementation="me.rerere.unocssintellij.documentation.UnocssDocumentTargetProvider"/>
+                implementation="me.rerere.unocssintellij.documentation.UnocssDocumentTargetProvider" order="first"/>
 
         <!-- 图标 -->
         <codeInsight.lineMarkerProvider

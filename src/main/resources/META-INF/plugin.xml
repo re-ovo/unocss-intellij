@@ -38,6 +38,13 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
+        <fileType
+                name="Unocss"
+                implementationClass="me.rerere.unocssintellij.util.UnocssConfigFile"
+                fieldName="INSTANCE"
+                language="JavaScript"
+                patterns="unocss.config.js;unocss.config.ts;uno.config.js;uno.config.ts"
+        />
 
         <!-- 代码补全 -->
         <completion.contributor
@@ -129,12 +136,12 @@
         <psi.referenceContributor
                 language="CSS"
                 implementation="me.rerere.unocssintellij.references.css.UnocssCssReferenceContributor"/>
-<!--        <psi.referenceContributor-->
-<!--                implementation="me.rerere.unocssintellij.references.classname.UnocssClassNameReferenceContributor"-->
-<!--                language="HTML"/>-->
-<!--        <psi.referenceContributor-->
-<!--                implementation="me.rerere.unocssintellij.references.classname.UnocssClassNameReferenceContributor"-->
-<!--                language="JavaScript"/>-->
+        <!--        <psi.referenceContributor-->
+        <!--                implementation="me.rerere.unocssintellij.references.classname.UnocssClassNameReferenceContributor"-->
+        <!--                language="HTML"/>-->
+        <!--        <psi.referenceContributor-->
+        <!--                implementation="me.rerere.unocssintellij.references.classname.UnocssClassNameReferenceContributor"-->
+        <!--                language="JavaScript"/>-->
     </extensions>
 
     <projectListeners>

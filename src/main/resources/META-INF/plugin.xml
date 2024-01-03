@@ -123,6 +123,9 @@
         <lang.inspectionSuppressor
                 language="JavaScript"
                 implementationClass="me.rerere.unocssintellij.inspection.UnocssXmlSuppressionProvider"/>
+        <daemon.highlightInfoFilter
+                implementation="me.rerere.unocssintellij.inspection.UnocssVueSuppressionProvider"
+        />
 
         <applicationService serviceImplementation="me.rerere.unocssintellij.settings.UnocssSettingsState"/>
         <projectConfigurable

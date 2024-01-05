@@ -10,6 +10,7 @@ import com.intellij.lang.Language
 import com.intellij.lang.LanguageASTFactory
 import com.intellij.lang.css.CSSLanguage
 import com.intellij.lang.html.HTMLLanguage
+import com.intellij.lang.javascript.JSElementTypes
 import com.intellij.lang.javascript.JavascriptLanguage
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.service
@@ -42,6 +43,7 @@ import me.rerere.unocssintellij.model.UnocssResolveMeta
 import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.settings.UnocssSettingsState.ColorPreviewType
 import me.rerere.unocssintellij.util.*
+import java.awt.Color
 import java.awt.Cursor
 import java.awt.Point
 import java.awt.event.MouseEvent
@@ -210,6 +212,25 @@ object UnocssColorPreviewInlayHintsProvider : InlayHintsProvider<NoSettings> {
                 val startOffsetOfElement = startOffset - meta.bindElement.startOffset
                 val initMeta = meta.copy()
                 val initElementText = meta.bindElement.text
+                val generateNewValue = { oldVal: String, color: Color ->
+                    when {
+                        oldVal.startsWith("bg-") -> "bg-[${color.toHex(true)}]"
+                        oldVal.startsWith("text-") -> "text-[${color.toHex(true)}]"
+                        oldVal.startsWith("border-") -> "border-[${color.toHex(true)}]"
+                        else -> oldVal.also {
+                            // Unknown unocss color pattern
+                            HintManager.getInstance().showErrorHint(
+                                editor,
+                                "Could not generate, please replace it manually: ${color.toHex(true)}",
+                                startOffset,
+                                startOffset,
+                                HintManager.ABOVE,
+                                HintManager.HIDE_BY_ANY_KEY or HintManager.HIDE_BY_OTHER_HINT,
+                                5000
+                            )
+                        }
+                    }
+                }
 
                 ColorChooserService.instance.showPopup(
                     project = editor.project!!,
@@ -217,25 +238,11 @@ object UnocssColorPreviewInlayHintsProvider : InlayHintsProvider<NoSettings> {
                     listener = { color, _ ->
                         // println("color: $color, ${meta.bindElement}, ${meta.attrName}:${meta.attrValue}, $startOffset")
                         runWriteAction {
-                            when (initMeta.bindElement.elementType) {
-                                XmlElementType.XML_ATTRIBUTE_VALUE_TOKEN -> {
+                            when {
+                                // xml attribute value token
+                                initMeta.bindElement.elementType == XmlElementType.XML_ATTRIBUTE_VALUE_TOKEN -> {
                                     val oldValue = meta.attrValue ?: return@runWriteAction
-                                    val newValue = when {
-                                        oldValue.startsWith("bg-") -> "bg-${color.toHex(true)}"
-                                        oldValue.startsWith("text-") -> "text-${color.toHex(true)}"
-                                        oldValue.startsWith("border-") -> "border-${color.toHex(true)}"
-                                        else -> oldValue.also {
-                                            HintManager.getInstance().showErrorHint(
-                                                editor,
-                                                "Failed auto replace, do it manually: ${color.toHex(true)}",
-                                                startOffset,
-                                                startOffset,
-                                                HintManager.ABOVE,
-                                                HintManager.HIDE_BY_ESCAPE or HintManager.HIDE_BY_CARET_MOVE,
-                                                5000
-                                            )
-                                        }
-                                    }
+                                    val newValue = generateNewValue(oldValue, color)
 
                                     val oldAttValue = initElementText ?: return@runWriteAction
                                     val stopIndex = oldAttValue.indexOfAny(charArrayOf(' ', '"', '\'', '\n'), startOffsetOfElement)
@@ -246,10 +253,47 @@ object UnocssColorPreviewInlayHintsProvider : InlayHintsProvider<NoSettings> {
                                     }
                                 }
 
+                                // JS String Leaf
+                                initMeta.bindElement.isLeafJsLiteral() || (initMeta.bindElement is LeafPsiElement && initMeta.bindElement.elementType.toString().startsWith("JS:STRING")) -> {
+                                    val oldValue = meta.attrName
+                                    val newValue = generateNewValue(oldValue, color)
+
+                                    val oldAttValue = initElementText ?: return@runWriteAction
+                                    val stopIndex = oldAttValue.indexOfAny(charArrayOf(' ', '"', '\'', '\n'), startOffsetOfElement)
+                                    val newAttrValue = oldAttValue.substring(0, startOffsetOfElement) + newValue + oldAttValue.substring(stopIndex)
+
+                                    if(meta.bindElement is LeafPsiElement) {
+                                        meta.bindElement = (meta.bindElement as LeafPsiElement).replaceWithText(newAttrValue) as PsiElement
+                                    }
+                                }
+
+                                // 整个元素就是一个属性
+                                initElementText == meta.attrName -> {
+                                    val oldValue = meta.attrName
+                                    val newValue = generateNewValue(oldValue, color)
+
+                                    if(meta.bindElement is LeafPsiElement) {
+                                        meta.bindElement = (meta.bindElement as LeafPsiElement).replaceWithText(newValue) as PsiElement
+                                    } else {
+                                        HintManager.getInstance().showErrorHint(
+                                            editor,
+                                            "Not a leaf element: ${meta.bindElement.elementType}, please replace it manually: $newValue",
+                                            startOffset,
+                                            startOffset,
+                                            HintManager.ABOVE,
+                                            HintManager.HIDE_BY_ANY_KEY,
+                                            5000
+                                        )
+                                    }
+                                }
+
                                 else -> {
+                                    println(
+                                        meta.bindElement.javaClass.name
+                                    )
                                     HintManager.getInstance().showErrorHint(
                                         editor,
-                                        "Not supported yet: ${meta.bindElement.elementType}}",
+                                        "Not supported yet: ${meta.bindElement.elementType}}, please replace it manually: ${color.toHex(true)}",
                                         startOffset,
                                         startOffset,
                                         HintManager.ABOVE,

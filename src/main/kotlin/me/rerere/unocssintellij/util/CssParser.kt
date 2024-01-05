@@ -59,11 +59,16 @@ private fun String.repeatIfChar(): String {
     return if (length == 1) repeat(2) else this
 }
 
-fun Color.toHex(): String {
+fun Color.toHex(useAlpha: Boolean = false): String {
+    fun Int.hex(): String {
+        return toString(16).padStart(2, '0')
+    }
+
     val r = red
     val g = green
     val b = blue
-    return "#${r.toString(16)}${g.toString(16)}${b.toString(16)}"
+    val a = if (useAlpha) alpha else 255
+    return "#${r.hex()}${g.hex()}${b.hex()}${if (useAlpha) a.hex() else ""}"
 }
 
 // parse css icons

@@ -22,8 +22,7 @@
 
     <change-notes><![CDATA[
       <ul>
-        <li>fixed matchType lost after update config</li>
-        <li>Support Node12+ now</li>
+        <li>Support Color Picker now, you can click the color icon to change color</li>
       </ul>
     ]]></change-notes>
 

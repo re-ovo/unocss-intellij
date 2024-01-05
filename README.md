@@ -43,6 +43,9 @@ See [developer.md](docs/developer.md)
   <img src="https://contrib.rocks/image?repo=re-ovo/unocss-intellij" />
 </a>
 
+### Donation
+<img src="docs/screenshots/qrcode.png" width="200px">
+
 ## License
 
 [MIT](LICENSE) License

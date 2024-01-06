@@ -14,7 +14,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.weisj:jsvg:1.0.0")
+    implementation("com.github.weisj:jsvg:1.3.0")
 }
 
 // Configure Gradle IntelliJ Plugin

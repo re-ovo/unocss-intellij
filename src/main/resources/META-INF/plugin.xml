@@ -24,6 +24,9 @@
       <ul>
         <li>Support Color Picker now, you can click the color icon to change color</li>
       </ul>
+      <ul>
+        <li>你现在可以点击颜色图标来直接修改颜色了(只支持部分常见模式)</li>
+      </ul>
     ]]></change-notes>
 
     <category>Style Sheets</category>

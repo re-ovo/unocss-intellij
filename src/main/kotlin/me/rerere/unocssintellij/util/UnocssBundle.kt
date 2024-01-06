@@ -1,4 +1,4 @@
-package me.rerere.unocssintellij
+package me.rerere.unocssintellij.util
 
 import com.intellij.DynamicBundle
 import org.jetbrains.annotations.Nls

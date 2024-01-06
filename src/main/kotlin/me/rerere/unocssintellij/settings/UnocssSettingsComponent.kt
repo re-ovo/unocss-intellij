@@ -1,20 +1,11 @@
 package me.rerere.unocssintellij.settings
 
 import com.intellij.openapi.ui.DialogPanel
-import com.intellij.ui.CardLayoutPanel
-import com.intellij.ui.CollectionComboBoxModel
 import com.intellij.ui.components.JBCheckBox
-import com.intellij.ui.components.JBList
-import com.intellij.ui.components.JBPanel
 import com.intellij.ui.dsl.builder.*
-import com.intellij.ui.dsl.listCellRenderer.textListCellRenderer
-import com.intellij.ui.table.JBTable
-import com.intellij.util.ui.table.JBListTable
-import me.rerere.unocssintellij.UnocssBundle
+import me.rerere.unocssintellij.util.UnocssBundle
 import me.rerere.unocssintellij.settings.UnocssSettingsState.ColorPreviewType
 import me.rerere.unocssintellij.settings.UnocssSettingsState.MatchType
-import org.jdesktop.swingx.combobox.ListComboBoxModel
-import java.awt.CardLayout
 
 class UnocssSettingsComponent {
 

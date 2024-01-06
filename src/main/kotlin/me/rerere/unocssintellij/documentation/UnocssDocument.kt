@@ -1,6 +1,12 @@
 package me.rerere.unocssintellij.documentation
 
 import com.intellij.lang.javascript.psi.e4x.impl.JSXmlAttributeValueImpl
+import com.intellij.lang.javascript.psi.impl.JSCallExpressionImpl
+import com.intellij.lang.javascript.psi.impl.JSFunctionExpressionImpl
+import com.intellij.lang.javascript.psi.impl.JSLiteralExpressionImpl
+import com.intellij.lang.javascript.psi.impl.JSVarStatementImpl
+import com.intellij.lang.javascript.psi.types.JSStringLiteralTypeImpl
+import com.intellij.lang.javascript.psi.types.JSTemplateLiteralType
 import com.intellij.platform.backend.documentation.DocumentationTarget
 import com.intellij.platform.backend.documentation.DocumentationTargetProvider
 import com.intellij.psi.PsiElement
@@ -11,6 +17,7 @@ import com.intellij.psi.css.impl.CssElementTypes
 import com.intellij.psi.impl.source.xml.XmlAttributeValueImpl
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfTypes
+import com.intellij.psi.util.parents
 import com.intellij.psi.xml.XmlElementType
 import com.intellij.psi.xml.XmlTokenType
 import com.intellij.refactoring.suggested.startOffset
@@ -50,16 +57,28 @@ class UnocssDocumentTargetProvider : DocumentationTargetProvider {
             )
         } else {
             val attributeValueEle = element.parentOfTypes(
-                XmlAttributeValueImpl::class, JSXmlAttributeValueImpl::class
-            ) ?: return targets
+                XmlAttributeValueImpl::class,
+                JSXmlAttributeValueImpl::class,
+            )
+            if (attributeValueEle != null) { // attribute with value
+                val isLiteralValue = elementType == XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN || element.isLeafJsLiteral()
 
-            val isLiteralValue = elementType == XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN || element.isLeafJsLiteral()
+                val attributeEle = attributeValueEle.parent
+                val attributeNameEle = attributeEle.firstChild
 
-            val attributeEle = attributeValueEle.parent
-            val attributeNameEle = attributeEle.firstChild
-
-            val offsetValue = getOffsetValue(offset, element, isLiteralValue) ?: return targets
-            meta = UnocssResolveMeta(element, attributeNameEle.text, offsetValue)
+                val offsetValue = getOffsetValue(offset, element, isLiteralValue) ?: return targets
+                meta = UnocssResolveMeta(element, attributeNameEle.text, offsetValue)
+            } else if (element.isLeafJsLiteral()) { // js literal
+                if(UnocssSettingsState.isMatchedJsLiteral(element)) {
+                    val offsetValue = getOffsetValue(offset, element, true) ?: return targets
+                    meta = UnocssResolveMeta(element, offsetValue)
+                } else {
+                    return targets
+                }
+            } else {
+                // Still not match, return empty list
+                return targets
+            }
         }
 
         resolveCssDocumentation(meta, targets)

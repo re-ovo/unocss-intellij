@@ -17,6 +17,7 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.refactoring.suggested.startOffset
 import me.rerere.unocssintellij.UnocssConfigManager
 import me.rerere.unocssintellij.rpc.SuggestionItem
+import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.util.isClassAttribute
 
 private val matchVariantGroupPrefixRE = Regex("^(?:.*\\s)?(.*)\\(([^)]*)$")
@@ -130,11 +131,10 @@ object UnocssJsLiteralCompletionProvider : UnocssCompletionProvider() {
     override fun resolvePrefix(parameters: CompletionParameters, result: CompletionResultSet): PrefixHolder? {
         val element = parameters.position
         val xmlAttributeEle = element.parentOfType<XmlAttribute>(true)
-            ?: return null
-        val attrName = xmlAttributeEle.firstChild.text
+        val attrName = xmlAttributeEle?.firstChild?.text ?: ""
 
-        // Is anyone use unocss token on other attribute name?
-        if (!attrName.isClassAttribute()) {
+        // Make sure it's a class attribute or a "matched" js literal
+        if (!attrName.isClassAttribute() && !UnocssSettingsState.isMatchedJsLiteral(element)) {
             return null
         }
 

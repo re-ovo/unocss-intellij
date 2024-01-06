@@ -1,11 +1,20 @@
 package me.rerere.unocssintellij.settings
 
 import com.intellij.openapi.ui.DialogPanel
+import com.intellij.ui.CardLayoutPanel
+import com.intellij.ui.CollectionComboBoxModel
 import com.intellij.ui.components.JBCheckBox
+import com.intellij.ui.components.JBList
+import com.intellij.ui.components.JBPanel
 import com.intellij.ui.dsl.builder.*
+import com.intellij.ui.dsl.listCellRenderer.textListCellRenderer
+import com.intellij.ui.table.JBTable
+import com.intellij.util.ui.table.JBListTable
 import me.rerere.unocssintellij.UnocssBundle
 import me.rerere.unocssintellij.settings.UnocssSettingsState.ColorPreviewType
 import me.rerere.unocssintellij.settings.UnocssSettingsState.MatchType
+import org.jdesktop.swingx.combobox.ListComboBoxModel
+import java.awt.CardLayout
 
 class UnocssSettingsComponent {
 
@@ -72,6 +81,17 @@ class UnocssSettingsComponent {
                             val num = it.text.toIntOrNull()
                             if (num == null) error("Invalid number") else null
                         }.errorOnApply("Invalid number") { it.text.toIntOrNull() == null }
+                }
+            }.visibleIf(enableCheckbox.selected)
+
+            group(UnocssBundle.message("setting.matcher.title")) {
+                row(UnocssBundle.message("setting.matcher.jsliteral")) {}
+                row {
+                    textArea()
+                        .rows(5)
+                        .resizableColumn()
+                        .align(Align.FILL)
+                        .bindText(settings::jsLiteralMatchRegex)
                 }
             }.visibleIf(enableCheckbox.selected)
         }

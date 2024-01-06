@@ -34,6 +34,7 @@ class UnocssSettingsConfigurable(private val project: Project) : Configurable {
             project.service<UnocssService>().updateSettings()
         }
         DaemonCodeAnalyzer.getInstance(project).restart()
+        UnocssSettingsState.updateJsLiteralMatchPatterns()
     }
 
     override fun reset() {

@@ -14,9 +14,16 @@ import com.intellij.psi.util.elementType
 import com.intellij.ui.JBColor
 import java.awt.Color
 
-private val parseCache = CacheBuilder.newBuilder()
-    .maximumSize(64)
-    .build<String, Set<JBColor>>()
+private val colorParseCache by lazy {
+    CacheBuilder.newBuilder()
+        .maximumSize(64)
+        .build<String, Set<JBColor>>()
+}
+private val iconParseCache by lazy {
+    CacheBuilder.newBuilder()
+        .maximumSize(64)
+        .build<String, String?>()
+}
 
 private val CSS_RGBA_COLOR_PATTERN =
     """rgba\(\d{1,3},\s*\d{1,3},\s*\d{1,3},\s*var\(--[a-z-]+\)\)|rgba\(\d{1,3},\s*\d{1,3},\s*\d{1,3},\s*0\.\d+\)|rgb\(\d{1,3}\s*\d{1,3}\s*\d{1,3}\s*/\s*var\(--[a-z-]+\)\)""".toRegex()
@@ -36,9 +43,9 @@ private val CSS_HEX_COLOR_RE = "^#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2
 // pattern: rgba(255, 255, 255, 0.5)
 // pattern: rgb(219 39 119 / var(--un-bg-opacity))
 fun parseColors(css: String): Set<JBColor> {
-    if (parseCache.getIfPresent(css) != null) {
+    if (colorParseCache.getIfPresent(css) != null) {
         // Parse color is slow, so we use cache
-        return parseCache.getIfPresent(css) ?: emptySet()
+        return colorParseCache.getIfPresent(css) ?: emptySet()
     }
 
     val colors = mutableSetOf<JBColor>()
@@ -68,7 +75,7 @@ fun parseColors(css: String): Set<JBColor> {
         val jbColor = JBColor(Color(r, g, b, alpha), Color(r, g, b, alpha))
         colors.add(jbColor)
     }
-    parseCache.put(css, colors)
+    colorParseCache.put(css, colors)
     return colors
 }
 
@@ -100,10 +107,17 @@ fun Color.toHex(useAlpha: Boolean = false): String {
 // parse css icons
 // pattern: --un-icon: (data:...)
 fun parseIcons(css: String): String? {
+    if (iconParseCache.getIfPresent(css) != null) {
+        // Parse icon is slow, so we use cache
+        return iconParseCache.getIfPresent(css)
+    }
     CSS_UNO_ICON_PATTERN.findAll(css).forEach {
         return it.value
             .removePrefix("--un-icon:url(\"")
             .removeSuffix("\");")
+            .also {
+                iconParseCache.put(css, it)
+            }
     }
     return null
 }

@@ -2,12 +2,12 @@ import org.apache.tools.ant.taskdefs.condition.Os
 
 plugins {
     id("java")
-    id("org.jetbrains.kotlin.jvm") version "1.9.0"
+    id("org.jetbrains.kotlin.jvm") version "1.9.20"
     id("org.jetbrains.intellij") version "1.16.1"
 }
 
 group = "me.rerere"
-version = "1.3.11"
+version = "1.4.0"
 
 repositories {
     mavenCentral()

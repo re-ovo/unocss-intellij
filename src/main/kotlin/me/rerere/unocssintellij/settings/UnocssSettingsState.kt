@@ -41,7 +41,7 @@ class UnocssSettingsState : PersistentStateComponent<UnocssSettingsState> {
                 JSVarStatementImpl::class, // 定义变量
             ) ?: return false
             val text = expression.text
-            println(text)
+            // println(text)
             return jsLiteralMatchPatterns.any { regex ->
                 regex.matches(text)/*.also {
                     println("regex: $regex, match: $it")

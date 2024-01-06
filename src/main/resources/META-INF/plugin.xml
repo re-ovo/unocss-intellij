@@ -23,9 +23,11 @@
     <change-notes><![CDATA[
       <ul>
         <li>Support Color Picker now, you can click the color icon to change color</li>
+        <li>Improve performance by using cache</li>
       </ul>
       <ul>
         <li>你现在可以点击颜色图标来直接修改颜色了(只支持部分常见模式)</li>
+        <li>使用缓存改进解析性能</li>
       </ul>
     ]]></change-notes>
 

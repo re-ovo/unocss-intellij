@@ -35,6 +35,9 @@
 ### Directive
 <img src="docs/screenshots/directive.png">
 
+### Color Picker
+<img src="docs/screenshots/color_picker.png">
+
 ## Contribution
 
 See [developer.md](docs/developer.md)

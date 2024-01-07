@@ -20,6 +20,7 @@
 - Directive support (e.g. `@apply, @screen, @theme`)
 - Attributify support
 - Line marker for colors and icons
+- Color Picker
 - Reference Lookup for class name and theme directive
 
 ## Screenshots

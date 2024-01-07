@@ -1,12 +1,6 @@
 package me.rerere.unocssintellij.documentation
 
 import com.intellij.lang.javascript.psi.e4x.impl.JSXmlAttributeValueImpl
-import com.intellij.lang.javascript.psi.impl.JSCallExpressionImpl
-import com.intellij.lang.javascript.psi.impl.JSFunctionExpressionImpl
-import com.intellij.lang.javascript.psi.impl.JSLiteralExpressionImpl
-import com.intellij.lang.javascript.psi.impl.JSVarStatementImpl
-import com.intellij.lang.javascript.psi.types.JSStringLiteralTypeImpl
-import com.intellij.lang.javascript.psi.types.JSTemplateLiteralType
 import com.intellij.platform.backend.documentation.DocumentationTarget
 import com.intellij.platform.backend.documentation.DocumentationTargetProvider
 import com.intellij.psi.PsiElement
@@ -17,7 +11,6 @@ import com.intellij.psi.css.impl.CssElementTypes
 import com.intellij.psi.impl.source.xml.XmlAttributeValueImpl
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfTypes
-import com.intellij.psi.util.parents
 import com.intellij.psi.xml.XmlElementType
 import com.intellij.psi.xml.XmlTokenType
 import com.intellij.refactoring.suggested.startOffset
@@ -27,8 +20,8 @@ import me.rerere.unocssintellij.util.isScreenDirectiveIdent
 import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.util.isLeafJsLiteral
 
-private val variantGroupPattern = Regex("(.*[:-])\\((.*)\\)")
-private val splitVariantGroupRE = Regex("\\s+(?![^(]*\\))")
+private val classNameRE = Regex("""\w+:\([^)]+\)|\S+""")
+private val variantNameRE = Regex("""(\w+):\(([^)]+)\)""")
 
 private val attributeNameOnlyElementTypes = setOf(
     XmlElementType.XML_NAME,
@@ -69,7 +62,7 @@ class UnocssDocumentTargetProvider : DocumentationTargetProvider {
                 val offsetValue = getOffsetValue(offset, element, isLiteralValue) ?: return targets
                 meta = UnocssResolveMeta(element, attributeNameEle.text, offsetValue)
             } else if (element.isLeafJsLiteral()) { // js literal
-                if(UnocssSettingsState.isMatchedJsLiteral(element)) {
+                if (UnocssSettingsState.isMatchedJsLiteral(element)) {
                     val offsetValue = getOffsetValue(offset, element, true) ?: return targets
                     meta = UnocssResolveMeta(element, offsetValue)
                 } else {
@@ -113,43 +106,40 @@ class UnocssDocumentTargetProvider : DocumentationTargetProvider {
         return if (isLiteralValue) {
             val relativeOffset = absOffset - element.startOffset
 
-            val attributeValues = rawValue.split(" ").filter { it.isNotBlank() }
-            val rearranged = rearrangeAttrValues(rawValue)
+            // 匹配所有class names
+            val matches = classNameRE.findAll(rawValue)
 
-            var startOffset = 0
-            var currentValue: String? = null
-            for ((index, attributeValue) in attributeValues.withIndex()) {
-                if (startOffset + attributeValue.length >= relativeOffset) {
-                    currentValue = rearranged[index]
-                    break
+            for (match in matches) {
+                if (relativeOffset in match.range) {
+                    val variantGroup = variantNameRE.find(match.value)
+                    if (variantGroup == null) { // normal class name
+                        return match.value
+                    } else { // variant group
+                        val classOffset = relativeOffset - match.range.first
+                        val (variantName, variantValue) = variantGroup.destructured
+                        val valueOffset = classOffset - variantName.length - 2
+
+                        // hover on variant name or bracket
+                        if (classOffset <= variantName.length + 1 || classOffset >= match.value.length - 1) {
+                            return match.value
+                        }
+
+                        val groupMatches = classNameRE.findAll(variantValue)
+                        for (groupMatch in groupMatches) {
+                            if (valueOffset in groupMatch.range) {
+                                return variantName + ":" + groupMatch.value
+                            }
+                        }
+                    }
                 }
-                startOffset += attributeValue.length + 1
             }
-            currentValue
+
+            // Still not match, maybe a space?
+
+            rawValue
         } else {
             rawValue
         }
     }
 
-
-    private fun rearrangeAttrValues(rawValue: String): List<String> {
-        // split by space, but ignore the space in the variant group
-        val rearranged = rawValue.split(splitVariantGroupRE).filter { it.isNotBlank() }
-        val result = mutableListOf<String>()
-
-        rearranged.forEach { group ->
-            val matched = variantGroupPattern.find(group)
-            if (matched != null) {
-                // transfer the variant group into "prefix + property"
-                matched.groupValues[2]
-                    .split(" ")
-                    .filter { it.isNotBlank() }
-                    .forEach { result.add(matched.groupValues[1] + it) }
-            } else {
-                result.add(group)
-            }
-        }
-
-        return result
-    }
 }

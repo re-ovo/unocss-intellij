@@ -1,10 +1,13 @@
 package me.rerere.unocssintellij.status
 
+import com.intellij.icons.AllIcons
+import com.intellij.icons.AllIcons.Icons
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.components.service
+import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.ListPopup
@@ -13,11 +16,15 @@ import com.intellij.openapi.wm.CustomStatusBarWidget
 import com.intellij.openapi.wm.StatusBarWidget
 import com.intellij.openapi.wm.StatusBarWidgetFactory
 import com.intellij.openapi.wm.impl.status.EditorBasedStatusBarPopup
+import com.intellij.util.ui.JBScalableIcon
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 import me.rerere.unocssintellij.util.UnocssBundle
 import me.rerere.unocssintellij.UnocssService
+import me.rerere.unocssintellij.settings.UnocssSettingsConfigurable
 import me.rerere.unocssintellij.settings.UnocssSettingsState
+import me.rerere.unocssintellij.util.IconResources
+import org.apache.xmlbeans.impl.xb.xsdschema.All
 
 class UnocssStatusBarFactory : StatusBarWidgetFactory {
     companion object {
@@ -48,9 +55,16 @@ class UnocssStatusPop(project: Project) : EditorBasedStatusBarPopup(project, fal
         val group = object : ActionGroup() {
             override fun getChildren(e: AnActionEvent?): Array<AnAction> {
                 return arrayOf(
-                    object : AnAction(UnocssBundle.message("status.action.updateConfig")) {
+                    object : AnAction(UnocssBundle.message("status.action.updateConfig"), null, AllIcons.Actions.Refresh) {
                         override fun actionPerformed(e: AnActionEvent) {
                             project.service<UnocssService>().updateConfigIfRunning()
+                        }
+                    },
+                    object : AnAction("Edit Settings", null, AllIcons.General.Settings) {
+                        override fun actionPerformed(e: AnActionEvent) {
+                            // Open IDE settings
+                            ShowSettingsUtil.getInstance()
+                                .showSettingsDialog(project, UnocssSettingsConfigurable::class.java)
                         }
                     }
                 )
@@ -58,7 +72,7 @@ class UnocssStatusPop(project: Project) : EditorBasedStatusBarPopup(project, fal
         }
         return JBPopupFactory.getInstance()
             .createActionGroupPopup(
-                null, group, context, JBPopupFactory.ActionSelectionAid.SPEEDSEARCH, true
+                "Unocss Status", group, context, JBPopupFactory.ActionSelectionAid.SPEEDSEARCH, true
             )
     }
 
@@ -85,6 +99,8 @@ class UnocssStatusPop(project: Project) : EditorBasedStatusBarPopup(project, fal
             }
         }
 
-        return WidgetState(null, text, true)
+        return WidgetState(null, " $text", true).apply {
+            icon = IconResources.PluginIcon
+        }
     }
 }

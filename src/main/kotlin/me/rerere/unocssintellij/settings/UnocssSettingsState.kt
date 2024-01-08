@@ -56,6 +56,7 @@ class UnocssSettingsState : PersistentStateComponent<UnocssSettingsState> {
     var remToPxPreview = true
     var remToPxRatio = 16.0
     var colorPreviewType = ColorPreviewType.INLAY_HINT
+    var includeMdnDocs = true
     var jsLiteralMatchRegex = """
         cva\([\s\S]*?\)
         cn\([\s\S]*?\)

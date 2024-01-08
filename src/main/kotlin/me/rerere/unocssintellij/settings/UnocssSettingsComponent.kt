@@ -27,6 +27,10 @@ class UnocssSettingsComponent {
                             settings::remToPxPreview
                         ).comment(UnocssBundle.message("setting.documentation.rem_to_px.checkbox.comment"))
                 }
+                row {
+                    checkBox(UnocssBundle.message("setting.documentation.include_mdn_docs"))
+                        .bindSelected(settings::includeMdnDocs)
+                }
                 row(UnocssBundle.message("setting.documentation.rem_to_px.ratio.title")) {
                     spinner(0.0..100.0, 1.0).bindValue(settings::remToPxRatio).validationOnInput {
                         val num = it.value.toString().toDoubleOrNull()

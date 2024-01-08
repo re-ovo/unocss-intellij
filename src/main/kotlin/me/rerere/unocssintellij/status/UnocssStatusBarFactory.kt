@@ -60,7 +60,7 @@ class UnocssStatusPop(project: Project) : EditorBasedStatusBarPopup(project, fal
                             project.service<UnocssService>().updateConfigIfRunning()
                         }
                     },
-                    object : AnAction("Edit Settings", null, AllIcons.General.Settings) {
+                    object : AnAction(UnocssBundle.message("status.action.setting"), null, AllIcons.General.Settings) {
                         override fun actionPerformed(e: AnActionEvent) {
                             // Open IDE settings
                             ShowSettingsUtil.getInstance()

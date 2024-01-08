@@ -2,12 +2,15 @@
 
 package me.rerere.unocssintellij.documentation
 
+import com.intellij.documentation.mdn.MdnDocumentation
+import com.intellij.documentation.mdn.MdnSymbolDocumentation
 import com.intellij.lang.css.CSSLanguage
 import com.intellij.lang.documentation.DocumentationMarkup
 import com.intellij.lang.documentation.DocumentationSettings
 import com.intellij.model.Pointer
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.editor.richcopy.HtmlSyntaxInfoUtil
 import com.intellij.openapi.project.Project
@@ -18,16 +21,19 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
+import com.intellij.psi.XmlElementFactory
 import com.intellij.psi.codeStyle.CodeStyleManager
+import com.intellij.psi.css.CssDeclaration
+import com.intellij.psi.css.CssElementFactory
+import com.intellij.psi.css.impl.util.CssDocumentationProvider
+import com.intellij.psi.css.impl.util.MdnDocumentationUtil
 import com.intellij.refactoring.suggested.createSmartPointer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.rerere.unocssintellij.UnocssConfigManager
 import me.rerere.unocssintellij.rpc.ResolveCSSResult
 import me.rerere.unocssintellij.settings.UnocssSettingsState
-import me.rerere.unocssintellij.util.parseColors
-import me.rerere.unocssintellij.util.parseHexColor
-import me.rerere.unocssintellij.util.toHex
+import me.rerere.unocssintellij.util.*
 
 private val remRE = Regex("-?[\\d.]+rem;")
 
@@ -78,11 +84,27 @@ class UnocssDocumentTarget(
                 append("</code>")
                 append(DocumentationMarkup.DEFINITION_END)
 
+                // Generate Mdn Documentation
+                if(UnocssSettingsState.instance.includeMdnDocs) {
+                    runReadAction {
+                        val cssElementFactory = CssElementFactory.getInstance(cssFile.project)
+                        val tempElement = cssElementFactory
+                            .createStylesheet(cssFile.text, CSSLanguage.INSTANCE)
+                            .childrenOfTypeDeeply<CssDeclaration>()
+                        val mdnDocumentations = tempElement.mapNotNull {
+                            MdnDocumentationUtil.getMdnDocumentation(it, null)
+                        }
+                        mdnDocumentations.forEach {
+                            append(it.getDocumentation(false))
+                        }
+                    }
+                }
+
                 append(DocumentationMarkup.CONTENT_START)
                 val colors = parseColors(result.css)
                 if (colors.isNotEmpty()) {
                     val color = colors.first().toHex()
-                    val style = "display: inline-block; height: 16px; width: 16px; background-color: $color"
+                    val style = "display: inline-block; height: 16px; width: 16px; background-color: $color; border-radius: 4px"
                     append("<div style=\"$style\"></div>")
                 }
 

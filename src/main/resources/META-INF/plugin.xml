@@ -26,12 +26,14 @@
         <li>Support custom regex for JS string</li>
         <li>Improve performance by using cache</li>
         <li>Fixed @apply/@screen warning in Vue</li>
+        <li>Support show MDN document</li>
       </ul>
       <ul>
         <li>你现在可以点击颜色图标来直接修改颜色了(只支持部分常见模式)</li>
         <li>支持自定义正则匹配JS字符串</li>
         <li>使用缓存改进解析性能</li>
         <li>修复@apply/@screen警告(Vue)</li>
+        <li>支持显示MDN文档</li>
       </ul>
     ]]></change-notes>
 

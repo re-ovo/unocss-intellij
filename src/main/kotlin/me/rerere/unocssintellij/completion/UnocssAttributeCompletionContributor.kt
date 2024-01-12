@@ -120,10 +120,18 @@ object UnocssAttributeCompletionProvider : UnocssCompletionProvider() {
         typingPrefix: String,
         prefixToSuggest: String,
         suggestion: SuggestionItem
-    ) = if (typingPrefix != prefixToSuggest) {
-        suggestion.className.substring(prefixToSuggest.length - typingPrefix.length)
-    } else {
-        suggestion.className
+    ): String {
+        return kotlin.runCatching {
+            if (typingPrefix != prefixToSuggest) {
+                val prefix = prefixToSuggest.removeSuffix(prefixToSuggest.commonSuffixWith(typingPrefix))
+                // suggestion.className.substring(prefixToSuggest.length - typingPrefix.length)
+                suggestion.className.removePrefix(prefix)
+            } else {
+                suggestion.className
+            }
+        }.onFailure {
+            println("[UnoCSS] Failed to resolve suggestion class name: (typingPrefix=$typingPrefix, prefixToSuggest=$prefixToSuggest, suggestion=$suggestion)")
+        }.getOrThrow()
     }
 }
 

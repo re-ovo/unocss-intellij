@@ -27,7 +27,8 @@ val classTagNameVariants = setOf(
     HtmlUtil.CLASS_ATTRIBUTE_NAME,
     "className",
     ":class",
-    "v-bind:class"
+    "v-bind:class",
+    "rootClassName",
 )
 
 /**

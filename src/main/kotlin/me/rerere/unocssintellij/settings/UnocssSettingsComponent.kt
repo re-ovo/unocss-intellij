@@ -79,6 +79,24 @@ class UnocssSettingsComponent {
                 }
             }.visibleIf(enableCheckbox.selected)
 
+            group(UnocssBundle.message("setting.folding.title")) {
+                row {
+                    checkBox(UnocssBundle.message("setting.folding.folding_default"))
+                        .bindSelected(settings::codeDefaultFolding)
+                }
+
+                row(UnocssBundle.message("setting.folding.length")) {
+                    intTextField(
+                        range = 0..100,
+                        keyboardStep = 1
+                    ).bindIntText(settings::foldingCodeLength)
+                }
+
+                row(UnocssBundle.message("setting.folding.placeholder")) {
+                    textField().bindText(settings::foldingPlaceholder)
+                }
+            }
+
             group(UnocssBundle.message("setting.matcher.title")) {
                 row(UnocssBundle.message("setting.matcher.jsliteral")) {}
                 row {

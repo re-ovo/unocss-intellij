@@ -62,6 +62,10 @@ class UnocssSettingsState : PersistentStateComponent<UnocssSettingsState> {
         cn\([\s\S]*?\)
     """.trimIndent()
 
+    var codeDefaultFolding = false
+    var foldingCodeLength = 10
+    var foldingPlaceholder = "[UnoCSS]"
+
     override fun getState(): UnocssSettingsState = this
 
     override fun loadState(state: UnocssSettingsState) {

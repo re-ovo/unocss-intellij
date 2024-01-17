@@ -247,7 +247,9 @@ object UnocssColorPreviewInlayHintsProvider : InlayHintsProvider<NoSettings> {
                                     val newValue = generateNewValue(oldValue, color, startOffset) ?: return@runWriteAction
 
                                     val oldAttValue = initElementText ?: return@runWriteAction
-                                    val stopIndex = oldAttValue.indexOfAny(charArrayOf(' ', '"', '\'', '\n'), startOffsetOfElement)
+                                    val stopIndex = oldAttValue.indexOfAny(charArrayOf(' ', '"', '\'', '\n'), startOffsetOfElement).let {
+                                        if(it == -1) oldAttValue.length else it
+                                    }
                                     val newAttrValue = oldAttValue.substring(0, startOffsetOfElement) + newValue + oldAttValue.substring(stopIndex)
 
                                     if(meta.bindElement is LeafPsiElement) {

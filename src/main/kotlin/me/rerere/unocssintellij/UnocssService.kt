@@ -13,8 +13,28 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.wm.impl.status.widget.StatusBarWidgetsManager
 import com.intellij.psi.PsiFile
-import kotlinx.coroutines.*
-import me.rerere.unocssintellij.rpc.*
+import com.intellij.util.application
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+import me.rerere.unocssintellij.rpc.GetCompleteCommandData
+import me.rerere.unocssintellij.rpc.ResolveAnnotationsCommandData
+import me.rerere.unocssintellij.rpc.ResolveAnnotationsResult
+import me.rerere.unocssintellij.rpc.ResolveBreakpointsResult
+import me.rerere.unocssintellij.rpc.ResolveCSSByOffsetCommandData
+import me.rerere.unocssintellij.rpc.ResolveCSSCommandData
+import me.rerere.unocssintellij.rpc.ResolveCSSResult
+import me.rerere.unocssintellij.rpc.ResolveConfigResult
+import me.rerere.unocssintellij.rpc.RpcAction
+import me.rerere.unocssintellij.rpc.SuggestionItem
+import me.rerere.unocssintellij.rpc.SuggestionItemList
+import me.rerere.unocssintellij.rpc.UpdateSettingsCommandData
 import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.status.UnocssStatusBarFactory
 
@@ -61,7 +81,7 @@ class UnocssService(private val project: Project) : Disposable {
                     if (detected && unocssProcess != null) {
                         ctx?.let {
                             // reload config when sensitive file changed
-                            updateConfig(it)
+                            scope.launch { updateConfig(it) }
                         }
                     }
                 }
@@ -73,7 +93,7 @@ class UnocssService(private val project: Project) : Disposable {
         scope.cancel()
     }
 
-    private fun getProcess(ctx: VirtualFile?): UnocssProcess? {
+    private suspend fun getProcess(ctx: VirtualFile?): UnocssProcess? {
         if (unocssProcess == null && ctx != null && Unocss.isUnocssInstalled(project, ctx)) {
             initProcess(ctx)
             updateConfig(ctx).onFailure {
@@ -84,7 +104,9 @@ class UnocssService(private val project: Project) : Disposable {
     }
 
     fun onFileOpened(file: VirtualFile) {
-        this.getProcess(file)
+        scope.launch {
+            this@UnocssService.getProcess(file)
+        }
     }
 
     fun isProcessRunning(): Boolean {
@@ -103,12 +125,12 @@ class UnocssService(private val project: Project) : Disposable {
         println("Unocss process started!")
 
         // Update status bar
-        project.service<StatusBarWidgetsManager>()
+        application.service<StatusBarWidgetsManager>()
             .updateWidget(UnocssStatusBarFactory::class.java)
     }
 
     // 更新Unocss配置
-    private fun updateConfig(ctx: VirtualFile) = runCatching {
+    private suspend fun updateConfig(ctx: VirtualFile) = runCatching {
         val process = getProcess(ctx) ?: return@runCatching
         updateConfig(process)
     }
@@ -166,48 +188,45 @@ class UnocssService(private val project: Project) : Disposable {
         }
     }
 
-    fun getCompletion(
+    suspend fun getCompletion(
         ctx: VirtualFile,
         prefix: String,
         cursor: Int = prefix.length,
         maxItems: Int
     ): List<SuggestionItem> {
         val process = getProcess(ctx) ?: return emptyList()
-        try {
-            val response: SuggestionItemList = runBlocking {
-                withTimeout(1000) {
-                    process.sendCommand(
-                        RpcAction.GetComplete,
-                        GetCompleteCommandData(
-                            content = prefix,
-                            cursor = cursor,
-                            maxItems = maxItems
-                        )
-                    )
-                }
-            }
-            return response
-        } catch (e: Exception) {
-            println("(!) Failed to get completion: $e")
-            return emptyList()
-        }
-    }
 
-    fun resolveCssByOffset(file: PsiFile, offset: Int): ResolveCSSResult? {
-        val process = getProcess(file.virtualFile) ?: return null
-        val text = file.text
-        val response: ResolveCSSResult = runBlocking {
-            withTimeout(1000) {
+        return try {
+            val response: SuggestionItemList = withTimeout(1000) {
                 process.sendCommand(
-                    RpcAction.ResolveCssByOffset,
-                    ResolveCSSByOffsetCommandData(
-                        content = text,
-                        cursor = offset
+                    RpcAction.GetComplete,
+                    GetCompleteCommandData(
+                        content = prefix,
+                        cursor = cursor,
+                        maxItems = maxItems
                     )
                 )
             }
+
+            response
+        } catch (e: Exception) {
+            println("(!) Failed to get completion: $e")
+            emptyList()
         }
-        return response
+    }
+
+    suspend fun resolveCssByOffset(file: PsiFile, offset: Int): ResolveCSSResult? {
+        val process = getProcess(file.virtualFile) ?: return null
+        val text = file.text
+        return withTimeout(1000) {
+            process.sendCommand(
+                RpcAction.ResolveCssByOffset,
+                ResolveCSSByOffsetCommandData(
+                    content = text,
+                    cursor = offset
+                )
+            )
+        }
     }
 
     suspend fun resolveCss(file: VirtualFile?, content: String): ResolveCSSResult? {

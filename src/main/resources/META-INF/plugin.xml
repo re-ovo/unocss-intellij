@@ -63,13 +63,7 @@
                 displayName="UnoCSS"
         />
 
-        <fileType
-                name="Unocss"
-                implementationClass="me.rerere.unocssintellij.util.UnocssConfigFile"
-                fieldName="INSTANCE"
-                language="JavaScript"
-                patterns="unocss.config.js;unocss.config.ts;uno.config.js;uno.config.ts"
-        />
+        <fileIconProvider implementation="me.rerere.unocssintellij.util.UnoIconProvider" />
 
         <!-- 代码补全 -->
         <completion.contributor

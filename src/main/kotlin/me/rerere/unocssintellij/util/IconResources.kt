@@ -1,8 +1,9 @@
 package me.rerere.unocssintellij.util
 
-import com.intellij.lang.javascript.JavascriptLanguage
-import com.intellij.openapi.fileTypes.LanguageFileType
+import com.intellij.ide.FileIconProvider
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.IconLoader
+import com.intellij.openapi.vfs.VirtualFile
 import javax.swing.Icon
 
 object IconResources {
@@ -10,12 +11,16 @@ object IconResources {
     val PluginIcon = IconLoader.getIcon("/icons/pluginIcon.svg", javaClass)
 }
 
-object UnocssConfigFile : LanguageFileType(JavascriptLanguage.INSTANCE) {
-    override fun getName(): String = "Unocss"
+private val unoFileTypes = arrayOf(
+    "uno.config",
+    "unocss.config"
+)
 
-    override fun getDescription(): String = "The instant on-demand atomic CSS engine."
-
-    override fun getDefaultExtension(): String = "js"
-
-    override fun getIcon(): Icon = IconResources.PluginIcon
+class UnoIconProvider: FileIconProvider {
+    override fun getIcon(file: VirtualFile, flags: Int, project: Project?): Icon? {
+        if (file.nameWithoutExtension in unoFileTypes) {
+            return IconResources.PluginIcon
+        }
+        return null
+    }
 }

@@ -4,9 +4,12 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.intellij.javascript.nodejs.packageJson.NodeInstalledPackageFinder
 import com.intellij.lang.javascript.buildTools.npm.PackageJsonUtil
+import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import me.rerere.unocssintellij.util.toLocalVirtualFile
 
 object Unocss {
@@ -34,12 +37,23 @@ object Unocss {
      * @param project The project
      * @param context The context file
      */
-    fun isUnocssInstalled(project: Project, context: VirtualFile): Boolean {
-        val packageJson = PackageJsonUtil.findUpPackageJson(context.toLocalVirtualFile()) ?: return false
-        val unocssPackage = NodeInstalledPackageFinder(project, packageJson)
-            .findInstalledPackage("unocss")
-        val unocssPackageAt = NodeInstalledPackageFinder(project, packageJson)
-            .findInstalledPackage("@unocss")
-        return unocssPackage != null || unocssPackageAt != null
+    suspend fun isUnocssInstalled(project: Project, context: VirtualFile) = coroutineScope {
+        val packageJson = PackageJsonUtil.findUpPackageJson(context.toLocalVirtualFile())
+            ?: return@coroutineScope false
+
+        val unocssPackage = async {
+            smartReadAction(project) {
+                NodeInstalledPackageFinder(project, packageJson)
+                    .findInstalledPackage("unocss")
+            }
+        }
+        val unocssPackageAt = async {
+            smartReadAction(project) {
+                NodeInstalledPackageFinder(project, packageJson)
+                    .findInstalledPackage("@unocss")
+            }
+        }
+
+        unocssPackage.await() != null || unocssPackageAt.await() != null
     }
 }

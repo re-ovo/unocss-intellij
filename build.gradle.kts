@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "me.rerere"
-version = "1.4.1"
+version = "1.4.3"
 
 repositories {
     mavenCentral()
@@ -45,7 +45,7 @@ tasks {
 
     patchPluginXml {
         sinceBuild.set("233")
-        untilBuild.set("233.*")
+        untilBuild.set("241.*")
     }
 
     signPlugin {

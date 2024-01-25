@@ -201,7 +201,7 @@ object UnocssColorPreviewInlayHintsProvider : InlayHintsProvider<NoSettings> {
                 oldVal.startsWith("bg-") -> "bg-[${color.toHex(true)}]"
                 oldVal.startsWith("text-") -> "text-[${color.toHex(true)}]"
                 oldVal.startsWith("border-") -> "border-[${color.toHex(true)}]"
-                else -> oldVal.also {
+                else -> {
                     // Unknown unocss color pattern
                     HintManager.getInstance().showErrorHint(
                         editor,
@@ -212,6 +212,7 @@ object UnocssColorPreviewInlayHintsProvider : InlayHintsProvider<NoSettings> {
                         HintManager.HIDE_BY_ANY_KEY or HintManager.HIDE_BY_OTHER_HINT,
                         5000
                     )
+                    null
                 }
             }
         }
@@ -243,10 +244,12 @@ object UnocssColorPreviewInlayHintsProvider : InlayHintsProvider<NoSettings> {
                                 // xml attribute value token
                                 initMeta.bindElement.elementType == XmlElementType.XML_ATTRIBUTE_VALUE_TOKEN -> {
                                     val oldValue = meta.attrValue ?: return@runWriteAction
-                                    val newValue = generateNewValue(oldValue, color, startOffset)
+                                    val newValue = generateNewValue(oldValue, color, startOffset) ?: return@runWriteAction
 
                                     val oldAttValue = initElementText ?: return@runWriteAction
-                                    val stopIndex = oldAttValue.indexOfAny(charArrayOf(' ', '"', '\'', '\n'), startOffsetOfElement)
+                                    val stopIndex = oldAttValue.indexOfAny(charArrayOf(' ', '"', '\'', '\n'), startOffsetOfElement).let {
+                                        if(it == -1) oldAttValue.length else it
+                                    }
                                     val newAttrValue = oldAttValue.substring(0, startOffsetOfElement) + newValue + oldAttValue.substring(stopIndex)
 
                                     if(meta.bindElement is LeafPsiElement) {
@@ -257,7 +260,7 @@ object UnocssColorPreviewInlayHintsProvider : InlayHintsProvider<NoSettings> {
                                 // JS String Leaf
                                 initMeta.bindElement.isLeafJsLiteral() || (initMeta.bindElement is LeafPsiElement && initMeta.bindElement.elementType.toString().startsWith("JS:STRING")) -> {
                                     val oldValue = meta.attrName
-                                    val newValue = generateNewValue(oldValue, color, startOffset)
+                                    val newValue = generateNewValue(oldValue, color, startOffset) ?: return@runWriteAction
 
                                     val oldAttValue = initElementText ?: return@runWriteAction
                                     val stopIndex = oldAttValue.indexOfAny(charArrayOf(' ', '"', '\'', '\n'), startOffsetOfElement)
@@ -271,7 +274,7 @@ object UnocssColorPreviewInlayHintsProvider : InlayHintsProvider<NoSettings> {
                                 // 整个元素就是一个属性
                                 initElementText == meta.attrName -> {
                                     val oldValue = meta.attrName
-                                    val newValue = generateNewValue(oldValue, color, startOffset)
+                                    val newValue = generateNewValue(oldValue, color, startOffset) ?: return@runWriteAction
 
                                     if(meta.bindElement is LeafPsiElement) {
                                         meta.bindElement = (meta.bindElement as LeafPsiElement).replaceWithText(newValue) as PsiElement

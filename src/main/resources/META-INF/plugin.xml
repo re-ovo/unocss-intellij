@@ -84,6 +84,13 @@
                 implementationClass="me.rerere.unocssintellij.completion.UnocssCssTermCompletionContributor"/>
         <typedHandler implementation="me.rerere.unocssintellij.completion.TypedHandler" order="first"/>
 
+        <!-- 意图操作(Intent Action) -->
+        <intentionAction>
+            <language>CSS</language>
+            <className>me.rerere.unocssintellij.intent.CssToUnoIntentAction</className>
+            <category>CSS</category>
+        </intentionAction>
+
         <!-- 文档提示 -->
         <platform.backend.documentation.targetProvider
                 implementation="me.rerere.unocssintellij.documentation.UnocssDocumentTargetProvider" order="first"/>

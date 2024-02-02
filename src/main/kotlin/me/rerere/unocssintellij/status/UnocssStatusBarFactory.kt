@@ -1,7 +1,6 @@
 package me.rerere.unocssintellij.status
 
 import com.intellij.icons.AllIcons
-import com.intellij.icons.AllIcons.Icons
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -16,15 +15,12 @@ import com.intellij.openapi.wm.CustomStatusBarWidget
 import com.intellij.openapi.wm.StatusBarWidget
 import com.intellij.openapi.wm.StatusBarWidgetFactory
 import com.intellij.openapi.wm.impl.status.EditorBasedStatusBarPopup
-import com.intellij.util.ui.JBScalableIcon
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
-import me.rerere.unocssintellij.util.UnocssBundle
 import me.rerere.unocssintellij.UnocssService
 import me.rerere.unocssintellij.settings.UnocssSettingsConfigurable
 import me.rerere.unocssintellij.settings.UnocssSettingsState
-import me.rerere.unocssintellij.util.IconResources
-import org.apache.xmlbeans.impl.xb.xsdschema.All
+import me.rerere.unocssintellij.util.UnocssBundle
 
 class UnocssStatusBarFactory : StatusBarWidgetFactory {
     companion object {
@@ -99,8 +95,6 @@ class UnocssStatusPop(project: Project) : EditorBasedStatusBarPopup(project, fal
             }
         }
 
-        return WidgetState(null, " $text", true).apply {
-            icon = IconResources.PluginIcon
-        }
+        return WidgetState(null, text, true)
     }
 }

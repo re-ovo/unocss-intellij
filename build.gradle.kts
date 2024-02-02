@@ -1,4 +1,7 @@
 import org.apache.tools.ant.taskdefs.condition.Os
+import java.io.FileInputStream
+import java.io.InputStreamReader
+import java.util.*
 
 plugins {
     id("java")
@@ -84,6 +87,21 @@ tasks {
     }
 
     runIde {
-        // ideDir.set(file("/Users/re/Library/Application Support/JetBrains/Toolbox/apps/WebStorm/ch-0/231.9161.29/WebStorm.app/Contents"))
+        val idePath = getLocalProperty("IDE_PATH") as String?
+        idePath?.let {
+            ideDir.set(file(idePath))
+        }
     }
+}
+
+fun getLocalProperty(key: String, file: String = "local.properties"): Any? {
+    val properties = Properties()
+    val localProperties = File(file)
+    if (localProperties.isFile) {
+        InputStreamReader(FileInputStream(localProperties), Charsets.UTF_8).use { reader ->
+            properties.load(reader)
+        }
+    } else error("File from not found")
+
+    return properties.getProperty(key)
 }

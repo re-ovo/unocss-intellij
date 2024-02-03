@@ -14,6 +14,8 @@ object UnocssConfigManager {
 
     object Presets {
         const val ATTRIBUTIFY = "@unocss/preset-attributify"
+
+        const val TAGIFY = "@unocss/preset-tagify"
     }
 
     var config: ResolveConfigResult? = null

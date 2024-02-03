@@ -5,6 +5,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.elementType
 import com.intellij.psi.xml.XmlElementType
+import me.rerere.unocssintellij.UnocssConfigManager
 import me.rerere.unocssintellij.model.UnocssResolveMeta
 import me.rerere.unocssintellij.settings.UnocssSettingsState
 
@@ -15,6 +16,7 @@ class UnocssXmlSuppressionProvider : XmlSuppressionProvider() {
 
     companion object {
         private const val HTML_UNKNOWN_ATTRIBUTE = "HtmlUnknownAttribute"
+        private const val HTML_UNKNOWN_TAG = "HtmlUnknownTag"
     }
 
     override fun isProviderAvailable(file: PsiFile) = UnocssSettingsState.instance.enable
@@ -27,11 +29,24 @@ class UnocssXmlSuppressionProvider : XmlSuppressionProvider() {
 
     override fun isSuppressedFor(element: PsiElement, inspectionId: String): Boolean {
         if (!UnocssSettingsState.instance.enable) return false
+
         if (element.elementType == XmlElementType.XML_NAME && inspectionId == HTML_UNKNOWN_ATTRIBUTE) {
             return suppressForUnknownAttribute(element)
         }
 
+        if(UnocssConfigManager.hasPreset(UnocssConfigManager.Presets.TAGIFY) && element.elementType == XmlElementType.XML_NAME && inspectionId == HTML_UNKNOWN_TAG) {
+            return suppressForUnknownTag(element)
+        }
+
         return false
+    }
+
+    private fun suppressForUnknownTag(tagElement: PsiElement): Boolean {
+        val tagName = tagElement.text
+        val matchResult = UnocssResolveMeta(tagElement, tagName, null, false).resolveCss()
+            ?: return false
+
+        return matchResult.matchedTokens.isNotEmpty()
     }
 
     private fun suppressForUnknownAttribute(attrElement: PsiElement): Boolean {

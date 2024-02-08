@@ -1,9 +1,9 @@
 package me.rerere.unocssintellij.model
 
 import com.intellij.openapi.components.service
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 import me.rerere.unocssintellij.UnocssService
 import me.rerere.unocssintellij.rpc.ResolveCSSResult
@@ -26,7 +26,7 @@ data class UnocssResolveMeta(
             buildDummyDivTag(attrName to attrValue)
         } else attrName
 
-    fun resolveCss(): ResolveCSSResult? = runBlocking {
+    fun resolveCss(): ResolveCSSResult? = runBlockingCancellable {
         withTimeoutOrNull(100) { unocssService.resolveCss(virtualFile, resolveContent) }
     }
 }

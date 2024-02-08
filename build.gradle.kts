@@ -70,7 +70,7 @@ tasks {
         doFirst {
             exec {
                 workingDir("${project.projectDir}/src/main/javascript")
-                val npm = if(Os.isFamily(Os.FAMILY_WINDOWS)) "npm.cmd" else "npm"
+                val npm = if (Os.isFamily(Os.FAMILY_WINDOWS)) "npm.cmd" else "npm"
                 commandLine(npm, "run", "build")
             }
         }
@@ -101,7 +101,7 @@ fun getLocalProperty(key: String, file: String = "local.properties"): Any? {
         InputStreamReader(FileInputStream(localProperties), Charsets.UTF_8).use { reader ->
             properties.load(reader)
         }
-    } else error("File from not found")
+    } else return null
 
     return properties.getProperty(key)
 }

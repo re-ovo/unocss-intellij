@@ -6,18 +6,18 @@ import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 import me.rerere.unocssintellij.UnocssService
 import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.util.MatchedPosition
-import me.rerere.unocssintellij.util.isUnocssCandidate
 import me.rerere.unocssintellij.util.getMatchedPositions
+import me.rerere.unocssintellij.util.isUnocssCandidate
 
 data class UnocssInitInfo(
     val project: Project,
@@ -63,7 +63,7 @@ class UnocssAttributeExternalAnnotator : ExternalAnnotator<UnocssInitInfo, Unocs
 
         val unocssService = collectedInfo.service
         val code = collectedInfo.fileContent
-        val resolveResult = runBlocking {
+        val resolveResult = runBlockingCancellable {
             withTimeoutOrNull(1000) {
                 unocssService.resolveAnnotations(collectedInfo.psiFile.virtualFile, code)
             }

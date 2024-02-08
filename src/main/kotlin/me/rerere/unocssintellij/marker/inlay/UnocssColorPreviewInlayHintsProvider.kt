@@ -5,25 +5,21 @@ import com.intellij.codeInsight.hints.*
 import com.intellij.codeInsight.hints.presentation.InlayPresentation
 import com.intellij.codeInsight.hints.presentation.MouseButton
 import com.intellij.codeInsight.hints.presentation.ScaleAwarePresentationFactory
-import com.intellij.lang.ASTFactory
 import com.intellij.lang.Language
-import com.intellij.lang.LanguageASTFactory
 import com.intellij.lang.css.CSSLanguage
 import com.intellij.lang.html.HTMLLanguage
-import com.intellij.lang.javascript.JSElementTypes
 import com.intellij.lang.javascript.JavascriptLanguage
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.psi.XmlElementFactory
 import com.intellij.psi.impl.source.tree.LeafPsiElement
-import com.intellij.psi.util.childrenOfType
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttributeValue
@@ -34,7 +30,6 @@ import com.intellij.ui.ColorChooserService
 import com.intellij.ui.JBColor
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.util.ui.ColorIcon
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 import me.rerere.unocssintellij.UnocssService
 import me.rerere.unocssintellij.marker.SVGIcon
@@ -117,8 +112,8 @@ object UnocssColorPreviewInlayHintsProvider : InlayHintsProvider<NoSettings> {
                 return null
             }
 
-            val resolveResult = runBlocking {
-                withTimeoutOrNull(1000) {
+            val resolveResult = runBlockingCancellable {
+                withTimeoutOrNull(800) {
                     unocssService.resolveAnnotations(file.virtualFile, fileContent)
                 }
             } ?: return null

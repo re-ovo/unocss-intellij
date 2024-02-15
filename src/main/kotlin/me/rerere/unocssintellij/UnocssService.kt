@@ -1,12 +1,21 @@
 package me.rerere.unocssintellij
 
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.Application
+import com.intellij.openapi.application.ex.ApplicationEx
+import com.intellij.openapi.application.ex.ApplicationUtil
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
+import com.intellij.openapi.graph.option.Editor
+import com.intellij.openapi.graph.option.EditorFactory
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.popup.JBPopup
+import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.AsyncFileListener.ChangeApplier
 import com.intellij.openapi.vfs.VirtualFile
@@ -14,6 +23,7 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.wm.impl.status.widget.StatusBarWidgetsManager
 import com.intellij.psi.PsiFile
 import com.intellij.util.application
+import com.intellij.util.ui.JBUI.CurrentTheme.Popup
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -100,6 +110,17 @@ class UnocssService(private val project: Project) : Disposable {
                 println("(!) Failed to update unocss config: $it")
             }
         }
+
+        if (unocssProcess?.process?.isAlive == false) {
+            println("Unocss process is dead, restarting...")
+
+            unocssProcess?.let { Disposer.dispose(it) }
+            unocssProcess = null
+
+            ctx?.let { initProcess(it) }
+            updateConfigIfRunning()
+        }
+
         return unocssProcess
     }
 

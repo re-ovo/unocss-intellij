@@ -6,11 +6,11 @@ import com.intellij.lang.folding.FoldingDescriptor
 import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.FoldingGroup
-import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.elementType
 import com.intellij.psi.xml.XmlTokenType
-import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
 import me.rerere.unocssintellij.UnocssService
 import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.util.getMatchedPositions
@@ -26,8 +26,8 @@ class UnocssClassAttributeFoldBuilder : FoldingBuilderEx() {
         val file = root.containingFile
         if (!service.isProcessRunning()) return emptyArray()
 
-        val result = runBlockingCancellable {
-            withTimeout(1000) {
+        val result = runBlocking {
+            withTimeoutOrNull(500) {
                 service.resolveAnnotations(root.containingFile.virtualFile, root.text)
             }
         } ?: return emptyArray()

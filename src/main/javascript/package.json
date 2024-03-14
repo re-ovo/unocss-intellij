@@ -1,13 +1,14 @@
 {
   "name": "unojs",
   "type": "module",
+  "packageManager": "pnpm@8.15.4+sha1.c85a4305534f76d461407b59277b954bac97b5c4",
   "scripts": {
     "dev": "node src/service.ts",
     "build": "esbuild src/service.ts --bundle --minify --outfile=../../../unojs/service.js --platform=node --target=node12"
   },
   "devDependencies": {
     "@antfu/utils": "^0.7.7",
-    "@types/node": "^20.11.16",
+    "@types/node": "^20.11.27",
     "@unocss/autocomplete": "^0.58.5",
     "@unocss/config": "^0.58.5",
     "@unocss/core": "^0.58.5",
@@ -15,7 +16,7 @@
     "defu": "^6.1.4",
     "jiti": "^1.21.0",
     "lru-cache": "^10.2.0",
-    "magic-string": "^0.30.6",
+    "magic-string": "^0.30.8",
     "unconfig": "^0.3.11",
     "unocss": "^0.58.5"
   },

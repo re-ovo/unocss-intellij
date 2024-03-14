@@ -8,6 +8,8 @@ import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.CapturingProcessHandler
 import com.intellij.javascript.nodejs.interpreter.NodeCommandLineConfigurator
 import com.intellij.javascript.nodejs.interpreter.NodeJsInterpreterManager
+import com.intellij.javascript.nodejs.interpreter.local.NodeJsLocalInterpreter
+import com.intellij.javascript.nodejs.interpreter.wsl.WslNodeInterpreter
 import com.intellij.lang.javascript.buildTools.npm.PackageJsonUtil
 import com.intellij.lang.javascript.service.JSLanguageServiceUtil
 import com.intellij.openapi.Disposable
@@ -34,7 +36,7 @@ class UnocssProcess(project: Project, context: VirtualFile) : Disposable {
     init {
         println("[UnoProcess] Starting UnoProcess")
         val interpreter = NodeJsInterpreterManager.getInstance(project).interpreter
-            ?: error("Node.js interpreter not found")
+        if (interpreter !is NodeJsLocalInterpreter && interpreter !is WslNodeInterpreter) error("Unsupported interpreter")
         val configurator = NodeCommandLineConfigurator.find(interpreter)
         val directory = JSLanguageServiceUtil.getPluginDirectory(Unocss::class.java, "unojs")
             ?: error("Plugin directory not found")

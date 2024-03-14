@@ -1,5 +1,9 @@
 package me.rerere.unocssintellij
 
+import com.intellij.javascript.nodejs.interpreter.NodeJsInterpreter
+import com.intellij.javascript.nodejs.interpreter.NodeJsInterpreterManager
+import com.intellij.javascript.nodejs.interpreter.local.NodeJsLocalInterpreter
+import com.intellij.javascript.nodejs.interpreter.wsl.WslNodeInterpreter
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.Application
 import com.intellij.openapi.application.ex.ApplicationEx
@@ -65,6 +69,10 @@ private val SENSITIVE_FILES = listOf(
 @Service(Service.Level.PROJECT)
 class UnocssService(private val project: Project) : Disposable {
     private var unocssProcess: UnocssProcess? = null
+    private val nodeEnvInstalled by lazy {
+        val interpreter = NodeJsInterpreterManager.getInstance(project).interpreter
+        interpreter != null && (interpreter is NodeJsLocalInterpreter || interpreter is WslNodeInterpreter)
+    }
 
     private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -104,6 +112,7 @@ class UnocssService(private val project: Project) : Disposable {
     }
 
     private suspend fun getProcess(ctx: VirtualFile?): UnocssProcess? {
+        if (!nodeEnvInstalled) return null
         if (unocssProcess == null && ctx != null && Unocss.isUnocssInstalled(project, ctx)) {
             initProcess(ctx)
             updateConfig(ctx).onFailure {
@@ -148,6 +157,8 @@ class UnocssService(private val project: Project) : Disposable {
         // Update status bar
         application.service<StatusBarWidgetsManager>()
             .updateWidget(UnocssStatusBarFactory::class.java)
+    }.onFailure {
+        it.printStackTrace()
     }
 
     // 更新Unocss配置

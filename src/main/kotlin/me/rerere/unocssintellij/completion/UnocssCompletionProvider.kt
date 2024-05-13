@@ -124,19 +124,7 @@ class TypedHandler : TypedHandlerDelegate() {
     override fun checkAutoPopup(charTyped: Char, project: Project, editor: Editor, file: PsiFile): Result {
         if (!project.service<UnocssService>().isProcessRunning()) return Result.CONTINUE
 
-        val phase = CompletionServiceImpl.getCompletionPhase()
-        val lookup = LookupManager.getActiveLookup(editor)
-        if (lookup is LookupImpl) {
-            if (editor.selectionModel.hasSelection()) {
-                lookup.performGuardedChange { EditorModificationUtil.deleteSelectedText(editor) }
-            }
-            return Result.STOP
-        }
-
         if (Character.isLetterOrDigit(charTyped) || charTyped == '-') {
-            if (phase is CompletionPhase.EmptyAutoPopup && phase.allowsSkippingNewAutoPopup(editor, charTyped)) {
-                return Result.CONTINUE
-            }
             AutoPopupController.getInstance(project).scheduleAutoPopup(editor)
             return Result.STOP
         }

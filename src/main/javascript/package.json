@@ -7,18 +7,18 @@
     "build": "esbuild src/service.ts --bundle --minify --outfile=../../../unojs/service.js --platform=node --target=node12"
   },
   "devDependencies": {
-    "@antfu/utils": "^0.7.7",
-    "@types/node": "^20.11.27",
-    "@unocss/autocomplete": "^0.58.5",
-    "@unocss/config": "^0.58.5",
-    "@unocss/core": "^0.58.5",
-    "@unocss/nuxt": "^0.58.5",
+    "@antfu/utils": "^0.7.8",
+    "@types/node": "^20.12.11",
+    "@unocss/autocomplete": "^0.60.2",
+    "@unocss/config": "^0.60.2",
+    "@unocss/core": "^0.60.2",
+    "@unocss/nuxt": "^0.60.2",
     "defu": "^6.1.4",
     "jiti": "^1.21.0",
-    "lru-cache": "^10.2.0",
-    "magic-string": "^0.30.8",
-    "unconfig": "^0.3.11",
-    "unocss": "^0.58.5"
+    "lru-cache": "^10.2.2",
+    "magic-string": "^0.30.10",
+    "unconfig": "^0.3.13",
+    "unocss": "^0.60.2"
   },
   "dependencies": {
     "esbuild": "0.19.11"

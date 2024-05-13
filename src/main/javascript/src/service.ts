@@ -89,7 +89,9 @@ export async function resolveCSS(item: string) {
 }
 
 export async function resolveCSSByOffset(content: string, cursor: number) {
-  const boundaryContent = searchUsageBoundary(content, cursor).content;
+  const boundaryContent = searchUsageBoundary(content, cursor)?.content;
+  if (!boundaryContent)
+      return null;
   const result: ResolveCSSResult
     = await generator.generate(boundaryContent, {preflights: false, safelist: false});
   result.matchedTokens = Array.from(result.matched || []);

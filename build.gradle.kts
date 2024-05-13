@@ -6,7 +6,7 @@ import java.util.*
 plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm") version "1.9.20"
-    id("org.jetbrains.intellij") version "1.16.1"
+    id("org.jetbrains.intellij") version "1.17.3"
 }
 
 group = "me.rerere"
@@ -48,7 +48,7 @@ tasks {
 
     patchPluginXml {
         sinceBuild.set("233")
-        untilBuild.set("241.*")
+        untilBuild.set("242.*")
     }
 
     signPlugin {

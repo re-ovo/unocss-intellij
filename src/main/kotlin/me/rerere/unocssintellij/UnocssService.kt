@@ -155,7 +155,11 @@ class UnocssService(private val project: Project) : Disposable {
         println("Unocss process started!")
 
         // Update status bar
-        application.service<StatusBarWidgetsManager>()
+
+        // StatusBarWidgetsManager is annotated by @Service(Service.Level.PROJECT)
+        // why DevKit warned me that it's an application-level service?
+        @Suppress("IncorrectServiceRetrieving")
+        project.service<StatusBarWidgetsManager>()
             .updateWidget(UnocssStatusBarFactory::class.java)
     }.onFailure {
         it.printStackTrace()

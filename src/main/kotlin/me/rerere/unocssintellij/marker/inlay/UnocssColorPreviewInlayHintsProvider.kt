@@ -46,7 +46,7 @@ import me.rerere.unocssintellij.marker.SVGIcon
 import me.rerere.unocssintellij.marker.inlay.UnocssColorPreviewInlayHitsProviderFactory.Meta
 import me.rerere.unocssintellij.model.UnocssResolveMeta
 import me.rerere.unocssintellij.settings.UnocssSettingsState
-import me.rerere.unocssintellij.settings.UnocssSettingsState.ColorPreviewType.INLAY_HINT
+import me.rerere.unocssintellij.settings.UnocssSettingsState.ColorAndIconPreviewType.INLAY_HINT
 import me.rerere.unocssintellij.util.MatchedPosition
 import me.rerere.unocssintellij.util.getMatchedPositions
 import me.rerere.unocssintellij.util.isLeafJsLiteral
@@ -140,7 +140,7 @@ object UnocssColorPreviewInlayHintsProvider : InlayHintsProvider<NoSettings> {
 
         override fun collect(element: PsiElement, editor: Editor, sink: InlayHintsSink): Boolean {
             val settingsState = UnocssSettingsState.of(element.project)
-            if (settingsState.colorPreviewType != INLAY_HINT) {
+            if (settingsState.colorAndIconPreviewType != INLAY_HINT) {
                 return false
             }
             element.node ?: return false

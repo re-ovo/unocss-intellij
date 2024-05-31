@@ -27,7 +27,7 @@ class UnocssSettingsState : PersistentStateComponent<UnocssSettingsState> {
     var includeMdnDocs = true
     var remToPxPreview = true
     var remToPxRatio = 16.0
-    var colorPreviewType = ColorPreviewType.INLAY_HINT
+    var colorAndIconPreviewType = ColorAndIconPreviewType.INLAY_HINT
 
     var matchType = MatchType.PREFIX
     var maxItems = 50
@@ -74,7 +74,7 @@ class UnocssSettingsState : PersistentStateComponent<UnocssSettingsState> {
         XmlSerializerUtil.copyBean(state, this)
     }
 
-    enum class ColorPreviewType {
+    enum class ColorAndIconPreviewType {
         NONE,
         LINE_MARKER,
         INLAY_HINT

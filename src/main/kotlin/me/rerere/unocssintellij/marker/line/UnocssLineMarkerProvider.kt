@@ -8,7 +8,7 @@ import com.intellij.util.ui.ColorIcon
 import me.rerere.unocssintellij.marker.SVGIcon
 import me.rerere.unocssintellij.model.UnocssResolveMeta
 import me.rerere.unocssintellij.settings.UnocssSettingsState
-import me.rerere.unocssintellij.settings.UnocssSettingsState.ColorPreviewType.LINE_MARKER
+import me.rerere.unocssintellij.settings.UnocssSettingsState.ColorAndIconPreviewType.LINE_MARKER
 import me.rerere.unocssintellij.util.parseColors
 import me.rerere.unocssintellij.util.parseIcons
 
@@ -16,7 +16,7 @@ abstract class UnocssLineMarkerProvider : LineMarkerProvider {
 
     override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
         val settingsState = UnocssSettingsState.of(element.project)
-        if (settingsState.colorPreviewType != LINE_MARKER) {
+        if (settingsState.colorAndIconPreviewType != LINE_MARKER) {
             return null
         }
         return doGetLineMarkerInfo(element)

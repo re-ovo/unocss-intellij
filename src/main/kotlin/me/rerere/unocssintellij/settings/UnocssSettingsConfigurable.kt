@@ -30,7 +30,7 @@ import com.intellij.util.ui.JBInsets
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.MacUIUtil
 import me.rerere.unocssintellij.UnocssService
-import me.rerere.unocssintellij.settings.UnocssSettingsState.ColorPreviewType
+import me.rerere.unocssintellij.settings.UnocssSettingsState.ColorAndIconPreviewType
 import me.rerere.unocssintellij.settings.UnocssSettingsState.MatchType
 import me.rerere.unocssintellij.util.UnocssBundle
 import org.intellij.lang.regexp.RegExpLanguage
@@ -89,18 +89,18 @@ class UnocssSettingsConfigurable(private val project: Project) : BoundSearchable
                 row(UnocssBundle.message("setting.documentation.color_preview.title")) {
                     radioButton(
                         UnocssBundle.message("setting.documentation.color_preview.option.none"),
-                        ColorPreviewType.NONE
+                        ColorAndIconPreviewType.NONE
                     )
                     radioButton(
                         UnocssBundle.message("setting.documentation.color_preview.option.line_marker"),
-                        ColorPreviewType.LINE_MARKER
+                        ColorAndIconPreviewType.LINE_MARKER
                     )
                     radioButton(
                         UnocssBundle.message("setting.documentation.color_preview.option.inlay_hint"),
-                        ColorPreviewType.INLAY_HINT
+                        ColorAndIconPreviewType.INLAY_HINT
                     )
                 }
-            }.bind(settings::colorPreviewType)
+            }.bind(settings::colorAndIconPreviewType)
         }
 
         group(UnocssBundle.message("setting.autocomplete.title")) {

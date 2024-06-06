@@ -1,41 +1,26 @@
 package me.rerere.unocssintellij
 
-import com.intellij.javascript.nodejs.interpreter.NodeJsInterpreter
 import com.intellij.javascript.nodejs.interpreter.NodeJsInterpreterManager
 import com.intellij.javascript.nodejs.interpreter.local.NodeJsLocalInterpreter
 import com.intellij.javascript.nodejs.interpreter.wsl.WslNodeInterpreter
+import com.intellij.javascript.nodejs.packageJson.NodeInstalledPackageFinder
+import com.intellij.lang.javascript.buildTools.npm.PackageJsonUtil
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.Application
-import com.intellij.openapi.application.ex.ApplicationEx
-import com.intellij.openapi.application.ex.ApplicationUtil
-import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
-import com.intellij.openapi.graph.option.Editor
-import com.intellij.openapi.graph.option.EditorFactory
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.progress.Task
-import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.popup.JBPopup
-import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.AsyncFileListener.ChangeApplier
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.wm.impl.status.widget.StatusBarWidgetsManager
+import com.intellij.platform.ide.progress.withBackgroundProgress
 import com.intellij.psi.PsiFile
-import com.intellij.util.application
-import com.intellij.util.ui.JBUI.CurrentTheme.Popup
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import me.rerere.unocssintellij.rpc.GetCompleteCommandData
 import me.rerere.unocssintellij.rpc.ResolveAnnotationsCommandData
@@ -51,6 +36,7 @@ import me.rerere.unocssintellij.rpc.SuggestionItemList
 import me.rerere.unocssintellij.rpc.UpdateSettingsCommandData
 import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.status.UnocssStatusBarFactory
+import me.rerere.unocssintellij.util.toLocalVirtualFile
 
 private val SENSITIVE_FILES = listOf(
     "package.json",
@@ -67,14 +53,14 @@ private val SENSITIVE_FILES = listOf(
 )
 
 @Service(Service.Level.PROJECT)
-class UnocssService(private val project: Project) : Disposable {
+class UnocssService(private val project: Project, private val scope: CoroutineScope) : Disposable {
+
     private var unocssProcess: UnocssProcess? = null
+
     private val nodeEnvInstalled by lazy {
         val interpreter = NodeJsInterpreterManager.getInstance(project).interpreter
         interpreter != null && (interpreter is NodeJsLocalInterpreter || interpreter is WslNodeInterpreter)
     }
-
-    private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     init {
         // 监听文件变化
@@ -113,11 +99,9 @@ class UnocssService(private val project: Project) : Disposable {
 
     private suspend fun getProcess(ctx: VirtualFile?): UnocssProcess? {
         if (!nodeEnvInstalled) return null
-        if (unocssProcess == null && ctx != null && Unocss.isUnocssInstalled(project, ctx)) {
+        if (unocssProcess == null && ctx != null && isUnocssInstalled(project, ctx)) {
             initProcess(ctx)
-            updateConfig(ctx).onFailure {
-                println("(!) Failed to update unocss config: $it")
-            }
+            updateConfig(ctx)
         }
 
         if (unocssProcess?.process?.isAlive == false) {
@@ -131,6 +115,28 @@ class UnocssService(private val project: Project) : Disposable {
         }
 
         return unocssProcess
+    }
+
+    /**
+     * Check if unocss is installed in the project
+     *
+     * @param project The project
+     * @param context The context file
+     */
+    private suspend fun isUnocssInstalled(project: Project, context: VirtualFile) = coroutineScope s@{
+        val packageJson = PackageJsonUtil.findUpPackageJson(context.toLocalVirtualFile())
+            ?: return@s false
+
+        val unocssPackage = async {
+            NodeInstalledPackageFinder(project, packageJson)
+                .findInstalledPackage("unocss")
+        }
+        val unocssPackageAt = async {
+            NodeInstalledPackageFinder(project, packageJson)
+                .findInstalledPackage("@unocss")
+        }
+
+        unocssPackage.await() != null || unocssPackageAt.await() != null
     }
 
     fun onFileOpened(file: VirtualFile) {
@@ -169,55 +175,43 @@ class UnocssService(private val project: Project) : Disposable {
     private suspend fun updateConfig(ctx: VirtualFile) = runCatching {
         val process = getProcess(ctx) ?: return@runCatching
         updateConfig(process)
+    }.onFailure {
+        println("(!) Failed to update unocss config: $it")
     }
 
     fun updateConfigIfRunning() {
+        val process = unocssProcess ?: return
         scope.launch {
-            val process = unocssProcess ?: return@launch
             updateConfig(process)
         }
     }
 
-    private fun updateConfig(process: UnocssProcess) {
-        ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Updating unocss config") {
-            lateinit var job: Job
+    private suspend fun updateConfig(process: UnocssProcess) {
+        withBackgroundProgress(project, "Updating unocss config") {
+            println("Updating unocss config...")
 
-            override fun run(indicator: ProgressIndicator) {
-                println("Updating unocss config...")
-
-                job = scope.launch {
-                    runCatching {
-                        UnocssConfigManager.updateConfig(
-                            process.sendCommand<Any?, ResolveConfigResult>(RpcAction.ResolveConfig, null)
-                        )
-                    }.onFailure {
-                        it.printStackTrace()
-                        println("(!) Failed to resolve unocss config: $it")
-                    }
-                }
-
-                runBlocking {
-                    while (!job.isCompleted) {
-                        delay(50)
-
-                        // Check if canceled
-                        indicator.checkCanceled()
-                    }
-                }
-
-                println("Unocss config updated!")
+            runCatching {
+                UnocssConfigManager.updateConfig(
+                    process.sendCommand<Nothing, ResolveConfigResult>(RpcAction.ResolveConfig, null)
+                )
+            }.onFailure {
+                it.printStackTrace()
+                println("(!) Failed to resolve unocss config: $it")
             }
-        })
+
+            println("Unocss config updated!")
+        }
     }
 
     fun updateSettings() {
         val process = unocssProcess ?: return
         scope.launch {
+            val settingsState = UnocssSettingsState.of(project)
             withTimeout(1000) {
                 process.sendCommand(
                     RpcAction.UpdateSettings,
                     UpdateSettingsCommandData(
-                        matchType = UnocssSettingsState.instance.matchType.name.lowercase(),
+                        matchType = settingsState.matchType.name.lowercase(),
                     )
                 )
             }
@@ -232,8 +226,8 @@ class UnocssService(private val project: Project) : Disposable {
     ): List<SuggestionItem> {
         val process = getProcess(ctx) ?: return emptyList()
 
-        return try {
-            val response: SuggestionItemList = withTimeout(1000) {
+        return runCatching {
+            withTimeout<SuggestionItemList>(1000) {
                 process.sendCommand(
                     RpcAction.GetComplete,
                     GetCompleteCommandData(
@@ -243,12 +237,9 @@ class UnocssService(private val project: Project) : Disposable {
                     )
                 )
             }
-
-            response
-        } catch (e: Exception) {
-            println("(!) Failed to get completion: $e")
-            emptyList()
-        }
+        }.onFailure {
+            println("(!) Failed to get completion: $it")
+        }.getOrDefault(emptyList())
     }
 
     suspend fun resolveCssByOffset(file: PsiFile, offset: Int): ResolveCSSResult? {

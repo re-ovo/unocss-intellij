@@ -10,7 +10,6 @@ import com.intellij.psi.css.impl.CssTokenImpl
 import com.intellij.psi.filters.ElementFilter
 import com.intellij.psi.util.elementType
 import com.intellij.util.ProcessingContext
-import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.util.UnoConfigHelper
 import me.rerere.unocssintellij.util.inCssThemeFunction
 import me.rerere.unocssintellij.util.isScreenDirectiveIdent
@@ -18,9 +17,6 @@ import me.rerere.unocssintellij.util.isScreenDirectiveIdent
 object UnocssCssThemeReferenceProvider : PsiReferenceProvider() {
 
     override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
-        if (!UnocssSettingsState.instance.enable) {
-            return PsiReference.EMPTY_ARRAY
-        }
         if (element !is CssString) {
             return PsiReference.EMPTY_ARRAY
         }
@@ -54,9 +50,6 @@ object UnocssCssThemeReferenceProvider : PsiReferenceProvider() {
 object UnocssCssScreenReferenceProvider : PsiReferenceProvider() {
 
     override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
-        if (!UnocssSettingsState.instance.enable) {
-            return PsiReference.EMPTY_ARRAY
-        }
         if (element !is CssTokenImpl) {
             return PsiReference.EMPTY_ARRAY
         }

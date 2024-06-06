@@ -1,7 +1,17 @@
 package me.rerere.unocssintellij.marker.inlay
 
 import com.intellij.codeInsight.hint.HintManager
-import com.intellij.codeInsight.hints.*
+import com.intellij.codeInsight.hints.ChangeListener
+import com.intellij.codeInsight.hints.FactoryInlayHintsCollector
+import com.intellij.codeInsight.hints.ImmediateConfigurable
+import com.intellij.codeInsight.hints.InlayHintsCollector
+import com.intellij.codeInsight.hints.InlayHintsProvider
+import com.intellij.codeInsight.hints.InlayHintsProviderFactory
+import com.intellij.codeInsight.hints.InlayHintsSink
+import com.intellij.codeInsight.hints.InlayPresentationFactory
+import com.intellij.codeInsight.hints.NoSettings
+import com.intellij.codeInsight.hints.ProviderInfo
+import com.intellij.codeInsight.hints.SettingsKey
 import com.intellij.codeInsight.hints.presentation.InlayPresentation
 import com.intellij.codeInsight.hints.presentation.MouseButton
 import com.intellij.codeInsight.hints.presentation.ScaleAwarePresentationFactory
@@ -36,8 +46,14 @@ import me.rerere.unocssintellij.marker.SVGIcon
 import me.rerere.unocssintellij.marker.inlay.UnocssColorPreviewInlayHitsProviderFactory.Meta
 import me.rerere.unocssintellij.model.UnocssResolveMeta
 import me.rerere.unocssintellij.settings.UnocssSettingsState
-import me.rerere.unocssintellij.settings.UnocssSettingsState.ColorPreviewType
-import me.rerere.unocssintellij.util.*
+import me.rerere.unocssintellij.settings.UnocssSettingsState.ColorPreviewType.INLAY_HINT
+import me.rerere.unocssintellij.util.MatchedPosition
+import me.rerere.unocssintellij.util.getMatchedPositions
+import me.rerere.unocssintellij.util.isLeafJsLiteral
+import me.rerere.unocssintellij.util.isUnocssCandidate
+import me.rerere.unocssintellij.util.parseColors
+import me.rerere.unocssintellij.util.parseIcons
+import me.rerere.unocssintellij.util.toHex
 import java.awt.Color
 import java.awt.Cursor
 import java.awt.Point
@@ -76,13 +92,8 @@ object UnocssColorPreviewInlayHintsProvider : InlayHintsProvider<NoSettings> {
 
     override val name: String = "Unocss Color Preview"
     override val key: SettingsKey<NoSettings> = Meta.settingsKey
-    override val previewText: String?
-    override val description: String?
-
-    init {
-        previewText = "<div text-red class=\"bg-blue-400\"></div>"
-        description = "Unocss color preview on token"
-    }
+    override val previewText: String = "<div text-red class=\"bg-blue-400\"></div>"
+    override val description: String = "Unocss color preview on token"
 
     override fun createConfigurable(settings: NoSettings): ImmediateConfigurable {
         return object : ImmediateConfigurable {
@@ -128,9 +139,8 @@ object UnocssColorPreviewInlayHintsProvider : InlayHintsProvider<NoSettings> {
         private val scaleAwarePresentationFactory = ScaleAwarePresentationFactory(editor, factory)
 
         override fun collect(element: PsiElement, editor: Editor, sink: InlayHintsSink): Boolean {
-            if (!UnocssSettingsState.instance.enable
-                || UnocssSettingsState.instance.colorPreviewType != ColorPreviewType.INLAY_HINT
-            ) {
+            val settingsState = UnocssSettingsState.of(element.project)
+            if (settingsState.colorPreviewType != INLAY_HINT) {
                 return false
             }
             element.node ?: return false
@@ -218,7 +228,7 @@ object UnocssColorPreviewInlayHintsProvider : InlayHintsProvider<NoSettings> {
             meta: UnocssResolveMeta,
             startOffset: Int
         ): InlayPresentation {
-            val padding = InlayPresentationFactory.Padding(2, 2, 1, 1)
+            val padding = InlayPresentationFactory.Padding(2, 2, 2, 2)
             val bgColor = editor.colorsScheme
                 .getColor(DefaultLanguageHighlighterColors.INLINE_REFACTORING_SETTINGS_DEFAULT)
             val roundedCorners = InlayPresentationFactory.RoundedCorners(6, 6)
@@ -239,40 +249,54 @@ object UnocssColorPreviewInlayHintsProvider : InlayHintsProvider<NoSettings> {
                                 // xml attribute value token
                                 initMeta.bindElement.elementType == XmlElementType.XML_ATTRIBUTE_VALUE_TOKEN -> {
                                     val oldValue = meta.attrValue ?: return@runWriteAction
-                                    val newValue = generateNewValue(oldValue, color, startOffset) ?: return@runWriteAction
+                                    val newValue = generateNewValue(oldValue, color, startOffset)
+                                        ?: return@runWriteAction
 
                                     val oldAttValue = initElementText ?: return@runWriteAction
-                                    val stopIndex = oldAttValue.indexOfAny(charArrayOf(' ', '"', '\'', '\n'), startOffsetOfElement).let {
-                                        if(it == -1) oldAttValue.length else it
-                                    }
-                                    val newAttrValue = oldAttValue.substring(0, startOffsetOfElement) + newValue + oldAttValue.substring(stopIndex)
+                                    val stopIndex =
+                                        oldAttValue.indexOfAny(charArrayOf(' ', '"', '\'', '\n'), startOffsetOfElement)
+                                            .let { if (it == -1) oldAttValue.length else it }
+                                    val newAttrValue = oldAttValue.substring(
+                                        0,
+                                        startOffsetOfElement
+                                    ) + newValue + oldAttValue.substring(stopIndex)
 
-                                    if(meta.bindElement is LeafPsiElement) {
-                                        meta.bindElement = (meta.bindElement as LeafPsiElement).replaceWithText(newAttrValue) as PsiElement
+                                    if (meta.bindElement is LeafPsiElement) {
+                                        meta.bindElement = (meta.bindElement as LeafPsiElement)
+                                            .replaceWithText(newAttrValue) as PsiElement
                                     }
                                 }
 
                                 // JS String Leaf
-                                initMeta.bindElement.isLeafJsLiteral() || (initMeta.bindElement is LeafPsiElement && initMeta.bindElement.elementType.toString().startsWith("JS:STRING")) -> {
+                                initMeta.bindElement.isLeafJsLiteral() || (initMeta.bindElement is LeafPsiElement && initMeta.bindElement.elementType.toString()
+                                    .startsWith("JS:STRING")) -> {
                                     val oldValue = meta.attrName
-                                    val newValue = generateNewValue(oldValue, color, startOffset) ?: return@runWriteAction
+                                    val newValue =
+                                        generateNewValue(oldValue, color, startOffset) ?: return@runWriteAction
 
                                     val oldAttValue = initElementText ?: return@runWriteAction
-                                    val stopIndex = oldAttValue.indexOfAny(charArrayOf(' ', '"', '\'', '\n'), startOffsetOfElement)
-                                    val newAttrValue = oldAttValue.substring(0, startOffsetOfElement) + newValue + oldAttValue.substring(stopIndex)
+                                    val stopIndex =
+                                        oldAttValue.indexOfAny(charArrayOf(' ', '"', '\'', '\n'), startOffsetOfElement)
+                                    val newAttrValue = oldAttValue.substring(
+                                        0,
+                                        startOffsetOfElement
+                                    ) + newValue + oldAttValue.substring(stopIndex)
 
-                                    if(meta.bindElement is LeafPsiElement) {
-                                        meta.bindElement = (meta.bindElement as LeafPsiElement).replaceWithText(newAttrValue) as PsiElement
+                                    if (meta.bindElement is LeafPsiElement) {
+                                        meta.bindElement =
+                                            (meta.bindElement as LeafPsiElement).replaceWithText(newAttrValue) as PsiElement
                                     }
                                 }
 
                                 // 整个元素就是一个属性
                                 initElementText == meta.attrName -> {
                                     val oldValue = meta.attrName
-                                    val newValue = generateNewValue(oldValue, color, startOffset) ?: return@runWriteAction
+                                    val newValue = generateNewValue(oldValue, color, startOffset)
+                                        ?: return@runWriteAction
 
-                                    if(meta.bindElement is LeafPsiElement) {
-                                        meta.bindElement = (meta.bindElement as LeafPsiElement).replaceWithText(newValue) as PsiElement
+                                    if (meta.bindElement is LeafPsiElement) {
+                                        meta.bindElement = (meta.bindElement as LeafPsiElement)
+                                                .replaceWithText(newValue) as PsiElement
                                     } else {
                                         HintManager.getInstance().showErrorHint(
                                             editor,
@@ -311,7 +335,7 @@ object UnocssColorPreviewInlayHintsProvider : InlayHintsProvider<NoSettings> {
             val scaleFactory = scaleAwarePresentationFactory
             val base = scaleFactory.lineCentered(
                 scaleFactory.container(
-                    scaleFactory.smallScaledIcon(ColorIcon(16, color)),
+                    scaleFactory.smallScaledIcon(ColorIcon(18, color, 4)),
                     padding,
                     roundedCorners,
                     bgColor
@@ -329,8 +353,8 @@ object UnocssColorPreviewInlayHintsProvider : InlayHintsProvider<NoSettings> {
         }
 
         private fun buildIconPresentation(icon: String, editor: Editor): InlayPresentation? {
-            val svgIcon = SVGIcon.tryGetIcon(icon, 16).getOrNull() ?: return null
-            val padding = InlayPresentationFactory.Padding(2, 2, 1, 1)
+            val svgIcon = SVGIcon.tryGetIcon(icon, 18).getOrNull() ?: return null
+            val padding = InlayPresentationFactory.Padding(2, 2, 2, 2)
             val bgColor = editor.colorsScheme
                 .getColor(DefaultLanguageHighlighterColors.INLINE_REFACTORING_SETTINGS_DEFAULT)
             val roundedCorners = InlayPresentationFactory.RoundedCorners(6, 6)
@@ -349,3 +373,6 @@ object UnocssColorPreviewInlayHintsProvider : InlayHintsProvider<NoSettings> {
         }
     }
 }
+
+private fun ColorIcon(size: Int, color: JBColor, arc: Int) =
+    ColorIcon(size, size, size, size, color, false, arc)

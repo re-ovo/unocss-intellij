@@ -2,19 +2,20 @@ package me.rerere.unocssintellij.references.css
 
 import com.intellij.lang.javascript.psi.JSObjectLiteralExpression
 import com.intellij.openapi.util.TextRange
-import com.intellij.psi.*
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiElementResolveResult
+import com.intellij.psi.PsiPolyVariantReference
+import com.intellij.psi.PsiReferenceBase
+import com.intellij.psi.ResolveResult
 import me.rerere.unocssintellij.util.UnoConfigHelper
 
 open class UnocssThemeConfigReference(element: PsiElement, protected val textRange: TextRange) :
     PsiReferenceBase<PsiElement>(element, textRange),
     PsiPolyVariantReference {
 
-    private val themeValue: String
-
-    init {
-        themeValue = element.text.substring(textRange.startOffset, textRange.endOffset)
-            .trim('\'', '"')
-    }
+    private val themeValue = element.text
+        .substring(textRange.startOffset, textRange.endOffset)
+        .trim('\'', '"')
 
     override fun resolve(): PsiElement? {
         val resolveResults = multiResolve(false)

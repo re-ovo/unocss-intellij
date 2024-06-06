@@ -1,16 +1,25 @@
 package me.rerere.unocssintellij.references.classname
 
-import com.intellij.lang.javascript.psi.*
+import com.intellij.lang.javascript.psi.JSArrayLiteralExpression
+import com.intellij.lang.javascript.psi.JSLiteralExpression
+import com.intellij.lang.javascript.psi.JSLiteralExpressionKind
+import com.intellij.lang.javascript.psi.JSProperty
+import com.intellij.lang.javascript.psi.JSReferenceExpression
 import com.intellij.openapi.components.service
 import com.intellij.openapi.util.TextRange
 import com.intellij.patterns.PlatformPatterns
-import com.intellij.psi.*
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiReference
+import com.intellij.psi.PsiReferenceBase
+import com.intellij.psi.PsiReferenceContributor
+import com.intellij.psi.PsiReferenceProvider
+import com.intellij.psi.PsiReferenceRegistrar
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.util.ProcessingContext
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import me.rerere.unocssintellij.UnocssService
-import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.util.childrenOfTypeDeeply
 import me.rerere.unocssintellij.util.findUnoConfigFile
 import me.rerere.unocssintellij.util.getMatchedPositions
@@ -27,9 +36,6 @@ class UnocssClassNameReferenceContributor : PsiReferenceContributor() {
 
 object UnocssClassNameReferenceProvider : PsiReferenceProvider() {
     override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
-        if (!UnocssSettingsState.instance.enable) {
-            return PsiReference.EMPTY_ARRAY
-        }
         val text = element.text
         val service = element.project.service<UnocssService>()
         val matched = runBlocking {
@@ -61,7 +67,7 @@ class UnocssClassNameReference(element: PsiElement, range: TextRange, private va
 
         // find shortcuts first
         if (shortcutsProperty != null) {
-            val shortcuts = findUnoCSSRuleProviderInShortcuts(shortcutsProperty, element)
+            val shortcuts = findUnoCSSRuleProviderInShortcuts(shortcutsProperty)
             if (shortcuts != null) {
                 return shortcuts
             }
@@ -69,7 +75,7 @@ class UnocssClassNameReference(element: PsiElement, range: TextRange, private va
 
         // find user defined rules
         if (rulesProperty != null) {
-            val rules = findUnoCSSRuleProviderInRules(rulesProperty, element)
+            val rules = findUnoCSSRuleProviderInRules(rulesProperty)
             if (rules != null) {
                 return rules
             }
@@ -83,7 +89,7 @@ class UnocssClassNameReference(element: PsiElement, range: TextRange, private va
         return null
     }
 
-    private fun findUnoCSSRuleProviderInRules(rulesProperty: JSProperty, element: PsiElement): PsiElement? {
+    private fun findUnoCSSRuleProviderInRules(rulesProperty: JSProperty): PsiElement? {
         val valueElement = rulesProperty.value?.let {
             if (it is JSReferenceExpression) {
                 it.resolve()
@@ -117,7 +123,7 @@ class UnocssClassNameReference(element: PsiElement, range: TextRange, private va
         return null
     }
 
-    private fun findUnoCSSRuleProviderInShortcuts(shortcuts: JSProperty, source: PsiElement): PsiElement? {
+    private fun findUnoCSSRuleProviderInShortcuts(shortcuts: JSProperty): PsiElement? {
         val valueElement = shortcuts.value?.let {
             if (it is JSReferenceExpression) {
                 it.resolve()
@@ -138,9 +144,7 @@ class UnocssClassNameReference(element: PsiElement, range: TextRange, private va
         // Like [/^btn-(.*)$/, ([, c]) => `bg-${c}-400 text-${c}-100 py-2 px-4 rounded-lg`],
         valueElement
             .childrenOfTypeDeeply<JSArrayLiteralExpression>()
-            .filter {
-                it.expressions.size == 2 && it.expressions[0] is JSLiteralExpression
-            }
+            .filter { it.expressions.size == 2 && it.expressions[0] is JSLiteralExpression }
             .forEach {
                 val literalExpression = (it.expressions[0] as JSLiteralExpression)
                 val kind = literalExpression.getExpressionKind(false)

@@ -19,7 +19,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 import me.rerere.unocssintellij.UnocssService
 import me.rerere.unocssintellij.settings.UnocssSettingsConfigurable
-import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.util.UnocssBundle
 
 class UnocssStatusBarFactory : StatusBarWidgetFactory {
@@ -73,8 +72,6 @@ class UnocssStatusPop(project: Project) : EditorBasedStatusBarPopup(project, fal
     }
 
     override fun getWidgetState(file: VirtualFile?): WidgetState {
-        if (!UnocssSettingsState.instance.enable) return WidgetState.HIDDEN
-
         val text: String = if (file == null) {
             "Unocss"
         } else {

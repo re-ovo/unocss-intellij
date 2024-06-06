@@ -15,10 +15,10 @@ import com.intellij.psi.xml.XmlElementType
 import com.intellij.psi.xml.XmlTokenType
 import com.intellij.refactoring.suggested.startOffset
 import me.rerere.unocssintellij.model.UnocssResolveMeta
-import me.rerere.unocssintellij.util.inCssThemeFunction
-import me.rerere.unocssintellij.util.isScreenDirectiveIdent
 import me.rerere.unocssintellij.settings.UnocssSettingsState
+import me.rerere.unocssintellij.util.inCssThemeFunction
 import me.rerere.unocssintellij.util.isLeafJsLiteral
+import me.rerere.unocssintellij.util.isScreenDirectiveIdent
 
 private val classNameRE = Regex("""\w+:\([^)]+\)|\S+""")
 private val variantNameRE = Regex("""(\w+):\(([^)]+)\)""")
@@ -32,7 +32,6 @@ private val attributeNameOnlyElementTypes = setOf(
 class UnocssDocumentTargetProvider : DocumentationTargetProvider {
 
     override fun documentationTargets(file: PsiFile, offset: Int): MutableList<out DocumentationTarget> {
-        if (!UnocssSettingsState.instance.enable) return mutableListOf()
         val element: PsiElement = file.findElementAt(offset) ?: return mutableListOf()
 
         val targets = mutableListOf<DocumentationTarget>()
@@ -62,7 +61,8 @@ class UnocssDocumentTargetProvider : DocumentationTargetProvider {
                 val offsetValue = getOffsetValue(offset, element, isLiteralValue) ?: return targets
                 meta = UnocssResolveMeta(element, attributeNameEle.text, offsetValue)
             } else if (element.isLeafJsLiteral()) { // js literal
-                if (UnocssSettingsState.isMatchedJsLiteral(element)) {
+                val settingsState = UnocssSettingsState.of(file.project)
+                if (settingsState.isMatchedJsLiteral(element)) {
                     val offsetValue = getOffsetValue(offset, element, true) ?: return targets
                     meta = UnocssResolveMeta(element, offsetValue)
                 } else {

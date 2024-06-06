@@ -2,25 +2,18 @@ package me.rerere.unocssintellij.completion
 
 import com.intellij.codeInsight.AutoPopupController
 import com.intellij.codeInsight.completion.CompletionParameters
-import com.intellij.codeInsight.completion.CompletionPhase
 import com.intellij.codeInsight.completion.CompletionProvider
 import com.intellij.codeInsight.completion.CompletionResultSet
-import com.intellij.codeInsight.completion.impl.CompletionServiceImpl
 import com.intellij.codeInsight.editorActions.TypedHandlerDelegate
 import com.intellij.codeInsight.lookup.LookupElementBuilder
-import com.intellij.codeInsight.lookup.LookupManager
-import com.intellij.codeInsight.lookup.impl.LookupImpl
-import com.intellij.openapi.application.ex.ApplicationUtil
 import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.editor.EditorModificationUtil
-import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ui.ColorIcon
-import kotlinx.coroutines.runBlocking
 import me.rerere.unocssintellij.UnocssService
 import me.rerere.unocssintellij.marker.SVGIcon
 import me.rerere.unocssintellij.rpc.SuggestionItem
@@ -31,11 +24,11 @@ import me.rerere.unocssintellij.util.trimCss
 
 data class PrefixHolder(
     /**
-     * typing prefix is the prefix that user is typing, used to let intellij to match with suggestion
+     * Typing prefix is the prefix that user is typing, used to let intellij to match with suggestion
      */
     val typingPrefix: String,
     /**
-     * prefix to suggest is the prefix that will be used to query suggestions
+     * Prefix to suggest is the prefix that will be used to query suggestions
      * usually has the same value as typing prefix, but
      *
      * - when using variant group, it will be added with variant prefix
@@ -72,24 +65,23 @@ abstract class UnocssCompletionProvider : CompletionProvider<CompletionParameter
         context: ProcessingContext,
         result: CompletionResultSet
     ) {
-        if (!UnocssSettingsState.instance.enable || shouldSkip(parameters.position)) {
+        val project = parameters.originalFile.project
+        val settingsState = UnocssSettingsState.of(project)
+        if (shouldSkip(parameters.position)) {
             return
         }
+
         val (typingPrefix, prefixToSuggest) = resolvePrefix(parameters, result) ?: return
         val completionResult = result.withPrefixMatcher(typingPrefix)
 
-        val project = parameters.position.project
         val service = project.service<UnocssService>()
-        ApplicationUtil.runWithCheckCanceled({
-            val maxItems = UnocssSettingsState.instance.maxItems
-            runBlocking {
-                service.getCompletion(
-                    ctx = parameters.originalFile.virtualFile,
-                    prefix = prefixToSuggest,
-                    maxItems = maxItems
-                )
-            }
-        }, ProgressManager.getInstance().progressIndicator).forEach { suggestion ->
+        runBlockingCancellable {
+            service.getCompletion(
+                ctx = parameters.originalFile.virtualFile,
+                prefix = prefixToSuggest,
+                maxItems = settingsState.maxItems
+            )
+        }.forEach { suggestion ->
 
             val className = resolveSuggestionClassName(typingPrefix, prefixToSuggest, suggestion)
 

@@ -153,7 +153,6 @@
                 implementation="me.rerere.unocssintellij.inspection.UnocssVueSuppressionProvider"
         />
 
-        <applicationService serviceImplementation="me.rerere.unocssintellij.settings.UnocssSettingsState"/>
         <projectConfigurable
                 parentId="tools"
                 instance="me.rerere.unocssintellij.settings.UnocssSettingsConfigurable"

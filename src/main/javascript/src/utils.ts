@@ -11,10 +11,6 @@ import {
     presetWind
 } from "unocss";
 
-export function isCssId(id: string) {
-    return cssIdRE.test(id)
-}
-
 export function throttle<T extends ((...args: any) => any)>(func: T, timeFrame: number): T {
     let lastTime = 0
     let timer: any
@@ -33,36 +29,6 @@ export function throttle<T extends ((...args: any) => any)>(func: T, timeFrame: 
 export async function getCSS(uno: UnoGenerator, utilName: string) {
     const {css} = await uno.generate(utilName, {preflights: false, safelist: false})
     return css
-}
-
-/**
- *
- * Credit to [@voorjaar](https://github.com/voorjaar)
- * @see https://github.com/windicss/windicss-intellisense/issues/13
- * @param str
- * @param remToPixel
- * @returns
- */
-export function addRemToPxComment(str?: string, remToPixel = 16) {
-    if (!str)
-        return ''
-    if (remToPixel < 1)
-        return str
-    let index = 0
-    const output: string[] = []
-
-    while (index < str.length) {
-        const rem = str.slice(index).match(/-?[\d.]+rem;/)
-        if (!rem || !rem.index)
-            break
-        const px = ` /* ${Number.parseFloat(rem[0].slice(0, -4)) * remToPixel}px */`
-        const end = index + rem.index + rem[0].length
-        output.push(str.slice(index, end))
-        output.push(px)
-        index = end
-    }
-    output.push(str.slice(index))
-    return output.join('')
 }
 
 export function deprecationCheck(config: UserConfig) {

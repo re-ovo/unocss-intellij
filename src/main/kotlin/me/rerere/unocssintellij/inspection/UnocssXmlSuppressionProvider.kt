@@ -7,7 +7,6 @@ import com.intellij.psi.util.elementType
 import com.intellij.psi.xml.XmlElementType
 import me.rerere.unocssintellij.UnocssConfigManager
 import me.rerere.unocssintellij.model.UnocssResolveMeta
-import me.rerere.unocssintellij.settings.UnocssSettingsState
 
 /**
  * For suppressing unknown attribute inspection
@@ -19,7 +18,7 @@ class UnocssXmlSuppressionProvider : XmlSuppressionProvider() {
         private const val HTML_UNKNOWN_TAG = "HtmlUnknownTag"
     }
 
-    override fun isProviderAvailable(file: PsiFile) = UnocssSettingsState.instance.enable
+    override fun isProviderAvailable(file: PsiFile) = true
 
     override fun suppressForFile(element: PsiElement, inspectionId: String) {
     }
@@ -28,13 +27,13 @@ class UnocssXmlSuppressionProvider : XmlSuppressionProvider() {
     }
 
     override fun isSuppressedFor(element: PsiElement, inspectionId: String): Boolean {
-        if (!UnocssSettingsState.instance.enable) return false
-
         if (element.elementType == XmlElementType.XML_NAME && inspectionId == HTML_UNKNOWN_ATTRIBUTE) {
             return suppressForUnknownAttribute(element)
         }
 
-        if(UnocssConfigManager.hasPreset(UnocssConfigManager.Presets.TAGIFY) && element.elementType == XmlElementType.XML_NAME && inspectionId == HTML_UNKNOWN_TAG) {
+        if (UnocssConfigManager.hasPreset(UnocssConfigManager.Presets.TAGIFY)
+            && element.elementType == XmlElementType.XML_NAME
+            && inspectionId == HTML_UNKNOWN_TAG) {
             return suppressForUnknownTag(element)
         }
 

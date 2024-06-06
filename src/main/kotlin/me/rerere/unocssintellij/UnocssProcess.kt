@@ -15,7 +15,9 @@ import com.intellij.lang.javascript.service.JSLanguageServiceUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import me.rerere.unocssintellij.rpc.RpcAction
 import me.rerere.unocssintellij.rpc.RpcCommand
 import me.rerere.unocssintellij.util.toLocalVirtualFile
@@ -118,7 +120,7 @@ class UnocssProcess(project: Project, context: VirtualFile) : Disposable {
 
     // 发送命令并等待结果
     // 这里使用 suspendCancellableCoroutine 将回调转换为挂起并可取消的协程
-    suspend inline fun <C, reified R> sendCommand(action: RpcAction, command: C?): R =
+    suspend inline fun <C, reified R> sendCommand(action: RpcAction, command: C?): R = withContext(Dispatchers.IO) {
         suspendCancellableCoroutine { continuation ->
             val start = System.currentTimeMillis()
             val id = UUID.randomUUID().toString()
@@ -134,7 +136,7 @@ class UnocssProcess(project: Project, context: VirtualFile) : Disposable {
             }
 
             // Wait for response
-            this.waitingCommands.add(AwaitingCommand(id, start) { jsonObject ->
+            this@UnocssProcess.waitingCommands.add(AwaitingCommand(id, start) { jsonObject ->
                 if (jsonObject.has("error")) {
                     continuation.resumeWithException(
                         RuntimeException(jsonObject["error"]?.asString ?: "unknown error")
@@ -152,6 +154,7 @@ class UnocssProcess(project: Project, context: VirtualFile) : Disposable {
                 waitingCommands.removeIf { it.id == id }
             }
         }
+    }
 }
 
 data class AwaitingCommand(

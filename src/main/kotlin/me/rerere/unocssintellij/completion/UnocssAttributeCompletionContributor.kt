@@ -121,7 +121,7 @@ object UnocssAttributeCompletionProvider : UnocssCompletionProvider() {
         prefixToSuggest: String,
         suggestion: SuggestionItem
     ): String {
-        return kotlin.runCatching {
+        return runCatching {
             if (typingPrefix != prefixToSuggest) {
                 val prefix = prefixToSuggest.removeSuffix(prefixToSuggest.commonSuffixWith(typingPrefix))
                 // suggestion.className.substring(prefixToSuggest.length - typingPrefix.length)
@@ -141,8 +141,9 @@ object UnocssJsLiteralCompletionProvider : UnocssCompletionProvider() {
         val xmlAttributeEle = element.parentOfType<XmlAttribute>(true)
         val attrName = xmlAttributeEle?.firstChild?.text ?: ""
 
+        val settingsState = UnocssSettingsState.of(element.project)
         // Make sure it's a class attribute or a "matched" js literal
-        if (!attrName.isClassAttribute() && !UnocssSettingsState.isMatchedJsLiteral(element)) {
+        if (!attrName.isClassAttribute() && !settingsState.isMatchedJsLiteral(element)) {
             return null
         }
 

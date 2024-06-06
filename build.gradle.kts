@@ -5,7 +5,7 @@ import java.util.*
 
 plugins {
     id("java")
-    id("org.jetbrains.kotlin.jvm") version "1.9.20"
+    id("org.jetbrains.kotlin.jvm") version "1.9.24"
     id("org.jetbrains.intellij") version "1.17.3"
 }
 
@@ -23,10 +23,10 @@ dependencies {
 // Configure Gradle IntelliJ Plugin
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
-    version.set("2024.1")
-    type.set("IU") // Target IDE Platform
+    version = "2024.1"
+    type = "IU" // Target IDE Platform
 
-    plugins.set(listOf("JavaScript"))
+    plugins = listOf("JavaScript")
 }
 
 fun properties(key: String) = project.findProperty(key).toString()
@@ -47,18 +47,18 @@ tasks {
     }
 
     patchPluginXml {
-        sinceBuild.set("241")
-        untilBuild.set("242.*")
+        sinceBuild = "241"
+        untilBuild = "242.*"
     }
 
     signPlugin {
-        certificateChain.set(file("sign/chain.crt").readText())
-        privateKey.set(System.getenv(file("sign/private.pem").readText()))
-        password.set(System.getenv("PRIVATE_KEY_PASSWORD"))
+        certificateChain = file("sign/chain.crt").readText()
+        privateKey = System.getenv(file("sign/private.pem").readText())
+        password = System.getenv("PRIVATE_KEY_PASSWORD")
     }
 
     publishPlugin {
-        token.set(System.getenv("PUBLISH_TOKEN"))
+        token = System.getenv("PUBLISH_TOKEN")
     }
 
     task("processJavaScript") {
@@ -89,7 +89,7 @@ tasks {
     runIde {
         val idePath = getLocalProperty("IDE_PATH") as String?
         idePath?.let {
-            ideDir.set(file(idePath))
+            ideDir = file(idePath)
         }
     }
 }

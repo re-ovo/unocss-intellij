@@ -35,8 +35,10 @@ class UnocssClassAttributeFoldBuilder : FoldingBuilderEx() {
         val matchedPositions = getMatchedPositions(root.text, result)
         if (matchedPositions.isEmpty()) return emptyArray()
 
+        val settingsState = UnocssSettingsState.of(root.project)
+
         val descriptors = mutableListOf<FoldingDescriptor>()
-        val minLength = UnocssSettingsState.instance.foldingCodeLength
+        val minLength = settingsState.foldingCodeLength
         matchedPositions.forEach { matchedPosition ->
             val element = file.findElementAt(matchedPosition.start) ?: return@forEach
             val elementType = element.elementType
@@ -52,9 +54,9 @@ class UnocssClassAttributeFoldBuilder : FoldingBuilderEx() {
         return descriptors.toTypedArray()
     }
 
-    override fun getPlaceholderText(node: ASTNode): String = UnocssSettingsState.instance.foldingPlaceholder
+    override fun getPlaceholderText(node: ASTNode): String =
+        UnocssSettingsState.of(node.psi.project).foldingPlaceholder
 
-    override fun isCollapsedByDefault(node: ASTNode): Boolean {
-        return UnocssSettingsState.instance.codeDefaultFolding
-    }
+    override fun isCollapsedByDefault(node: ASTNode): Boolean =
+        UnocssSettingsState.of(node.psi.project).codeDefaultFolding
 }

@@ -24,18 +24,25 @@ class UnocssSettingsState : PersistentStateComponent<UnocssSettingsState> {
         fun of(project: Project): UnocssSettingsState = project.service()
     }
 
+    // ====== Documentation ======
     var includeMdnDocs = true
     var remToPxPreview = true
     var remToPxRatio = 16.0
+
+    // ====== Annotation ======
+    var enableUnderline = true
     var colorAndIconPreviewType = ColorAndIconPreviewType.INLAY_HINT
 
+    // ====== Autocomplete ======
     var matchType = MatchType.PREFIX
     var maxItems = 50
 
+    // ====== Code Folding ======
     var codeDefaultFolding = false
     var foldingCodeLength = 10
     var foldingPlaceholder = "[UnoCSS]"
 
+    // ====== Matcher ======
     var jsLiteralMatchRegexPatterns = """
             cva\([\s\S]*?\)
             cn\([\s\S]*?\)

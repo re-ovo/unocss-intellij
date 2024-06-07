@@ -58,6 +58,32 @@ class UnocssSettingsConfigurable(private val project: Project) : BoundSearchable
     override fun createPanel(): DialogPanel = panel {
         lateinit var previewRemToPxCheckbox: Cell<JBCheckBox>
 
+        group(UnocssBundle.message("setting.annotation.title")) {
+
+            row {
+                checkBox(UnocssBundle.message("setting.annotation.underline.title"))
+                    .bindSelected(settings::enableUnderline)
+                    .comment(UnocssBundle.message("setting.annotation.underline.comment"))
+            }
+
+            buttonsGroup {
+                row(UnocssBundle.message("setting.annotation.color_preview.title")) {
+                    radioButton(
+                        UnocssBundle.message("setting.annotation.color_preview.option.none"),
+                        ColorAndIconPreviewType.NONE
+                    )
+                    radioButton(
+                        UnocssBundle.message("setting.annotation.color_preview.option.line_marker"),
+                        ColorAndIconPreviewType.LINE_MARKER
+                    )
+                    radioButton(
+                        UnocssBundle.message("setting.annotation.color_preview.option.inlay_hint"),
+                        ColorAndIconPreviewType.INLAY_HINT
+                    )
+                }
+            }.bind(settings::colorAndIconPreviewType)
+        }
+
         group(UnocssBundle.message("setting.documentation.title")) {
             row {
                 checkBox(UnocssBundle.message("setting.documentation.include_mdn_docs"))
@@ -84,23 +110,6 @@ class UnocssSettingsConfigurable(private val project: Project) : BoundSearchable
                     }
                     .enabledIf(previewRemToPxCheckbox.selected)
             }.comment(UnocssBundle.message("setting.documentation.rem_to_px.ratio.comment"))
-
-            buttonsGroup {
-                row(UnocssBundle.message("setting.documentation.color_preview.title")) {
-                    radioButton(
-                        UnocssBundle.message("setting.documentation.color_preview.option.none"),
-                        ColorAndIconPreviewType.NONE
-                    )
-                    radioButton(
-                        UnocssBundle.message("setting.documentation.color_preview.option.line_marker"),
-                        ColorAndIconPreviewType.LINE_MARKER
-                    )
-                    radioButton(
-                        UnocssBundle.message("setting.documentation.color_preview.option.inlay_hint"),
-                        ColorAndIconPreviewType.INLAY_HINT
-                    )
-                }
-            }.bind(settings::colorAndIconPreviewType)
         }
 
         group(UnocssBundle.message("setting.autocomplete.title")) {

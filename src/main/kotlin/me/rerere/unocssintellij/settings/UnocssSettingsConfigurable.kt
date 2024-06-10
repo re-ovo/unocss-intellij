@@ -12,19 +12,7 @@ import com.intellij.ui.LanguageTextField
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTextField
-import com.intellij.ui.dsl.builder.AlignY
-import com.intellij.ui.dsl.builder.Cell
-import com.intellij.ui.dsl.builder.RightGap
-import com.intellij.ui.dsl.builder.RowLayout
-import com.intellij.ui.dsl.builder.TopGap
-import com.intellij.ui.dsl.builder.bind
-import com.intellij.ui.dsl.builder.bindIntText
-import com.intellij.ui.dsl.builder.bindSelected
-import com.intellij.ui.dsl.builder.bindText
-import com.intellij.ui.dsl.builder.bindValue
-import com.intellij.ui.dsl.builder.panel
-import com.intellij.ui.dsl.builder.selected
-import com.intellij.ui.dsl.builder.toMutableProperty
+import com.intellij.ui.dsl.builder.*
 import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.JBInsets
 import com.intellij.util.ui.JBUI
@@ -34,13 +22,7 @@ import me.rerere.unocssintellij.settings.UnocssSettingsState.ColorAndIconPreview
 import me.rerere.unocssintellij.settings.UnocssSettingsState.MatchType
 import me.rerere.unocssintellij.util.UnocssBundle
 import org.intellij.lang.regexp.RegExpLanguage
-import java.awt.Component
-import java.awt.Dimension
-import java.awt.Graphics
-import java.awt.Graphics2D
-import java.awt.Insets
-import java.awt.Rectangle
-import java.awt.RenderingHints
+import java.awt.*
 import java.awt.geom.Area
 import java.awt.geom.Path2D
 import java.awt.geom.RoundRectangle2D
@@ -100,14 +82,6 @@ class UnocssSettingsConfigurable(private val project: Project) : BoundSearchable
             row(UnocssBundle.message("setting.documentation.rem_to_px.ratio.title")) {
                 spinner(0.0..100.0, 1.0)
                     .bindValue(settings::remToPxRatio)
-                    .cellValidation {
-                        addInputRule("Invalid number") {
-                            it.value.toString().toDoubleOrNull() == null
-                        }
-                        addApplyRule("Invalid number") {
-                            it.value.toString().toDoubleOrNull() == null
-                        }
-                    }
                     .enabledIf(previewRemToPxCheckbox.selected)
             }.comment(UnocssBundle.message("setting.documentation.rem_to_px.ratio.comment"))
         }

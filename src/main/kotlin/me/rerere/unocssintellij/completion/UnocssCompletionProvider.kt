@@ -15,12 +15,12 @@ import com.intellij.psi.PsiFile
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ui.ColorIcon
 import me.rerere.unocssintellij.UnocssService
+import me.rerere.unocssintellij.documentation.UnocssCompletionLookupSymbol
 import me.rerere.unocssintellij.marker.SVGIcon
 import me.rerere.unocssintellij.rpc.SuggestionItem
 import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.util.parseColors
 import me.rerere.unocssintellij.util.parseIcons
-import me.rerere.unocssintellij.util.trimCss
 
 data class PrefixHolder(
     /**
@@ -87,9 +87,11 @@ abstract class UnocssCompletionProvider : CompletionProvider<CompletionParameter
 
             val colors = parseColors(suggestion.css)
             val icon = parseIcons(suggestion.css)
+
+            val lookupObj = UnocssCompletionLookupSymbol(suggestion, project).createPointer()
             completionResult.addElement(
                 LookupElementBuilder
-                    .create(className)
+                    .create(lookupObj, className)
                     .withPresentableText(className)
                     .withIcon(
                         if (colors.isNotEmpty()) {
@@ -98,7 +100,6 @@ abstract class UnocssCompletionProvider : CompletionProvider<CompletionParameter
                             SVGIcon.tryGetIcon(icon, 20).getOrNull()
                         } else PluginIcon
                     )
-                    .withTailText(trimCss(suggestion.css), true)
             )
         }
 

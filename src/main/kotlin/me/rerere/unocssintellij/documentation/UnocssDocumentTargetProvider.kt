@@ -7,27 +7,20 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.css.impl.CssAtRuleImpl
 import com.intellij.psi.css.impl.CssElementType
-import com.intellij.psi.css.impl.CssElementTypes
 import com.intellij.psi.impl.source.xml.XmlAttributeValueImpl
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfTypes
-import com.intellij.psi.xml.XmlElementType
 import com.intellij.psi.xml.XmlTokenType
 import com.intellij.refactoring.suggested.startOffset
 import me.rerere.unocssintellij.model.UnocssResolveMeta
 import me.rerere.unocssintellij.settings.UnocssSettingsState
+import me.rerere.unocssintellij.util.attributeNameOnlyElementTypes
 import me.rerere.unocssintellij.util.inCssThemeFunction
 import me.rerere.unocssintellij.util.isLeafJsLiteral
 import me.rerere.unocssintellij.util.isScreenDirectiveIdent
 
 private val classNameRE = Regex("""\w+:\([^)]+\)|\S+""")
 private val variantNameRE = Regex("""(\w+):\(([^)]+)\)""")
-
-private val attributeNameOnlyElementTypes = setOf(
-    XmlElementType.XML_NAME,
-    CssElementTypes.CSS_IDENT,
-    CssElementTypes.CSS_STRING_TOKEN
-)
 
 class UnocssDocumentTargetProvider : DocumentationTargetProvider {
 
@@ -85,17 +78,17 @@ class UnocssDocumentTargetProvider : DocumentationTargetProvider {
         val element = meta.bindElement
         when {
             element.inCssThemeFunction() -> {
-                targets.add(UnocssThemeConfigDocumentTarget(element))
+                targets.add(UnocssThemeConfigDocumentationTarget(element))
             }
 
             element.isScreenDirectiveIdent() -> {
-                targets.add(UnocssThemeScreenDocumentTarget(element))
+                targets.add(UnocssThemeScreenDocumentationTarget(element))
             }
 
             else -> {
                 val matchResult = meta.resolveCss() ?: return
                 if (matchResult.matchedTokens.isNotEmpty()) {
-                    targets.add(UnocssDocumentTarget(element, matchResult))
+                    targets.add(UnocssAttributeDocumentationTarget(element, matchResult))
                 }
             }
         }

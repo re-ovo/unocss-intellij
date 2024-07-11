@@ -16,7 +16,7 @@ let matchType: AutoCompleteMatchType = 'prefix';
 let generator = createGenerator({}, defaultConfig);
 let autocomplete = createAutocomplete(generator);
 
-export async function resolveConfig(rootDir: string) {
+async function resolveConfig(rootDir: string) {
   const loadResult = await loadConfig(process.cwd(), rootDir, [
     sourcePluginFactory({
       files: [
@@ -45,7 +45,7 @@ export async function resolveConfig(rootDir: string) {
   deprecationCheck(loadResult.config);
 
   generator.setConfig(loadResult.config, defaultConfig);
-  autocomplete = createAutocomplete(generator, { matchType });
+  autocomplete = createAutocomplete(generator, {matchType});
 
   // we need to trim all fields except the name to avoid circular references
   // which will cause problems when calling JSON.stringify()
@@ -64,14 +64,14 @@ export async function resolveConfig(rootDir: string) {
   };
 }
 
-export async function updateSettings(newMatchType: AutoCompleteMatchType) {
+async function updateSettings(newMatchType: AutoCompleteMatchType) {
   log('updateSettings: matchType', newMatchType)
   matchType = newMatchType;
 
-  autocomplete = createAutocomplete(generator, { matchType });
+  autocomplete = createAutocomplete(generator, {matchType});
 }
 
-export async function getComplete(content: string, maxItems: number | undefined) {
+async function getComplete(content: string, maxItems: number | undefined) {
   let suggestions = await autocomplete.suggest(content, true);
   return Promise.all(suggestions.slice(0, maxItems).map(async (suggestion) => {
     return {
@@ -90,7 +90,7 @@ type ResolveCSSResult = GenerateResult & {
   remToPxPreview?: number
 }
 
-export async function resolveCSS(item: string) {
+async function resolveCSS(item: string) {
   const annotations = await applyTransformers(generator, item)
   const input = annotations && annotations.length > 0
     ? annotations.map(it => it.className).join(' ')
@@ -102,10 +102,10 @@ export async function resolveCSS(item: string) {
   return result;
 }
 
-export async function resolveCSSByOffset(content: string, cursor: number) {
+async function resolveCSSByOffset(content: string, cursor: number) {
   const boundaryContent = searchUsageBoundary(content, cursor)?.content;
   if (!boundaryContent)
-      return null;
+    return null;
   const result: ResolveCSSResult
     = await generator.generate(boundaryContent, {preflights: false, safelist: false});
   result.matchedTokens = Array.from(result.matched || []);
@@ -118,11 +118,11 @@ export async function resolveCSSByOffset(content: string, cursor: number) {
  * @param code
  * @see https://github.com/unocss/unocss/blob/main/packages/shared-common/src/index.ts#L188
  */
-export async function resolveAnnotations(id: string, code: string) {
+async function resolveAnnotations(id: string, code: string) {
   return await getMatchedPositionsFromCode(generator, code, id);
 }
 
-export async function resolveBreakpoints() {
+async function resolveBreakpoints() {
   let breakpoints;
   if (generator.userConfig && generator.userConfig.theme)
     breakpoints = generator.userConfig.theme.breakpoints;

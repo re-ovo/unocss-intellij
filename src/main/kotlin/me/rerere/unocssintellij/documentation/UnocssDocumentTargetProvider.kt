@@ -18,6 +18,7 @@ import me.rerere.unocssintellij.util.attributeNameOnlyElementTypes
 import me.rerere.unocssintellij.util.inCssThemeFunction
 import me.rerere.unocssintellij.util.isLeafJsLiteral
 import me.rerere.unocssintellij.util.isScreenDirectiveIdent
+import me.rerere.unocssintellij.util.isUnocssCandidate
 
 private val classNameRE = Regex("""\w+:\([^)]+\)|\S+""")
 private val variantNameRE = Regex("""(\w+):\(([^)]+)\)""")
@@ -85,7 +86,7 @@ class UnocssDocumentTargetProvider : DocumentationTargetProvider {
                 targets.add(UnocssThemeScreenDocumentationTarget(element))
             }
 
-            else -> {
+            element.isUnocssCandidate() -> {
                 val matchResult = meta.resolveCss() ?: return
                 if (matchResult.matchedTokens.isNotEmpty()) {
                     targets.add(UnocssAttributeDocumentationTarget(element, matchResult))

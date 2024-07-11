@@ -131,6 +131,19 @@ async function resolveBreakpoints() {
   return { breakpoints };
 }
 
+async function resolveToken(raw: string, alias?: string) {
+  let result = await generator.parseToken(raw, alias);
+  if (!result) {
+    return {result: []}
+  }
+
+  return {
+    result: result.map(([index, selector, body, parent, _, __, noMerge]) => ({
+      index, selector, body, parent, noMerge
+    }))
+  };
+}
+
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
@@ -173,5 +186,7 @@ async function handle_command(command: string, data: any) {
       return await resolveAnnotations(data.id, data.content)
     case "resolveBreakpoints":
       return await resolveBreakpoints()
+    case "resolveToken":
+      return await resolveToken(data.raw, data.alias)
   }
 }

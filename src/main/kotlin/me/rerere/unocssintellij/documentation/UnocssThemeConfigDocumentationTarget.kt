@@ -10,7 +10,7 @@ import com.intellij.platform.backend.presentation.TargetPresentation
 import com.intellij.psi.PsiElement
 import me.rerere.unocssintellij.UnocssConfigManager
 import me.rerere.unocssintellij.util.appendHighlightedCss
-import me.rerere.unocssintellij.util.parseHexColor
+import me.rerere.unocssintellij.util.appendUnocssColorPreview
 
 class UnocssThemeConfigDocumentationTarget(
     private val targetElement: PsiElement?,
@@ -40,14 +40,7 @@ class UnocssThemeConfigDocumentationTarget(
                 append(DocumentationMarkup.DEFINITION_END)
 
                 append(DocumentationMarkup.CONTENT_START)
-                val color = parseHexColor(configValue)
-                if (color != null) {
-                    val style =
-                        "display: inline-block; height: 16px; width: 16px; background-color: $configValue"
-                    append("<div style=\"$style\"></div>")
-                }
-
-                append("Unocss Config Theme")
+                appendUnocssColorPreview(targetElement.project, configValue)
                 append(DocumentationMarkup.CONTENT_END)
             })
         }

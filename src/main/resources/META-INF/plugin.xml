@@ -24,20 +24,12 @@
 
     <change-notes><![CDATA[
       <ul>
-        <li>Support Color Picker now, you can click the color icon to change color</li>
-        <li>Support custom regex for JS string</li>
-        <li>Improve performance by using cache</li>
-        <li>Fixed @apply/@screen warning in Vue</li>
-        <li>Support show MDN document</li>
-        <li>Improved Code folding</li>
+        <li>Support CSS style quick documentation in completion list</li>
+        <li>Support preview selection style (via right-click menu)</li>
       </ul>
       <ul>
-        <li>你现在可以点击颜色图标来直接修改颜色了(只支持部分常见模式)</li>
-        <li>支持自定义正则匹配JS字符串</li>
-        <li>使用缓存改进解析性能</li>
-        <li>修复@apply/@screen警告(Vue)</li>
-        <li>支持显示MDN文档</li>
-        <li>改进代码折叠</li>
+        <li>支持补全列表预览 CSS 样式文档</li>
+        <li>支持预览选中代码的样式 (通过右键菜单)</li>
       </ul>
     ]]></change-notes>
 
@@ -171,6 +163,31 @@
         <!--                implementation="me.rerere.unocssintellij.references.classname.UnocssClassNameReferenceContributor"-->
         <!--                language="JavaScript"/>-->
     </extensions>
+
+    <actions>
+        <group
+            id="UnoCSS"
+            text="UnoCSS"
+            description="UnoCSS"
+            popup="true"
+        >
+            <action
+                id="Unocss.SelectionStylePreviewInPopupAction"
+                class="me.rerere.unocssintellij.action.UnocssSelectionStylePreviewInPopupAction"
+                text="Show Selected Style in Popup"
+                description="Show style by selection in popup"
+            />
+
+            <action
+                id="Unocss.SelectionStylePreviewInToolWindowAction"
+                class="me.rerere.unocssintellij.action.UnocssSelectionStylePreviewInToolWindowAction"
+                text="Show Selected Style in Tool Window"
+                description="Show style by selection in tool window"
+            />
+
+            <add-to-group group-id="EditorPopupMenu" anchor="first"/>
+        </group>
+    </actions>
 
     <projectListeners>
         <listener

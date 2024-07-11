@@ -30,6 +30,8 @@ import me.rerere.unocssintellij.rpc.ResolveCSSByOffsetCommandData
 import me.rerere.unocssintellij.rpc.ResolveCSSCommandData
 import me.rerere.unocssintellij.rpc.ResolveCSSResult
 import me.rerere.unocssintellij.rpc.ResolveConfigResult
+import me.rerere.unocssintellij.rpc.ResolveTokenResult
+import me.rerere.unocssintellij.rpc.ResolveTokenResultCommandData
 import me.rerere.unocssintellij.rpc.RpcAction
 import me.rerere.unocssintellij.rpc.SuggestionItem
 import me.rerere.unocssintellij.rpc.SuggestionItemList
@@ -53,7 +55,7 @@ private val SENSITIVE_FILES = listOf(
 )
 
 @Service(Service.Level.PROJECT)
-class UnocssService(private val project: Project, private val scope: CoroutineScope) : Disposable {
+class UnocssService(private val project: Project, val scope: CoroutineScope) : Disposable {
 
     private var unocssProcess: UnocssProcess? = null
 
@@ -258,17 +260,12 @@ class UnocssService(private val project: Project, private val scope: CoroutineSc
 
     suspend fun resolveCss(file: VirtualFile?, content: String): ResolveCSSResult? {
         val process = getProcess(file) ?: return null
-        return process.sendCommand<ResolveCSSCommandData, ResolveCSSResult>(
-            RpcAction.ResolveCss,
-            ResolveCSSCommandData(
-                content = content
-            )
-        )
+        return process.sendCommand(RpcAction.ResolveCss, ResolveCSSCommandData(content))
     }
 
     suspend fun resolveAnnotations(file: VirtualFile?, content: String): ResolveAnnotationsResult? {
         val process = getProcess(file) ?: return null
-        return process.sendCommand<ResolveAnnotationsCommandData, ResolveAnnotationsResult>(
+        return process.sendCommand(
             RpcAction.ResolveAnnotations,
             ResolveAnnotationsCommandData(
                 id = file?.path ?: "",
@@ -279,9 +276,14 @@ class UnocssService(private val project: Project, private val scope: CoroutineSc
 
     suspend fun resolveBreakpoints(file: VirtualFile?): ResolveBreakpointsResult? {
         val process = getProcess(file) ?: return null
-        return process.sendCommand<Unit, ResolveBreakpointsResult>(
-            RpcAction.ResolveBreakpoints,
-            null
+        return process.sendCommand(RpcAction.ResolveBreakpoints, null)
+    }
+
+    suspend fun resolveToken(file: VirtualFile?, raw: String, alias: String? = null): ResolveTokenResult? {
+        val process = getProcess(file) ?: return null
+        return process.sendCommand(
+            RpcAction.ResolveToken,
+            ResolveTokenResultCommandData(raw, alias)
         )
     }
 }

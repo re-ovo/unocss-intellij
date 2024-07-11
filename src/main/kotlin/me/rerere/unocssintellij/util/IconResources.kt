@@ -8,7 +8,7 @@ import javax.swing.Icon
 
 object IconResources {
     @JvmField
-    val PluginIcon = IconLoader.getIcon("/icons/pluginIcon.svg", javaClass)
+    val PluginIcon = IconLoader.getIcon("/icons/pluginIcon.svg", IconResources.javaClass.classLoader)
 }
 
 private val unoFileTypes = arrayOf(

@@ -10,25 +10,15 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.LanguageTextField
 import com.intellij.ui.components.JBCheckBox
-import com.intellij.ui.components.JBScrollPane
-import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.*
 import com.intellij.util.ui.JBEmptyBorder
-import com.intellij.util.ui.JBInsets
-import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.MacUIUtil
 import me.rerere.unocssintellij.UnocssService
 import me.rerere.unocssintellij.settings.UnocssSettingsState.ColorAndIconPreviewType
 import me.rerere.unocssintellij.settings.UnocssSettingsState.MatchType
+import me.rerere.unocssintellij.util.RoundedBorder
 import me.rerere.unocssintellij.util.UnocssBundle
 import org.intellij.lang.regexp.RegExpLanguage
 import java.awt.*
-import java.awt.geom.Area
-import java.awt.geom.Path2D
-import java.awt.geom.RoundRectangle2D
-import javax.swing.border.Border
-import javax.swing.plaf.UIResource
-import kotlin.math.max
 
 class UnocssSettingsConfigurable(private val project: Project) : BoundSearchableConfigurable(
     displayName = "Unocss",
@@ -166,7 +156,12 @@ class UnocssSettingsConfigurable(private val project: Project) : BoundSearchable
 
             addSettingsProvider { editor ->
                 editor.contentComponent.border = JBEmptyBorder(3, 5, 3, 5)
-                editor.setBorder(LanguageTextFieldBorder())
+                editor.setBorder(
+                    RoundedBorder(
+                        DarculaUIUtil.getOutlineColor(true, false),
+                        DarculaUIUtil.COMPONENT_ARC.get(),
+                    )
+                )
                 editor.setVerticalScrollbarVisible(true)
                 ReadAction.run<Throwable> {
                     SpellCheckingEditorCustomizationProvider.getInstance()
@@ -187,100 +182,3 @@ class UnocssSettingsConfigurable(private val project: Project) : BoundSearchable
         settings.updateJsLiteralMatchPatterns(settings.jsLiteralMatchRegexPatterns)
     }
 }
-
-class LanguageTextFieldBorder : Border, UIResource {
-
-    override fun paintBorder(c: Component?, g: Graphics?, x: Int, y: Int, width: Int, height: Int) {
-        if ((c !is LanguageTextField && c !is JBScrollPane) || g !is Graphics2D) {
-            return
-        }
-
-        val r = Rectangle(x, y, width, height)
-
-        // Fill outside part
-        val arc = DarculaUIUtil.COMPONENT_ARC.float
-        val shape = Area(Rectangle(x, y, width, height))
-        shape.subtract(Area(RoundRectangle2D.Float(
-            r.x + 0.5f, r.y + 0.5f, r.width - 1f, r.height - 1f, arc, arc
-        )))
-        g.color = c.parent?.background ?: c.background
-        g.fill(shape)
-
-        // Paint border
-        val outline = DarculaUIUtil.getOutline(JBTextField())
-        paintComponentBorder(g, r, outline, c.hasFocus())
-    }
-
-    override fun getBorderInsets(c: Component?) = JBUI.insets(4)
-
-    override fun isBorderOpaque() = false
-}
-
-// ========== ported from com.intellij.ide.ui.laf.darcula.DarculaNewUIUtils
-
-private fun paintComponentBorder(
-    g: Graphics,
-    rect: Rectangle,
-    outline: DarculaUIUtil.Outline?,
-    focused: Boolean,
-) {
-    val g2 = g.create() as Graphics2D
-
-    try {
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-        g2.setRenderingHint(
-            RenderingHints.KEY_STROKE_CONTROL,
-            if (MacUIUtil.USE_QUARTZ) RenderingHints.VALUE_STROKE_PURE else RenderingHints.VALUE_STROKE_NORMALIZE
-        )
-
-        val lw = DarculaUIUtil.LW.get()
-        val bw = DarculaUIUtil.BW.get()
-        val arc = DarculaUIUtil.COMPONENT_ARC.get()
-
-        when {
-            outline != null -> {
-                outline.setGraphicsColor(g2, focused)
-                paintRectangle(g2, rect, arc, bw)
-            }
-
-            focused -> {
-                DarculaUIUtil.Outline.focus.setGraphicsColor(g2, true)
-                paintRectangle(g2, rect, arc, bw)
-            }
-
-            else -> {
-                g2.color = DarculaUIUtil.getOutlineColor(true, false)
-                paintRectangle(g2, rect, arc, lw)
-            }
-        }
-    } finally {
-        g2.dispose()
-    }
-}
-
-private fun paintRectangle(g: Graphics2D, rect: Rectangle, arc: Int, thick: Int) {
-    val addToRect = thick - DarculaUIUtil.LW.get()
-    if (addToRect > 0) {
-        @Suppress("UseDPIAwareInsets")
-        JBInsets.addTo(rect, Insets(addToRect, addToRect, addToRect, addToRect))
-    }
-
-    val w = thick.toFloat()
-    val border = Path2D.Float(Path2D.WIND_EVEN_ODD)
-    border.append(
-        RoundRectangle2D.Float(
-            0f,
-            0f,
-            rect.width.toFloat(),
-            rect.height.toFloat(),
-            arc.toFloat(),
-            arc.toFloat()
-        ), false
-    )
-    val innerArc = max(arc.toFloat() - thick * 2, 0.0f)
-    border.append(RoundRectangle2D.Float(w, w, rect.width - w * 2, rect.height - w * 2, innerArc, innerArc), false)
-
-    g.translate(rect.x, rect.y)
-    g.fill(border)
-}
-

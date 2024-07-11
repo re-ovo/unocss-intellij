@@ -88,7 +88,8 @@ abstract class UnocssCompletionProvider : CompletionProvider<CompletionParameter
             val colors = parseColors(suggestion.css)
             val icon = parseIcons(suggestion.css)
 
-            val lookupObj = UnocssCompletionLookupSymbol(suggestion, project).createPointer()
+            val lookupObj = UnocssCompletionLookupSymbol(suggestion, project)
+                .createPointer()
             completionResult.addElement(
                 LookupElementBuilder
                     .create(lookupObj, className)

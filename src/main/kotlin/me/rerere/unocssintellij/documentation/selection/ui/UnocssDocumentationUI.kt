@@ -11,7 +11,6 @@ import com.intellij.openapi.editor.impl.EditorCssFontResolver
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
-import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.util.text.HtmlChunk
 import com.intellij.platform.util.coroutines.flow.collectLatestUndispatched
 import com.intellij.ui.ClientProperty
@@ -42,8 +41,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import me.rerere.unocssintellij.documentation.selection.resolveSelectionStyle
 import me.rerere.unocssintellij.documentation.selection.ui.UnocssDocumentationDef.docPopupMaxHeight
 import me.rerere.unocssintellij.documentation.selection.ui.UnocssDocumentationDef.docPopupMaxWidth
 import me.rerere.unocssintellij.documentation.selection.ui.UnocssDocumentationDef.docPopupMinWidth
@@ -336,13 +333,7 @@ class UnocssDocumentationScrollPane : JBScrollPane(VERTICAL_SCROLLBAR_AS_NEEDED,
     }
 }
 
-data class SelectionResult(
-    val document: com.intellij.openapi.editor.Document,
-    val content: String,
-    val textRange: TextRange
-)
-
-class UnocssDocumentationUI(val project: Project, initialResult: SelectionResult) : Disposable {
+class UnocssDocumentationUI(val project: Project, initialStyle: String?) : Disposable {
 
     private val scrollPane = UnocssDocumentationScrollPane()
 
@@ -355,7 +346,9 @@ class UnocssDocumentationUI(val project: Project, initialResult: SelectionResult
 
     private val cs = CoroutineScope(Dispatchers.EDT)
 
-    private val myContentFlow = MutableStateFlow<SelectionResult?>(initialResult)
+    private val myContentFlow = MutableStateFlow<String?>(initialStyle)
+
+    val hasContent get() = myContentFlow.value != null
 
     private val myContentUpdates = MutableSharedFlow<ContentUpdateEvent>(
         replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST
@@ -364,9 +357,11 @@ class UnocssDocumentationUI(val project: Project, initialResult: SelectionResult
 
     init {
         scrollPane.setViewportView(editorPane)
-        trackDocumentationBackgroundChange(this) {
+        trackEditorBackgroundChange(this) {
             scrollPane.background = it.backgroundColor
             scrollPane.border = RoundedBorder(it.borderColor, 10)
+            // reload content highlighting style to follow current theme
+            handleContent(myContentFlow.value)
         }
 
         cs.launch(CoroutineName("DocumentationUI content update"), start = CoroutineStart.UNDISPATCHED) {
@@ -376,16 +371,16 @@ class UnocssDocumentationUI(val project: Project, initialResult: SelectionResult
         }
     }
 
-    private suspend fun handleContent(selectionResult: SelectionResult?) {
+    private suspend fun handleContent(selectionStyle: String?) {
         try {
-            val selectionStyle = resolveSelectionStyle(project, selectionResult)
             if (selectionStyle.isNullOrBlank()) {
                 presentationPane.icon = AllIcons.General.Information
                 presentationPane.text = "Please select some text to preview UnoCSS styles."
-                editorPane.text = ""
+                scrollPane.isVisible = false
             } else {
                 presentationPane.text = "UnoCSS utilities in the selection will be equivalent to:"
                 presentationPane.icon = if (presentationPane.iconVisible) IconResources.PluginIcon else null
+                scrollPane.isVisible = true
                 val decorated = decorateHtmlContent(selectionStyle)
                 editorPane.text = decorated
             }
@@ -393,6 +388,7 @@ class UnocssDocumentationUI(val project: Project, initialResult: SelectionResult
             println("generateMergedCss Failed! ${e.message}")
             presentationPane.icon = AllIcons.General.Error
             presentationPane.text = "Cannot parse current selection!"
+            scrollPane.isVisible = true
             editorPane.text = e.message ?: "Unknown error"
         }
 
@@ -410,22 +406,20 @@ class UnocssDocumentationUI(val project: Project, initialResult: SelectionResult
         append(DocumentationMarkup.DEFINITION_END)
     }
 
-    private fun trackDocumentationBackgroundChange(disposable: Disposable,
-                                                   onChange: (StyledCodeStyleDefinition) -> Unit) {
+    private inline fun trackEditorBackgroundChange(
+        disposable: Disposable,
+        crossinline onChange: suspend (StyledCodeStyleDefinition) -> Unit
+    ) {
         val job = cs.launch {
-            editorPane.editorBackgroundFlow.collectLatest {
-                withContext(Dispatchers.EDT) {
-                    onChange(it)
-                }
-            }
+            editorPane.editorBackgroundFlow.collectLatest { onChange(it) }
         }
         Disposer.register(disposable) {
             job.cancel()
         }
     }
 
-    suspend fun updateContent(it: SelectionResult?) {
-        myContentFlow.emit(it)
+    fun updateContent(it: String?) {
+        myContentFlow.value = it
     }
 
     override fun dispose() {

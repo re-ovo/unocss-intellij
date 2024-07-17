@@ -2,24 +2,21 @@ package me.rerere.unocssintellij.documentation.selection.ui
 
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.EDT
-import com.intellij.openapi.application.readAction
 import com.intellij.openapi.editor.EditorFactory
-import com.intellij.openapi.editor.event.EditorMouseEvent
-import com.intellij.openapi.editor.event.EditorMouseListener
+import com.intellij.openapi.editor.event.SelectionEvent
+import com.intellij.openapi.editor.event.SelectionListener
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.ui.content.Content
 import com.intellij.util.ui.EDT
 import com.intellij.util.ui.JBUI
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import me.rerere.unocssintellij.documentation.selection.getSelectionRange
-import me.rerere.unocssintellij.documentation.selection.parseSelectionForUnocss
+import me.rerere.unocssintellij.documentation.selection.lookupSelectionMatchedPositions
+import me.rerere.unocssintellij.documentation.selection.mergeCss
 import java.awt.BorderLayout
 import javax.swing.JPanel
 import kotlin.coroutines.EmptyCoroutineContext
@@ -57,7 +54,7 @@ class UnocssDocumentationToolWindowUI(
         }
 
         EditorFactory.getInstance().eventMulticaster.apply {
-            addEditorMouseListener(EditorMouseDragListener(), content.toolWindowUI)
+            addSelectionListener(MyEditorSelectionListener(), content.toolWindowUI)
         }
     }
 
@@ -66,23 +63,29 @@ class UnocssDocumentationToolWindowUI(
         content.putUserData(TW_UI_KEY, null)
     }
 
-    private inner class EditorMouseDragListener : EditorMouseListener {
-        override fun mouseReleased(event: EditorMouseEvent) {
-            cs.launch(start = CoroutineStart.UNDISPATCHED) {
-                // Waiting for editor selection state update...
-                delay(80)
-                val selectionRange = readAction {
-                    event.editor.getSelectionRange()
-                }
-                if (selectionRange == null) {
-                    ui.updateContent(null)
-                } else {
-                    val selection = withContext(Dispatchers.IO) {
-                        readAction {
-                            event.editor.parseSelectionForUnocss(selectionRange)
-                        }
+    private inner class MyEditorSelectionListener : SelectionListener {
+        override fun selectionChanged(event: SelectionEvent) {
+            if (event.newRange.isEmpty) {
+                ui.updateContent(null)
+                return
+            }
+            if (event.oldRanges.contentEquals(event.newRanges)) return
+            val project = event.editor.project ?: return
+            val psiFile = PsiDocumentManager.getInstance(project)
+                .getPsiFile(event.editor.document) ?: return
+
+            cs.launch(Dispatchers.EDT) {
+                val matchedPositions = lookupSelectionMatchedPositions(psiFile, event.newRanges)
+
+                if (ui.hasContent) {
+                    val oldMatchedPositions = lookupSelectionMatchedPositions(psiFile, event.oldRanges)
+                    if (!oldMatchedPositions.contentEquals(matchedPositions)) {
+                        val selectionStyle = mergeCss(matchedPositions, project)
+                        ui.updateContent(selectionStyle)
                     }
-                    ui.updateContent(SelectionResult(event.editor.document, selection, selectionRange))
+                } else {
+                    val selectionStyle = mergeCss(matchedPositions, project)
+                    ui.updateContent(selectionStyle)
                 }
             }
         }
@@ -98,4 +101,26 @@ private fun CoroutineScope.updateContentTab(content: Content): Disposable {
         content.displayName = "Selection Style"
     }
     return Disposable(updateJob::cancel)
+}
+
+private infix fun <T> List<T>?.contentEquals(other: List<T>?): Boolean {
+    if (this == null || other == null) {
+        return false
+    }
+    if (this === other) {
+        return true
+    }
+
+    val length = this.size
+    if (other.size != length) {
+        return false
+    }
+
+    for (i in 0 ..< length) {
+        if (this[i] != other[i]) {
+            return false
+        }
+    }
+
+    return true
 }

@@ -151,7 +151,7 @@ private fun resizePopup(popup: AbstractPopup) {
 
 internal fun Dimension.adjustForEvent(popup: AbstractPopup): Dimension {
     // when navigating, allow only for making the control wider
-    val curSize = popup.size
+    val curSize = popup.size ?: return this
     if (curSize.width > width) {
         return Dimension(curSize.width, WidthBasedLayout.getPreferredHeight(popup.component, curSize.width))
     }

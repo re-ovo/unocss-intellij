@@ -47,7 +47,21 @@ export async function resolveConfig(rootDir: string) {
   generator.setConfig(loadResult.config, defaultConfig);
   autocomplete = createAutocomplete(generator, { matchType });
 
-  return generator.config;
+  // we need to trim all fields except the name to avoid circular references
+  // which will cause problems when calling JSON.stringify()
+  return {
+    presets: generator.config.presets?.map(item => {
+      return {
+        name: item.name,
+      }
+    }) ?? [],
+    transformers: generator.config.transformers?.map(item => {
+      return {
+        name: item.name,
+      }
+    }) ?? [],
+    theme: generator.config.theme
+  };
 }
 
 export async function updateSettings(newMatchType: AutoCompleteMatchType) {

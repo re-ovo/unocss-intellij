@@ -49,14 +49,13 @@ class UnocssAttributeExternalAnnotator : ExternalAnnotator<UnocssInitInfo, Unocs
 
         val cachedValue = collectedInfo.matchedPosition
 
-
         val matchedPositions = cachedValue.value ?: return null
         return UnocssAnnotationResult(matchedPositions)
     }
 
     override fun apply(file: PsiFile, annotationResult: UnocssAnnotationResult?, holder: AnnotationHolder) {
         annotationResult?.annotations
-            ?.filter { file.findElementAt(it.start)?.isUnocssCandidate() ?: false }
+            ?.filter { file.findElementAt(it.start)?.isUnocssCandidate() == true }
             ?.forEach {
                 holder.newSilentAnnotation(HighlightSeverity.TEXT_ATTRIBUTES)
                     .range(TextRange.create(it.start, it.end))

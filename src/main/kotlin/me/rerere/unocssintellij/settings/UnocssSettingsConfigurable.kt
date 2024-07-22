@@ -10,7 +10,19 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.LanguageTextField
 import com.intellij.ui.components.JBCheckBox
-import com.intellij.ui.dsl.builder.*
+import com.intellij.ui.dsl.builder.AlignY
+import com.intellij.ui.dsl.builder.Cell
+import com.intellij.ui.dsl.builder.RightGap
+import com.intellij.ui.dsl.builder.RowLayout
+import com.intellij.ui.dsl.builder.TopGap
+import com.intellij.ui.dsl.builder.bind
+import com.intellij.ui.dsl.builder.bindIntText
+import com.intellij.ui.dsl.builder.bindSelected
+import com.intellij.ui.dsl.builder.bindText
+import com.intellij.ui.dsl.builder.bindValue
+import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.builder.selected
+import com.intellij.ui.dsl.builder.toMutableProperty
 import com.intellij.util.ui.JBEmptyBorder
 import me.rerere.unocssintellij.UnocssService
 import me.rerere.unocssintellij.settings.UnocssSettingsState.ColorAndIconPreviewType
@@ -18,7 +30,7 @@ import me.rerere.unocssintellij.settings.UnocssSettingsState.MatchType
 import me.rerere.unocssintellij.util.RoundedBorder
 import me.rerere.unocssintellij.util.UnocssBundle
 import org.intellij.lang.regexp.RegExpLanguage
-import java.awt.*
+import java.awt.Dimension
 
 class UnocssSettingsConfigurable(private val project: Project) : BoundSearchableConfigurable(
     displayName = "Unocss",

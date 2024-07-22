@@ -90,21 +90,30 @@ abstract class UnocssCompletionProvider : CompletionProvider<CompletionParameter
 
             val lookupObj = UnocssCompletionLookupSymbol(suggestion, project)
                 .createPointer()
-            completionResult.addElement(
-                LookupElementBuilder
-                    .create(lookupObj, className)
-                    .withPresentableText(className)
-                    .withIcon(
-                        if (colors.isNotEmpty()) {
-                            ColorIcon(16, colors.first())
-                        } else if (icon != null) {
-                            SVGIcon.tryGetIcon(icon, 20).getOrNull()
-                        } else PluginIcon
-                    )
-            )
+            var lookupElementBuilder = LookupElementBuilder
+                .create(lookupObj, className)
+                .withPresentableText(className)
+                .withIcon(
+                    if (colors.isNotEmpty()) {
+                        ColorIcon(16, colors.first())
+                    } else if (icon != null) {
+                        SVGIcon.tryGetIcon(icon, 20).getOrNull()
+                    } else PluginIcon
+                )
+
+            lookupElementBuilder = customizeLookupElement(lookupElementBuilder, typingPrefix, className, parameters.position)
+
+            completionResult.addElement(lookupElementBuilder)
         }
 
         result.restartCompletionOnAnyPrefixChange()
+    }
+
+    protected open fun customizeLookupElement(lookupElement: LookupElementBuilder,
+                                              typingPrefix: String,
+                                              className: String,
+                                              position: PsiElement): LookupElementBuilder {
+        return lookupElement
     }
 
     protected open fun shouldSkip(position: PsiElement): Boolean {

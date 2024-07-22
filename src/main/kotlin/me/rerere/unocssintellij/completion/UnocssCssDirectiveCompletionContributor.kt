@@ -86,8 +86,8 @@ object UnocssCssDirectiveCompletionProvider : CompletionProvider<CompletionParam
                                 .create(it)
                                 .withIcon(PluginIcon)
                                 .withInsertHandler { insertionCtx, _ ->
-                                    insertionCtx.document.insertString(insertionCtx.selectionEndOffset, ": ")
-                                    insertionCtx.editor.caretModel.moveToOffset(insertionCtx.selectionEndOffset)
+                                    insertionCtx.document.insertString(insertionCtx.selectionEndOffset, ": ;")
+                                    insertionCtx.editor.caretModel.moveToOffset(insertionCtx.selectionEndOffset - 1)
                                 }
                         )
                     }
@@ -120,8 +120,8 @@ object UnocssCssDirectiveCompletionProvider : CompletionProvider<CompletionParam
                             .withPresentableText("@apply")
                             .withIcon(PluginIcon)
                             .withInsertHandler { insertionCtx, _ ->
-                                insertionCtx.document.insertString(insertionCtx.selectionEndOffset, " ")
-                                insertionCtx.editor.caretModel.moveToOffset(insertionCtx.selectionEndOffset)
+                                insertionCtx.document.insertString(insertionCtx.selectionEndOffset, " ;")
+                                insertionCtx.editor.caretModel.moveToOffset(insertionCtx.selectionEndOffset - 1)
                             }
                     )
                 } else {

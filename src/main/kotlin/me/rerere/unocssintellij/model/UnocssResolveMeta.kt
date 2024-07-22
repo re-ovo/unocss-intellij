@@ -10,7 +10,7 @@ import me.rerere.unocssintellij.rpc.ResolveCSSResult
 import me.rerere.unocssintellij.util.buildDummyDivTag
 
 data class UnocssResolveMeta(
-    var bindElement: PsiElement,
+    val bindElement: PsiElement,
     val attrName: String,
     val attrValue: String? = null,
     val wrapDom: Boolean = attrValue != null,

@@ -101,7 +101,7 @@
                 implementationClass="me.rerere.unocssintellij.marker.line.UnocssCssLineMarkerProvider"
         />
         <codeInsight.inlayProviderFactory
-                implementation="me.rerere.unocssintellij.marker.inlay.UnocssColorPreviewInlayHitsProviderFactory"/>
+                implementation="me.rerere.unocssintellij.marker.inlay.UnocssColorPreviewInlayHintsProviderFactory"/>
 
         <!-- 工具栏 -->
         <statusBarWidgetFactory

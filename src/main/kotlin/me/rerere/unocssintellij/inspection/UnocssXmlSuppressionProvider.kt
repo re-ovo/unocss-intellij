@@ -4,6 +4,7 @@ import com.intellij.codeInspection.XmlSuppressionProvider
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.elementType
+import com.intellij.psi.util.siblings
 import com.intellij.psi.xml.XmlElementType
 import me.rerere.unocssintellij.UnocssConfigManager
 import me.rerere.unocssintellij.model.UnocssResolveMeta
@@ -16,6 +17,7 @@ class UnocssXmlSuppressionProvider : XmlSuppressionProvider() {
     companion object {
         private const val HTML_UNKNOWN_ATTRIBUTE = "HtmlUnknownAttribute"
         private const val HTML_UNKNOWN_TAG = "HtmlUnknownTag"
+        private const val ESLINT = "Eslint"
     }
 
     override fun isProviderAvailable(file: PsiFile) = true
@@ -27,7 +29,8 @@ class UnocssXmlSuppressionProvider : XmlSuppressionProvider() {
     }
 
     override fun isSuppressedFor(element: PsiElement, inspectionId: String): Boolean {
-        if (element.elementType == XmlElementType.XML_NAME && inspectionId == HTML_UNKNOWN_ATTRIBUTE) {
+        if (element.elementType == XmlElementType.XML_NAME
+            && (inspectionId == HTML_UNKNOWN_ATTRIBUTE || inspectionId == ESLINT)) {
             return suppressForUnknownAttribute(element)
         }
 
@@ -54,7 +57,9 @@ class UnocssXmlSuppressionProvider : XmlSuppressionProvider() {
         val attrName = attrElement.text
         val attrValue = if (onlyAttributeName) null else {
             // XML_EQ -> XML_ATTRIBUTE_VALUE
-            attrElement.nextSibling?.nextSibling?.text?.trim('"', '{', '}', '[', ']')
+            attrElement.siblings()
+                .firstOrNull { it.elementType == XmlElementType.XML_ATTRIBUTE_VALUE }
+                ?.text?.trim('"', '{', '}', '[', ']')
         }
 
         val matchResult = UnocssResolveMeta(attrElement, attrName, attrValue, true).resolveCss()
@@ -67,5 +72,6 @@ class UnocssXmlSuppressionProvider : XmlSuppressionProvider() {
         }
     }
 
-    private fun attributeNameOnlyMatchCandidate(attributeName: String) = "[$attributeName=\"\"]"
+    private fun attributeNameOnlyMatchCandidate(attributeName: String) =
+        if (attributeName.indexOf('[') > 0) attributeName else "[$attributeName=\"\"]"
 }

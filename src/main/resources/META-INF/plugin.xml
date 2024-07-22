@@ -26,10 +26,16 @@
       <ul>
         <li>Support CSS style quick documentation in completion list</li>
         <li>Support preview selection style (via right-click menu)</li>
+        <li>Add inlay hints for theme function</li>
+        <li>Fix attributify Prefix self-referencing highlighting missing</li>
+        <li>suppress Eslint inspection</li>
       </ul>
       <ul>
         <li>支持补全列表预览 CSS 样式文档</li>
         <li>支持预览选中代码的样式 (通过右键菜单)</li>
+        <li>为 theme 函数添加内联颜色预览</li>
+        <li>修复 attributify 预设中前缀自引用("~")高亮丢失</li>
+        <li>抑制 Eslint 警告</li>
       </ul>
     ]]></change-notes>
 

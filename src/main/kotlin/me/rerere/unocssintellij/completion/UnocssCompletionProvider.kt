@@ -15,12 +15,12 @@ import com.intellij.psi.PsiFile
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ui.ColorIcon
 import me.rerere.unocssintellij.UnocssService
+import me.rerere.unocssintellij.documentation.UnocssCompletionLookupSymbol
 import me.rerere.unocssintellij.marker.SVGIcon
 import me.rerere.unocssintellij.rpc.SuggestionItem
 import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.util.parseColors
 import me.rerere.unocssintellij.util.parseIcons
-import me.rerere.unocssintellij.util.trimCss
 
 data class PrefixHolder(
     /**
@@ -87,22 +87,33 @@ abstract class UnocssCompletionProvider : CompletionProvider<CompletionParameter
 
             val colors = parseColors(suggestion.css)
             val icon = parseIcons(suggestion.css)
-            completionResult.addElement(
-                LookupElementBuilder
-                    .create(className)
-                    .withPresentableText(className)
-                    .withIcon(
-                        if (colors.isNotEmpty()) {
-                            ColorIcon(16, colors.first())
-                        } else if (icon != null) {
-                            SVGIcon.tryGetIcon(icon, 20).getOrNull()
-                        } else PluginIcon
-                    )
-                    .withTailText(trimCss(suggestion.css), true)
-            )
+
+            val lookupObj = UnocssCompletionLookupSymbol(suggestion, project)
+                .createPointer()
+            var lookupElementBuilder = LookupElementBuilder
+                .create(lookupObj, className)
+                .withPresentableText(className)
+                .withIcon(
+                    if (colors.isNotEmpty()) {
+                        ColorIcon(16, colors.first())
+                    } else if (icon != null) {
+                        SVGIcon.tryGetIcon(icon, 20).getOrNull()
+                    } else PluginIcon
+                )
+
+            lookupElementBuilder = customizeLookupElement(lookupElementBuilder, typingPrefix, className, parameters.position)
+
+            completionResult.addElement(lookupElementBuilder)
         }
 
         result.restartCompletionOnAnyPrefixChange()
+    }
+
+    protected open fun customizeLookupElement(lookupElement: LookupElementBuilder,
+                                              typingPrefix: String,
+                                              className: String,
+                                              position: PsiElement): LookupElementBuilder {
+        return lookupElement
     }
 
     protected open fun shouldSkip(position: PsiElement): Boolean {

@@ -3,7 +3,11 @@ package me.rerere.unocssintellij.util
 import com.intellij.lang.ecmascript6.psi.ES6ImportedBinding
 import com.intellij.lang.javascript.JavaScriptFileType
 import com.intellij.lang.javascript.TypeScriptFileType
-import com.intellij.lang.javascript.psi.*
+import com.intellij.lang.javascript.psi.JSElement
+import com.intellij.lang.javascript.psi.JSLiteralExpression
+import com.intellij.lang.javascript.psi.JSObjectLiteralExpression
+import com.intellij.lang.javascript.psi.JSProperty
+import com.intellij.lang.javascript.psi.JSReferenceExpression
 import com.intellij.openapi.project.Project
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.PsiElement
@@ -58,6 +62,12 @@ internal fun buildDummyDivTag(vararg attributes: Pair<String, String?>) = buildS
     }
     append(" >")
 }
+
+val attributeNameOnlyElementTypes = setOf(
+    XmlElementType.XML_NAME,
+    CssElementTypes.CSS_IDENT,
+    CssElementTypes.CSS_STRING_TOKEN
+)
 
 val annotationAcceptableElementTypes = setOf(
     XmlElementType.XML_ATTRIBUTE_VALUE_TOKEN,

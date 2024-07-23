@@ -16,6 +16,7 @@ enum class RpcAction(val key: String) {
     ResolveCssByOffset("resolveCSSByOffset"),
     ResolveAnnotations("resolveAnnotations"),
     ResolveBreakpoints("resolveBreakpoints"),
+    ResolveToken("resolveToken"),
 }
 
 data class ResolveConfigResult(
@@ -47,8 +48,7 @@ data class SuggestionItem(
     val css: String
 )
 
-class SuggestionItemList : ArrayList<SuggestionItem>()
-
+typealias SuggestionItemList = List<SuggestionItem>
 
 data class ResolveCSSByOffsetCommandData(
     val content: String,
@@ -80,3 +80,20 @@ data class ResolveAnnotationsResult(
 data class ResolveBreakpointsResult(
     val breakpoints: Map<String, String>
 )
+
+data class ResolveTokenResultCommandData(
+    val raw: String,
+    val alias: String? = null
+)
+
+data class ResolveTokenResult(
+    val result: List<StringifiedUtil>?
+) {
+    data class StringifiedUtil(
+        val index: Int,
+        val selector: String?,
+        val body: String,
+        val parent: String?,
+        val noMerge: Boolean?,
+    )
+}

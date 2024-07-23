@@ -4,14 +4,16 @@ import me.rerere.unocssintellij.rpc.ResolveAnnotationsResult
 
 private val lessGreaterThanSignRE = Regex("[><]")
 private val spaceQuoteRE = Regex("[\\s'\"]")
-private val escapeRE = Regex("""[.*+?^${"$"}{}()|\[\]\\]""")
+private val escapeRE = Regex("""[$.*+?^{}()|\[\]\\]""")
 
 private val attributifyRE = Regex("^\\[(.+?)~?=\"(.*)\"]\$")
 private val splitWithVariantGroupRE = Regex("""([\\:]?[\s"'`;<>]|:\(|\)"|\)\s)""")
-private val quotedArbitraryValuesRE = Regex("""(?:[\w&:\[\]-]|\[\S+=\S+])+\[\\?['"]?\S+?['"]]]?[\w:-]*""")
-private val arbitraryPropertyRE = Regex("""\[(\\\W|[\w-])+:[^\s:]*?("\S+?"|'\S+?'|`\S+?`|[^\s:]+?)[^\s:]*?\)?]""")
+private val quotedArbitraryValuesRE =
+    Regex("""(?:[\w&:\[\]-]|\[\S{1,64}=\S{1,64}]){1,64}\[\\?['"]?\S{1,64}?['"]]]?[\w:-]{0,64}""")
+private val arbitraryPropertyRE =
+    Regex("""\[(\\\W|[\w-]){1,64}:[^\s:]{0,64}?("\S{1,64}?"|'\S{1,64}?'|`\S{1,64}?`|[^\s:]{1,64}?)[^\s:]{0,64}?\)?]""")
 
-private fun escapeRegExp(string: String) = string.replace(escapeRE, "\\$&")
+private fun escapeRegExp(string: String) = string.replace(escapeRE, """\\$0""")
 
 private fun splitWithVariantGroup(string: String): List<String> {
     val result = mutableListOf<String>()
@@ -51,6 +53,7 @@ fun getMatchedPositions(
     val attributify = mutableListOf<MatchResult>()
     val plain = mutableSetOf<String>()
 
+    // highlight classes that includes `><`
     fun highlightLessGreaterThanSign(str: String) {
         if (str.matches(lessGreaterThanSignRE)) {
             Regex(escapeRegExp(str)).findAll(code).forEach {
@@ -72,21 +75,24 @@ fun getMatchedPositions(
         }
     }
 
-    var s = 0
+    // highlight for plain classes
+    var start = 0
     splitWithVariantGroup(code).forEach {
-        val e = s + it.length
+        val end = start + it.length
         if (plain.contains(it)) {
-            result += MatchedPosition(s, e, it)
+            result += MatchedPosition(start, end, it)
         }
-        s = e
+        start = end
     }
 
+    // highlight for quoted arbitrary values
     quotedArbitraryValuesRE.findAll(code).forEach {
         if (plain.contains(it.value)) {
             result += MatchedPosition(it.range.first, it.range.last, it.value)
         }
     }
 
+    // highlight for arbitrary css properties
     arbitraryPropertyRE.findAll(code).forEach {
         if (plain.contains(it.value)) {
             val found = result.find { e ->
@@ -98,26 +104,25 @@ fun getMatchedPositions(
         }
     }
 
+    // attributify values
     attributify.forEach {
         val name = it.groupValues[1]
         val value = it.groupValues[2]
 
-        val regex =
-            Regex("(${escapeRegExp(name)}=)(['\"])(?:(?!\\2).)*?${escapeRegExp(value)}(?:(?!\\2).)*?")
+        val regex = Regex("(${escapeRegExp(name)}=)(['\"])(?:(?!\\2).)*?${escapeRegExp(value)}(?:(?!\\2).)*?\\2")
         regex.findAll(code).forEach reg@{ match ->
             val escaped = match.groupValues[1]
             val body = match.value.substring(escaped.length)
-            var bodyIndex = Regex("(?:\\b|[\\s'\"])${escapeRegExp(value)}(?:\\b|[\\s'\"])")
+            var bodyIndex = Regex("(?:\\b|\\s|['\"])${escapeRegExp(value)}(?:\\b|\\s|['\"])")
                 .find(body)?.range?.first ?: -1
-            if (bodyIndex < 0) {
-                return@reg
-            }
-            if (spaceQuoteRE.matches(body[bodyIndex].toString())) {
+            if (spaceQuoteRE.matches(body at bodyIndex)) {
                 bodyIndex++
             }
-            val startIdx = match.range.first + escaped.length + bodyIndex
-            val endIdx = startIdx + value.length
-            result += MatchedPosition(startIdx, endIdx, "[${name}=\"${value}\"]")
+            if (bodyIndex >= 0) {
+                val startIdx = match.range.first + escaped.length + bodyIndex
+                val endIdx = startIdx + value.length
+                result += MatchedPosition(startIdx, endIdx, "[${name}=\"${value}\"]")
+            }
         }
     }
 
@@ -126,3 +131,5 @@ fun getMatchedPositions(
     }
     return result.sortedBy { it.start }
 }
+
+private infix fun String.at(index: Int): String = if (index < 0) "" else this[index].toString()

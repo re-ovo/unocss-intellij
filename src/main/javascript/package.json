@@ -21,6 +21,6 @@
     "unocss": "^0.61.5"
   },
   "dependencies": {
-    "esbuild": "0.19.11"
+    "esbuild": "0.23.0"
   }
 }

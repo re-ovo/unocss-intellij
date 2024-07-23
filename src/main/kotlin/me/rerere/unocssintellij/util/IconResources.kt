@@ -7,8 +7,8 @@ import com.intellij.openapi.vfs.VirtualFile
 import javax.swing.Icon
 
 object IconResources {
-    @JvmStatic
-    val PluginIcon = IconLoader.getIcon("/icons/pluginIcon.svg", javaClass)
+    @JvmField
+    val PluginIcon = IconLoader.getIcon("/icons/pluginIcon.svg", IconResources.javaClass.classLoader)
 }
 
 private val unoFileTypes = arrayOf(
@@ -16,7 +16,7 @@ private val unoFileTypes = arrayOf(
     "unocss.config"
 )
 
-class UnoIconProvider: FileIconProvider {
+class UnoIconProvider : FileIconProvider {
     override fun getIcon(file: VirtualFile, flags: Int, project: Project?): Icon? {
         if (file.nameWithoutExtension in unoFileTypes) {
             return IconResources.PluginIcon

@@ -18,6 +18,7 @@ import com.intellij.psi.util.parentOfType
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ui.ColorIcon
 import me.rerere.unocssintellij.UnocssConfigManager
+import me.rerere.unocssintellij.documentation.UnocssThemeConfigCompletionLookupSymbol
 import me.rerere.unocssintellij.util.UnoConfigHelper
 import me.rerere.unocssintellij.util.inCssThemeFunction
 import me.rerere.unocssintellij.util.isScreenDirectiveIdent
@@ -63,16 +64,13 @@ object UnocssCssDirectiveCompletionProvider : CompletionProvider<CompletionParam
                 if (position.inCssThemeFunction()) {
                     UnocssConfigManager.themeEntries.forEach { (k, v) ->
                         val color = parseHexColor(v)
+                        val symbol = UnocssThemeConfigCompletionLookupSymbol(v, position.project)
+                            .createPointer()
                         result.addElement(
                             LookupElementBuilder
-                                .create(k)
-                                .withTailText("  $v")
+                                .create(symbol, k)
                                 .withTypeText("Unocss theme")
-                                .withIcon(
-                                    if (color != null) {
-                                        ColorIcon(16, color)
-                                    } else PluginIcon
-                                )
+                                .withIcon(color?.let { ColorIcon(16, color) } ?: PluginIcon)
                         )
                     }
                 }
@@ -88,8 +86,8 @@ object UnocssCssDirectiveCompletionProvider : CompletionProvider<CompletionParam
                                 .create(it)
                                 .withIcon(PluginIcon)
                                 .withInsertHandler { insertionCtx, _ ->
-                                    insertionCtx.document.insertString(insertionCtx.selectionEndOffset, ": ")
-                                    insertionCtx.editor.caretModel.moveToOffset(insertionCtx.selectionEndOffset)
+                                    insertionCtx.document.insertString(insertionCtx.selectionEndOffset, ": ;")
+                                    insertionCtx.editor.caretModel.moveToOffset(insertionCtx.selectionEndOffset - 1)
                                 }
                         )
                     }
@@ -122,8 +120,8 @@ object UnocssCssDirectiveCompletionProvider : CompletionProvider<CompletionParam
                             .withPresentableText("@apply")
                             .withIcon(PluginIcon)
                             .withInsertHandler { insertionCtx, _ ->
-                                insertionCtx.document.insertString(insertionCtx.selectionEndOffset, " ")
-                                insertionCtx.editor.caretModel.moveToOffset(insertionCtx.selectionEndOffset)
+                                insertionCtx.document.insertString(insertionCtx.selectionEndOffset, " ;")
+                                insertionCtx.editor.caretModel.moveToOffset(insertionCtx.selectionEndOffset - 1)
                             }
                     )
                 } else {

@@ -3,17 +3,7 @@
 package me.rerere.unocssintellij.marker.inlay
 
 import com.intellij.codeInsight.hint.HintManager
-import com.intellij.codeInsight.hints.ChangeListener
-import com.intellij.codeInsight.hints.FactoryInlayHintsCollector
-import com.intellij.codeInsight.hints.ImmediateConfigurable
-import com.intellij.codeInsight.hints.InlayHintsCollector
-import com.intellij.codeInsight.hints.InlayHintsProvider
-import com.intellij.codeInsight.hints.InlayHintsProviderFactory
-import com.intellij.codeInsight.hints.InlayHintsSink
-import com.intellij.codeInsight.hints.InlayPresentationFactory
-import com.intellij.codeInsight.hints.NoSettings
-import com.intellij.codeInsight.hints.ProviderInfo
-import com.intellij.codeInsight.hints.SettingsKey
+import com.intellij.codeInsight.hints.*
 import com.intellij.codeInsight.hints.presentation.InlayPresentation
 import com.intellij.codeInsight.hints.presentation.MouseButton
 import com.intellij.codeInsight.hints.presentation.ScaleAwarePresentationFactory
@@ -36,7 +26,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.css.CssFunction
 import com.intellij.psi.impl.source.tree.LeafPsiElement
-import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttributeValue
@@ -49,29 +38,16 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.ui.picker.ColorListener
 import com.intellij.util.ui.ColorIcon
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
+import com.zxy.ijplugin.wechat_miniprogram.lang.wxml.WXMLLanguage
+import kotlinx.coroutines.*
 import me.rerere.unocssintellij.UnocssConfigManager
 import me.rerere.unocssintellij.UnocssService
-import me.rerere.unocssintellij.highlighting.UnocssAnnotationsMatchedPositionCacheProvider
 import me.rerere.unocssintellij.marker.SVGIcon
 import me.rerere.unocssintellij.marker.inlay.UnocssColorPreviewInlayHintsProviderFactory.Meta
 import me.rerere.unocssintellij.model.UnocssResolveMeta
 import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.settings.UnocssSettingsState.ColorAndIconPreviewType.INLAY_HINT
-import me.rerere.unocssintellij.util.MatchedPosition
-import me.rerere.unocssintellij.util.getMatchedPositions
-import me.rerere.unocssintellij.util.inCssThemeFunction
-import me.rerere.unocssintellij.util.isLeafJsLiteral
-import me.rerere.unocssintellij.util.isUnocssCandidate
-import me.rerere.unocssintellij.util.parseColors
-import me.rerere.unocssintellij.util.parseHexColor
-import me.rerere.unocssintellij.util.parseIcons
-import me.rerere.unocssintellij.util.toHex
+import me.rerere.unocssintellij.util.*
 import java.awt.Color
 import java.awt.Cursor
 import java.awt.Point
@@ -104,6 +80,20 @@ class UnocssColorPreviewInlayHintsProviderFactory : InlayHintsProviderFactory {
             .map { UnocssColorPreviewInlayHintsProvider }
     }
 }
+
+class UnocssColorPreviewInlayHintsProviderFactoryWXML : InlayHintsProviderFactory {
+    override fun getProvidersInfo() = listOf(
+        ProviderInfo(WXMLLanguage.INSTANCE, UnocssColorPreviewInlayHintsProvider)
+    )
+
+    override fun getLanguages(): Iterable<Language> {
+        return listOf(WXMLLanguage.INSTANCE)
+    }
+
+    override fun getProvidersInfoForLanguage(language: Language): List<InlayHintsProvider<out Any>> {
+        return listOf(UnocssColorPreviewInlayHintsProvider)
+    }
+ }
 
 object UnocssColorPreviewInlayHintsProvider : InlayHintsProvider<NoSettings> {
 

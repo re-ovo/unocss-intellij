@@ -1,0 +1,23 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij">
+        <completion.contributor
+                language="WXML"
+                implementationClass="me.rerere.unocssintellij.completion.UnocssAttributeCompletionContributor"
+                order="first"
+        />
+        <codeInsight.lineMarkerProvider
+                language="WXML"
+                implementationClass="me.rerere.unocssintellij.marker.line.UnocssHtmlLineMarkerProvider"
+        />
+        <externalAnnotator
+                language="WXML"
+                implementationClass="me.rerere.unocssintellij.highlighting.UnocssAttributeExternalAnnotator"/>
+        <lang.foldingBuilder
+                language="WXML"
+                implementationClass="me.rerere.unocssintellij.folding.UnocssClassAttributeFoldBuilder"
+        />
+        <codeInsight.inlayProviderFactory
+                implementation="me.rerere.unocssintellij.marker.inlay.UnocssColorPreviewInlayHintsProviderFactoryWXML"
+        />
+    </extensions>
+</idea-plugin>

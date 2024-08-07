@@ -5,7 +5,7 @@ import java.util.*
 
 plugins {
     id("java")
-    id("org.jetbrains.kotlin.jvm") version "1.9.24"
+    id("org.jetbrains.kotlin.jvm") version "2.0.10"
     id("org.jetbrains.intellij") version "1.17.3"
 }
 
@@ -26,7 +26,10 @@ intellij {
     version = "2024.1"
     type = "IU" // Target IDE Platform
 
-    plugins = listOf("JavaScript")
+    plugins = listOf(
+        "JavaScript",
+        "com.zxy.ijplugin.wechat-miniprogram:3.5.17",
+    )
 }
 
 fun properties(key: String) = project.findProperty(key).toString()

@@ -116,7 +116,7 @@ private infix fun <T> List<T>?.contentEquals(other: List<T>?): Boolean {
         return false
     }
 
-    for (i in 0 ..< length) {
+    for (i in 0 until  length) {
         if (this[i] != other[i]) {
             return false
         }

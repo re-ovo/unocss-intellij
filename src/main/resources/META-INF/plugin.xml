@@ -46,6 +46,9 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.css</depends>
     <depends>JavaScript</depends>
+    <depends optional="true" config-file="unocss-wxml.xml">
+        com.zxy.ijplugin.wechat-miniprogram
+    </depends>
 
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
@@ -61,7 +64,7 @@
                 displayName="UnoCSS"
         />
 
-        <fileIconProvider implementation="me.rerere.unocssintellij.util.UnoIconProvider" />
+        <fileIconProvider implementation="me.rerere.unocssintellij.util.UnoIconProvider"/>
 
         <!-- 代码补全 -->
         <completion.contributor
@@ -107,7 +110,8 @@
                 implementationClass="me.rerere.unocssintellij.marker.line.UnocssCssLineMarkerProvider"
         />
         <codeInsight.inlayProviderFactory
-                implementation="me.rerere.unocssintellij.marker.inlay.UnocssColorPreviewInlayHintsProviderFactory"/>
+                implementation="me.rerere.unocssintellij.marker.inlay.UnocssColorPreviewInlayHintsProviderFactory"
+        />
 
         <!-- 工具栏 -->
         <statusBarWidgetFactory
@@ -172,23 +176,23 @@
 
     <actions>
         <group
-            id="UnoCSS"
-            text="UnoCSS"
-            description="UnoCSS"
-            popup="true"
+                id="UnoCSS"
+                text="UnoCSS"
+                description="UnoCSS"
+                popup="true"
         >
             <action
-                id="Unocss.SelectionStylePreviewInPopupAction"
-                class="me.rerere.unocssintellij.action.UnocssSelectionStylePreviewInPopupAction"
-                text="Show Selected Style in Popup"
-                description="Show style by selection in popup"
+                    id="Unocss.SelectionStylePreviewInPopupAction"
+                    class="me.rerere.unocssintellij.action.UnocssSelectionStylePreviewInPopupAction"
+                    text="Show Selected Style in Popup"
+                    description="Show style by selection in popup"
             />
 
             <action
-                id="Unocss.SelectionStylePreviewInToolWindowAction"
-                class="me.rerere.unocssintellij.action.UnocssSelectionStylePreviewInToolWindowAction"
-                text="Show Selected Style in Tool Window"
-                description="Show style by selection in tool window"
+                    id="Unocss.SelectionStylePreviewInToolWindowAction"
+                    class="me.rerere.unocssintellij.action.UnocssSelectionStylePreviewInToolWindowAction"
+                    text="Show Selected Style in Tool Window"
+                    description="Show style by selection in tool window"
             />
 
             <add-to-group group-id="EditorPopupMenu" anchor="first"/>

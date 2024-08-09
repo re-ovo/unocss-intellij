@@ -9,8 +9,8 @@ import com.intellij.codeInsight.hints.presentation.MouseButton
 import com.intellij.codeInsight.hints.presentation.ScaleAwarePresentationFactory
 import com.intellij.lang.Language
 import com.intellij.lang.css.CSSLanguage
-import com.intellij.lang.html.HTMLLanguage
 import com.intellij.lang.javascript.JavascriptLanguage
+import com.intellij.lang.xml.XMLLanguage
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.writeAction
@@ -38,7 +38,6 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.ui.picker.ColorListener
 import com.intellij.util.ui.ColorIcon
-import com.zxy.ijplugin.wechat_miniprogram.lang.wxml.WXMLLanguage
 import kotlinx.coroutines.*
 import me.rerere.unocssintellij.UnocssConfigManager
 import me.rerere.unocssintellij.UnocssService
@@ -59,7 +58,7 @@ class UnocssColorPreviewInlayHintsProviderFactory : InlayHintsProviderFactory {
 
     object Meta {
         val supportedLanguages = setOf(
-            HTMLLanguage.INSTANCE,
+            XMLLanguage.INSTANCE,
             CSSLanguage.INSTANCE,
             JavascriptLanguage.INSTANCE,
         )
@@ -80,20 +79,6 @@ class UnocssColorPreviewInlayHintsProviderFactory : InlayHintsProviderFactory {
             .map { UnocssColorPreviewInlayHintsProvider }
     }
 }
-
-class UnocssColorPreviewInlayHintsProviderFactoryWXML : InlayHintsProviderFactory {
-    override fun getProvidersInfo() = listOf(
-        ProviderInfo(WXMLLanguage.INSTANCE, UnocssColorPreviewInlayHintsProvider)
-    )
-
-    override fun getLanguages(): Iterable<Language> {
-        return listOf(WXMLLanguage.INSTANCE)
-    }
-
-    override fun getProvidersInfoForLanguage(language: Language): List<InlayHintsProvider<out Any>> {
-        return listOf(UnocssColorPreviewInlayHintsProvider)
-    }
- }
 
 object UnocssColorPreviewInlayHintsProvider : InlayHintsProvider<NoSettings> {
 

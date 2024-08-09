@@ -46,9 +46,6 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.css</depends>
     <depends>JavaScript</depends>
-    <depends optional="true" config-file="unocss-wxml.xml">
-        com.zxy.ijplugin.wechat-miniprogram
-    </depends>
 
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
@@ -68,7 +65,7 @@
 
         <!-- 代码补全 -->
         <completion.contributor
-                language="HTML"
+                language="XML"
                 implementationClass="me.rerere.unocssintellij.completion.UnocssAttributeCompletionContributor"
                 order="first"
         />
@@ -98,7 +95,7 @@
 
         <!-- 图标 -->
         <codeInsight.lineMarkerProvider
-                language="HTML"
+                language="XML"
                 implementationClass="me.rerere.unocssintellij.marker.line.UnocssHtmlLineMarkerProvider"
         />
         <codeInsight.lineMarkerProvider
@@ -121,7 +118,7 @@
 
         <!-- 属性标注 -->
         <externalAnnotator
-                language="HTML"
+                language="XML"
                 implementationClass="me.rerere.unocssintellij.highlighting.UnocssAttributeExternalAnnotator"/>
         <externalAnnotator
                 language="JavaScript"
@@ -132,7 +129,7 @@
 
         <!-- 代码折叠 -->
         <lang.foldingBuilder
-                language="HTML"
+                language="XML"
                 implementationClass="me.rerere.unocssintellij.folding.UnocssClassAttributeFoldBuilder"
         />
         <lang.foldingBuilder
@@ -146,7 +143,7 @@
 
         <!-- preset/attributify 下抑制警告 -->
         <lang.inspectionSuppressor
-                language="HTML"
+                language="XML"
                 implementationClass="me.rerere.unocssintellij.inspection.UnocssXmlSuppressionProvider"/>
         <lang.inspectionSuppressor
                 language="JavaScript"
@@ -168,7 +165,7 @@
                 implementation="me.rerere.unocssintellij.references.css.UnocssCssReferenceContributor"/>
         <!--        <psi.referenceContributor-->
         <!--                implementation="me.rerere.unocssintellij.references.classname.UnocssClassNameReferenceContributor"-->
-        <!--                language="HTML"/>-->
+        <!--                language="XML"/>-->
         <!--        <psi.referenceContributor-->
         <!--                implementation="me.rerere.unocssintellij.references.classname.UnocssClassNameReferenceContributor"-->
         <!--                language="JavaScript"/>-->

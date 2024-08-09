@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "me.rerere"
-version = "1.7.1"
+version = "1.7.2"
 
 repositories {
     mavenCentral()
@@ -26,10 +26,7 @@ intellij {
     version = "2024.1"
     type = "IU" // Target IDE Platform
 
-    plugins = listOf(
-        "JavaScript",
-        "com.zxy.ijplugin.wechat-miniprogram:3.5.17",
-    )
+    plugins = listOf("JavaScript")
 }
 
 fun properties(key: String) = project.findProperty(key).toString()

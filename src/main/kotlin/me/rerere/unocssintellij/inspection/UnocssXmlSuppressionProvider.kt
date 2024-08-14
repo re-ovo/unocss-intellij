@@ -59,7 +59,7 @@ class UnocssXmlSuppressionProvider : XmlSuppressionProvider() {
             // XML_EQ -> XML_ATTRIBUTE_VALUE
             attrElement.siblings()
                 .firstOrNull { it.elementType == XmlElementType.XML_ATTRIBUTE_VALUE }
-                ?.text?.trim('"', '{', '}', '[', ']')
+                ?.text?.trim('"', '{', '}')
         }
 
         val matchResult = UnocssResolveMeta(attrElement, attrName, attrValue, true).resolveCss()

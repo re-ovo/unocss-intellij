@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "me.rerere"
-version = "1.7.2"
+version = "1.7.3"
 
 repositories {
     mavenCentral()
@@ -23,7 +23,7 @@ dependencies {
 // Configure Gradle IntelliJ Plugin
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
-    version = "2024.1"
+    version = "2024.2"
     type = "IU" // Target IDE Platform
 
     plugins = listOf("JavaScript")

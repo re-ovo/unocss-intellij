@@ -5,35 +5,39 @@
   "scripts": {
     "dev": "node src/service.ts",
     "prepare": "esno scripts/prepare.ts",
-    "build": "esbuild src/service.ts --bundle --minify --outfile=../../../unojs/service.js --platform=node --target=node12"
+    "build": "rollup --config rollup.config.js"
   },
   "devDependencies": {
     "@antfu/utils": "^0.7.10",
+    "@babel/preset-env": "^7.25.3",
     "@iconify/json": "^2.2.233",
     "@iconify/types": "^2.0.0",
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^20.14.11",
-    "@unocss/autocomplete": "^0.61.5",
-    "@unocss/config": "^0.61.5",
-    "@unocss/core": "^0.61.5",
-    "@unocss/nuxt": "^0.61.5",
+    "@unocss/autocomplete": "^0.62.2",
+    "@unocss/config": "^0.62.2",
+    "@unocss/core": "^0.62.2",
+    "@unocss/nuxt": "^0.62.2",
     "defu": "^6.1.4",
     "esno": "^4.7.0",
     "fs-extra": "^11.2.0",
     "jiti": "^1.21.6",
     "lru-cache": "^10.4.3",
     "magic-string": "^0.30.10",
+    "rollup": "^4.20.0",
+    "tslib": "^2.6.3",
     "unconfig": "^0.3.13",
-    "unocss": "^0.61.5"
+    "unocss": "^0.62.2"
   },
   "dependencies": {
-    "esbuild": "0.23.0"
+    "@rollup/plugin-babel": "^6.0.4",
+    "@rollup/plugin-commonjs": "^26.0.1",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.6"
   },
   "contributes": {
     "configuration": {
-      "properties": {
-
-      }
+      "properties": {}
     }
   }
 }

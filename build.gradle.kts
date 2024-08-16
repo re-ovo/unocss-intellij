@@ -64,10 +64,21 @@ tasks {
     task("processJavaScript") {
         inputs.dir("src/main/javascript/src")
         inputs.file("src/main/javascript/package.json")
+        inputs.file("src/main/javascript/babel.config.json")
+        inputs.file("src/main/javascript/tsconfig.json")
+        inputs.file("src/main/javascript/rollup.config.js")
         outputs.dir("${project.projectDir}/unojs")
         outputs.cacheIf { true }
 
         doFirst {
+            file("${project.projectDir}/unojs")
+                .takeIf { it.exists() }
+                ?.let {
+                    it.listFiles()?.forEach { file ->
+                        println("del $file")
+                        file.delete()
+                    }
+                }
             exec {
                 workingDir("${project.projectDir}/src/main/javascript")
                 val npm = if (Os.isFamily(Os.FAMILY_WINDOWS)) "npm.cmd" else "npm"

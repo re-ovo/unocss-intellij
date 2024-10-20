@@ -8,6 +8,8 @@ export default {
     output: {
         dir: '../../../unojs',
         format: 'cjs',
+        preserveModules: true,
+        entryFileNames: '[name].cjs',
     },
     plugins: [
         typescript(),

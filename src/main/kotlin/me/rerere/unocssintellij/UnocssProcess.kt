@@ -42,7 +42,7 @@ class UnocssProcess(project: Project, context: VirtualFile) : Disposable {
         val configurator = NodeCommandLineConfigurator.find(interpreter)
         val directory = JSLanguageServiceUtil.getPluginDirectory(Unocss::class.java, "unojs")
             ?: error("Plugin directory not found")
-        val exe = "${directory}${File.separator}service.js"
+        val exe = "${directory}${File.separator}src${File.separator}service.cjs"
         val commandLine = GeneralCommandLine("", exe)
         configurator.configure(commandLine)
         println("[UnoProcess] Command line: $commandLine")

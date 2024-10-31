@@ -45,7 +45,7 @@ class UnocssAttributeDocumentationTarget(
             DocumentationResult.documentation(buildString {
                 append(DocumentationMarkup.DEFINITION_START)
                 append("<code>")
-                appendHighlightedCss(project, result.css)
+                appendHighlightedCss(project, cssFile.text)
                 append("</code></pre>")
 
                 appendUnocssColorPreview(project, result.css)

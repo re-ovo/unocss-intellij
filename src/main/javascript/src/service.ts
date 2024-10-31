@@ -100,8 +100,20 @@ async function resolveCSS(item: string) {
 
   const result: ResolveCSSResult
     = await generator.generate(input, {preflights: false, safelist: false});
-  result.matchedTokens = Array.from(result.matched || []);
-  return result;
+
+  // 添加rem转换px注释 #86
+  const cssWithComments = result.css.replace(/(\d*\.?\d+)rem/g, (match) => {
+    const pxValue = parseFloat(match) * 16; // 默认字体大小为16px
+    return `${match}; /* ${pxValue}px */`;
+  });
+  const modifiedResult = {
+    ...result,
+    css: cssWithComments
+  };
+
+  modifiedResult.matchedTokens = Array.from(result.matched || []);
+
+  return modifiedResult;
 }
 
 async function resolveCSSByOffset(content: string, cursor: number) {

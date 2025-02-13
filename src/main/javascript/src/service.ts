@@ -127,8 +127,10 @@ async function resolveAnnotations(id: string, code: string) {
 async function resolveBreakpoints() {
   let breakpoints;
   if (generator.userConfig && generator.userConfig.theme)
+    // @ts-expect-error ignore breakpoints type error
     breakpoints = generator.userConfig.theme.breakpoints;
   if (!breakpoints)
+    // @ts-expect-error ignore breakpoints type error
     breakpoints = generator.config.theme.breakpoints;
   return { breakpoints };
 }

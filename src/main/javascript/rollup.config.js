@@ -7,9 +7,9 @@ export default {
     input: 'src/service.ts',
     output: {
         dir: '../../../unojs',
-        format: 'cjs',
+        format: 'es',
         preserveModules: true,
-        entryFileNames: '[name].cjs',
+        entryFileNames: '[name].mjs',
     },
     plugins: [
         typescript(),

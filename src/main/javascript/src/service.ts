@@ -1,5 +1,5 @@
 import {type GenerateResult, presetUno} from "unocss";
-import {createGenerator} from "@unocss/core";
+import {createGenerator, UnoGenerator} from "@unocss/core";
 import {type AutoCompleteMatchType, createAutocomplete, searchUsageBoundary} from "@unocss/autocomplete";
 import readline from "readline";
 import {deprecationCheck, resolveNuxtOptions} from "./utils";
@@ -14,7 +14,7 @@ console.log('[UnoProcess]', `Hello from service.js! ${process.cwd()}`);
 const defaultConfig = {presets: [presetUno()]};
 
 let matchType: AutoCompleteMatchType = 'prefix';
-let generator = createGenerator({}, defaultConfig);
+let generator : UnoGenerator<object> = await createGenerator({}, defaultConfig);
 let autocomplete = createAutocomplete(generator);
 
 async function resolveConfig(rootDir: string) {
@@ -45,7 +45,7 @@ async function resolveConfig(rootDir: string) {
   }
   deprecationCheck(loadResult.config);
 
-  generator.setConfig(loadResult.config, defaultConfig);
+  await generator.setConfig(loadResult.config, defaultConfig);
   autocomplete = createAutocomplete(generator, {matchType});
 
   // we need to trim all fields except the name to avoid circular references

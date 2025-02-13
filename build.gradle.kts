@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "me.rerere"
-version = "1.7.5"
+version = "1.8.0"
 
 repositories {
     mavenCentral()
@@ -48,7 +48,7 @@ tasks {
 
     patchPluginXml {
         sinceBuild = "241"
-        untilBuild = "243.*"
+        untilBuild = "251.*"
     }
 
     signPlugin {
@@ -100,7 +100,7 @@ tasks {
     runIde {
         val idePath = getLocalProperty("IDE_PATH") as String?
         idePath?.let {
-            ideDir = file(idePath)
+            // ideDir = file(idePath)
         }
     }
 }

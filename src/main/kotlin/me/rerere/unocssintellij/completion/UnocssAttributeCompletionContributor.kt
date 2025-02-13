@@ -11,10 +11,10 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
+import com.intellij.psi.util.startOffset
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlElementType
 import com.intellij.psi.xml.XmlTag
-import com.intellij.refactoring.suggested.startOffset
 import me.rerere.unocssintellij.UnocssConfigManager
 import me.rerere.unocssintellij.rpc.SuggestionItem
 import me.rerere.unocssintellij.settings.UnocssSettingsState

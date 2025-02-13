@@ -27,12 +27,12 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.css.CssFunction
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.elementType
+import com.intellij.psi.util.endOffset
 import com.intellij.psi.util.parentOfType
+import com.intellij.psi.util.startOffset
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlElementType
 import com.intellij.psi.xml.XmlToken
-import com.intellij.refactoring.suggested.endOffset
-import com.intellij.refactoring.suggested.startOffset
 import com.intellij.ui.ColorChooserService
 import com.intellij.ui.JBColor
 import com.intellij.ui.awt.RelativePoint

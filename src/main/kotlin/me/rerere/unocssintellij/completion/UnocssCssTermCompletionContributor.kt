@@ -15,11 +15,7 @@ import com.intellij.psi.css.impl.CssElementTypes
 import com.intellij.psi.css.impl.CssRulesetImpl
 import com.intellij.psi.filters.ElementFilter
 import com.intellij.psi.filters.position.FilterPattern
-import com.intellij.psi.util.elementType
-import com.intellij.psi.util.parentOfType
-import com.intellij.psi.util.parentOfTypes
-import com.intellij.refactoring.suggested.endOffset
-import com.intellij.refactoring.suggested.startOffset
+import com.intellij.psi.util.*
 import me.rerere.unocssintellij.util.UnoConfigHelper
 
 class UnocssCssTermCompletionContributor : CompletionContributor() {

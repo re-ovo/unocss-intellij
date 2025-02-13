@@ -10,8 +10,8 @@ import com.intellij.psi.css.impl.CssElementType
 import com.intellij.psi.impl.source.xml.XmlAttributeValueImpl
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfTypes
+import com.intellij.psi.util.startOffset
 import com.intellij.psi.xml.XmlTokenType
-import com.intellij.refactoring.suggested.startOffset
 import me.rerere.unocssintellij.model.UnocssResolveMeta
 import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.util.attributeNameOnlyElementTypes

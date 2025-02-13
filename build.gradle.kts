@@ -23,7 +23,7 @@ dependencies {
 // Configure Gradle IntelliJ Plugin
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
-    version = "2024.2"
+    version = "2024.3"
     type = "IU" // Target IDE Platform
 
     plugins = listOf("JavaScript")

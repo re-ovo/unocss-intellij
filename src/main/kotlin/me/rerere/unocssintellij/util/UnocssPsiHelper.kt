@@ -22,7 +22,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
-import com.intellij.psi.xml.XmlElementType
+import com.intellij.psi.xml.XmlTokenType
 import com.intellij.xml.util.HtmlUtil
 import me.rerere.unocssintellij.Unocss
 
@@ -64,14 +64,14 @@ internal fun buildDummyDivTag(vararg attributes: Pair<String, String?>) = buildS
 }
 
 val attributeNameOnlyElementTypes = setOf(
-    XmlElementType.XML_NAME,
+    XmlTokenType.XML_NAME,
     CssElementTypes.CSS_IDENT,
     CssElementTypes.CSS_STRING_TOKEN
 )
 
 val annotationAcceptableElementTypes = setOf(
-    XmlElementType.XML_ATTRIBUTE_VALUE_TOKEN,
-    XmlElementType.XML_NAME,
+    XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN,
+    XmlTokenType.XML_NAME,
     CssElementTypes.CSS_STRING_TOKEN,
     CssElementTypes.CSS_IDENT,
 )
@@ -141,8 +141,8 @@ internal fun PsiElement.isScreenDirectiveIdent(): Boolean {
 }
 
 internal fun Project.findUnoConfigFile(): PsiFile? {
-    val tsFiles = FileTypeIndex.getFiles(TypeScriptFileType.INSTANCE, GlobalSearchScope.allScope(this))
-    val jsFiles = FileTypeIndex.getFiles(JavaScriptFileType.INSTANCE, GlobalSearchScope.allScope(this))
+    val tsFiles = FileTypeIndex.getFiles(TypeScriptFileType, GlobalSearchScope.allScope(this))
+    val jsFiles = FileTypeIndex.getFiles(JavaScriptFileType, GlobalSearchScope.allScope(this))
 
     val candidateFiles = (tsFiles + jsFiles)
     val configFile = candidateFiles.firstOrNull { file -> Unocss.ConfigFiles.contains(file.name) } ?: return null

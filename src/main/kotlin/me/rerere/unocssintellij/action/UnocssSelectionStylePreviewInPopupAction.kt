@@ -3,7 +3,6 @@ package me.rerere.unocssintellij.action
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopupFactory
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.ui.JBColor
 import com.intellij.ui.WindowRoundedCornersManager

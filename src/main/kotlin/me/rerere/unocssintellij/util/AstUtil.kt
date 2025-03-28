@@ -5,7 +5,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.XmlElementFactory
 import com.intellij.psi.util.elementType
 import com.intellij.psi.xml.XmlAttributeValue
-import com.intellij.psi.xml.XmlElementType
+import com.intellij.psi.xml.XmlTokenType
 
 fun createXmlAttributeValueToken(project: Project, value: String): PsiElement? {
     val attribute = XmlElementFactory
@@ -13,6 +13,6 @@ fun createXmlAttributeValueToken(project: Project, value: String): PsiElement? {
         .createXmlAttribute("class", value.trim('"'))
     val attributeValue = attribute.valueElement as XmlAttributeValue
     return attributeValue.children.firstOrNull {
-        it.elementType == XmlElementType.XML_ATTRIBUTE_VALUE_TOKEN
+        it.elementType == XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN
     }
 }

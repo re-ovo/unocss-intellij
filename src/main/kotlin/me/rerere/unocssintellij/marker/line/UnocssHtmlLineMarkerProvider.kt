@@ -5,17 +5,17 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttributeValue
-import com.intellij.psi.xml.XmlElementType
+import com.intellij.psi.xml.XmlTokenType
 import me.rerere.unocssintellij.model.UnocssResolveMeta
 
 open class UnocssHtmlLineMarkerProvider : UnocssLineMarkerProvider() {
     override fun doGetLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
         // match with "Valueless" attributify preset
-        if (element.elementType == XmlElementType.XML_NAME) {
+        if (element.elementType == XmlTokenType.XML_NAME) {
             return getFromXmlName(element)
         }
         // match with class value or attributify preset usage
-        if (element.elementType == XmlElementType.XML_ATTRIBUTE_VALUE_TOKEN) {
+        if (element.elementType == XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN) {
             return getFromXmlAttributeValueToken(element)
         }
 

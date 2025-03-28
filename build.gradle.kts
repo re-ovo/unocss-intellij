@@ -1,35 +1,47 @@
 import org.apache.tools.ant.taskdefs.condition.Os
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.FileInputStream
 import java.io.InputStreamReader
 import java.util.*
 
 plugins {
-    id("java")
-    id("org.jetbrains.kotlin.jvm") version "2.0.10"
-    id("org.jetbrains.intellij") version "1.17.3"
+    java
+    kotlin("jvm") version "2.1.10"
+    id("org.jetbrains.intellij.platform") version "2.4.0"
 }
 
 group = "me.rerere"
-version = "1.8.0"
+version = "2.0.0-251"
 
 repositories {
     mavenCentral()
+    intellijPlatform {
+        defaultRepositories()
+    }
 }
 
 dependencies {
     implementation("com.github.weisj:jsvg:1.3.0")
+
+    intellijPlatform {
+        intellijIdeaUltimate("251-EAP-SNAPSHOT", useInstaller = false)
+
+        bundledPlugin("com.intellij.css")
+        bundledPlugin("JavaScript")
+    }
 }
 
 // Configure Gradle IntelliJ Plugin
-// Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
-intellij {
-    version = "2024.3"
-    type = "IU" // Target IDE Platform
-
-    plugins = listOf("JavaScript")
+// Read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin.html
+intellijPlatform {
+    pluginConfiguration {
+        ideaVersion {
+            sinceBuild = "251"
+            untilBuild = "251.*"
+        }
+    }
 }
-
-fun properties(key: String) = project.findProperty(key).toString()
 
 // include the generated source directory
 sourceSets["main"].java.srcDirs("src/main/gen")
@@ -37,18 +49,13 @@ sourceSets["main"].java.srcDirs("src/main/gen")
 tasks {
     // Set the JVM compatibility versions
     withType<JavaCompile> {
-        sourceCompatibility = "17"
-        targetCompatibility = "17"
+        sourceCompatibility = "21"
+        targetCompatibility = "21"
     }
-    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-        kotlinOptions.jvmTarget = "17"
+    withType<KotlinCompile> {
+        compilerOptions.jvmTarget = JvmTarget.JVM_21
 
         dependsOn("processJavaScript")
-    }
-
-    patchPluginXml {
-        sinceBuild = "243"
-        untilBuild = "243.*"
     }
 
     signPlugin {
@@ -61,7 +68,7 @@ tasks {
         token = System.getenv("PUBLISH_TOKEN")
     }
 
-    task("processJavaScript") {
+    register("processJavaScript", Exec::class) {
         inputs.dir("src/main/javascript/src")
         inputs.file("src/main/javascript/package.json")
         inputs.file("src/main/javascript/babel.config.json")
@@ -79,11 +86,10 @@ tasks {
                         file.delete()
                     }
                 }
-            exec {
-                workingDir("${project.projectDir}/src/main/javascript")
-                val npm = if (Os.isFamily(Os.FAMILY_WINDOWS)) "npm.cmd" else "npm"
-                commandLine(npm, "run", "build")
-            }
+
+            workingDir("${project.projectDir}/src/main/javascript")
+            val npm = if (Os.isFamily(Os.FAMILY_WINDOWS)) "npm.cmd" else "npm"
+            commandLine(npm, "run", "build")
         }
     }
 
@@ -96,12 +102,12 @@ tasks {
             }
         }
     }
+}
 
-    runIde {
-        val idePath = getLocalProperty("IDE_PATH") as String?
-        idePath?.let {
-            // ideDir = file(idePath)
-        }
+val runLocalIde by intellijPlatformTesting.runIde.registering {
+    val idePath = getLocalProperty("IDE_PATH") as String?
+    idePath?.let {
+        // localPath = file(idePath)
     }
 }
 

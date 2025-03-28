@@ -6,6 +6,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.siblings
 import com.intellij.psi.xml.XmlElementType
+import com.intellij.psi.xml.XmlTokenType
 import me.rerere.unocssintellij.UnocssConfigManager
 import me.rerere.unocssintellij.model.UnocssResolveMeta
 
@@ -29,13 +30,13 @@ class UnocssXmlSuppressionProvider : XmlSuppressionProvider() {
     }
 
     override fun isSuppressedFor(element: PsiElement, inspectionId: String): Boolean {
-        if (element.elementType == XmlElementType.XML_NAME
+        if (element.elementType == XmlTokenType.XML_NAME
             && (inspectionId == HTML_UNKNOWN_ATTRIBUTE || inspectionId == ESLINT)) {
             return suppressForUnknownAttribute(element)
         }
 
         if (UnocssConfigManager.hasPreset(UnocssConfigManager.Presets.TAGIFY)
-            && element.elementType == XmlElementType.XML_NAME
+            && element.elementType == XmlTokenType.XML_NAME
             && inspectionId == HTML_UNKNOWN_TAG) {
             return suppressForUnknownTag(element)
         }

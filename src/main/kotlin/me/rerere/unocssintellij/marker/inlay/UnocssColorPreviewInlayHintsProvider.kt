@@ -31,7 +31,7 @@ import com.intellij.psi.util.endOffset
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.startOffset
 import com.intellij.psi.xml.XmlAttributeValue
-import com.intellij.psi.xml.XmlElementType
+import com.intellij.psi.xml.XmlTokenType
 import com.intellij.psi.xml.XmlToken
 import com.intellij.ui.ColorChooserService
 import com.intellij.ui.JBColor
@@ -60,7 +60,7 @@ class UnocssColorPreviewInlayHintsProviderFactory : InlayHintsProviderFactory {
         val supportedLanguages = setOf(
             XMLLanguage.INSTANCE,
             CSSLanguage.INSTANCE,
-            JavascriptLanguage.INSTANCE,
+            JavascriptLanguage,
         )
 
         val settingsKey = SettingsKey<NoSettings>("unocss.colorPreview.hints")
@@ -154,14 +154,14 @@ private class UnocssPreviewCollector(editor: Editor, private val matchedPosition
             .filter { it.start >= element.startOffset && it.end <= element.endOffset }
             .mapNotNull {
                 when (element.elementType) {
-                    XmlElementType.XML_NAME -> {
+                    XmlTokenType.XML_NAME -> {
                         // make sure it has no attr value
                         if (element.nextSibling == null) {
                             UnocssResolveMeta(element, it.text, null) to it.start
                         } else null
                     }
 
-                    XmlElementType.XML_ATTRIBUTE_VALUE_TOKEN -> {
+                    XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN -> {
                         element.parentOfType<XmlAttributeValue>()?.let { attrValueEle ->
                             val xmlName = attrValueEle.parent.firstChild.text
                             val offset = element.startOffset
@@ -315,7 +315,7 @@ private class UnocssTokenUpdateColorListener(
     private suspend fun doColorChanged(color: Color) {
         when {
             // xml attribute value token
-            bindElement.elementType == XmlElementType.XML_ATTRIBUTE_VALUE_TOKEN -> {
+            bindElement.elementType == XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN -> {
                 val oldValue = meta.attrValue ?: return
                 val newValue = generateNewValue(editor, oldValue, color, matchPositionStartOffset)
                     ?: return

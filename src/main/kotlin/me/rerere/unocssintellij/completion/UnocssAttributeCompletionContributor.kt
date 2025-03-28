@@ -13,8 +13,8 @@ import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.startOffset
 import com.intellij.psi.xml.XmlAttribute
-import com.intellij.psi.xml.XmlElementType
 import com.intellij.psi.xml.XmlTag
+import com.intellij.psi.xml.XmlTokenType
 import me.rerere.unocssintellij.UnocssConfigManager
 import me.rerere.unocssintellij.rpc.SuggestionItem
 import me.rerere.unocssintellij.settings.UnocssSettingsState
@@ -27,13 +27,13 @@ class UnocssAttributeCompletionContributor : CompletionContributor() {
         // match attribute value
         extend(
             CompletionType.BASIC,
-            PlatformPatterns.psiElement(XmlElementType.XML_ATTRIBUTE_VALUE_TOKEN),
+            PlatformPatterns.psiElement(XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN),
             UnocssAttributeCompletionProvider
         )
         // match attribute name when using attributify presets
         extend(
             CompletionType.BASIC,
-            PlatformPatterns.psiElement(XmlElementType.XML_NAME),
+            PlatformPatterns.psiElement(XmlTokenType.XML_NAME),
             UnocssAttributeCompletionProvider
         )
         // match v-bind string value
@@ -60,7 +60,7 @@ object UnocssAttributeCompletionProvider : UnocssCompletionProvider() {
 
     override fun shouldSkip(position: PsiElement): Boolean {
         // If user has not installed attributify preset, skip
-        if (!UnocssConfigManager.hasPresetAttributify && position.elementType == XmlElementType.XML_NAME) {
+        if (!UnocssConfigManager.hasPresetAttributify && position.elementType == XmlTokenType.XML_NAME) {
             return true
         }
 
@@ -71,7 +71,7 @@ object UnocssAttributeCompletionProvider : UnocssCompletionProvider() {
     override fun resolvePrefix(parameters: CompletionParameters, result: CompletionResultSet): PrefixHolder? {
         val element = parameters.position
 
-        val xmlAttrName = if (element.elementType == XmlElementType.XML_ATTRIBUTE_VALUE_TOKEN) {
+        val xmlAttrName = if (element.elementType == XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN) {
             val xmlAttributeEle = element.parentOfType<XmlAttribute>(true)
                 ?: return null
             xmlAttributeEle.firstChild.text
@@ -85,7 +85,7 @@ object UnocssAttributeCompletionProvider : UnocssCompletionProvider() {
     }
 
     private fun resolvePrefix(element: PsiElement, prefix: String, attrName: String): PrefixHolder? {
-        if (element.elementType != XmlElementType.XML_ATTRIBUTE_VALUE_TOKEN) {
+        if (element.elementType != XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN) {
             return PrefixHolder(prefix)
         }
 

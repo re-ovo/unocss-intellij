@@ -7,12 +7,12 @@ import java.util.*
 
 plugins {
     java
-    kotlin("jvm") version "2.0.21"
+    kotlin("jvm") version "2.1.10"
     id("org.jetbrains.intellij.platform") version "2.4.0"
 }
 
 group = "me.rerere"
-version = "2.0.0-243"
+version = "2.0.0-251"
 
 repositories {
     mavenCentral()
@@ -25,7 +25,7 @@ dependencies {
     implementation("com.github.weisj:jsvg:1.3.0")
 
     intellijPlatform {
-        intellijIdeaUltimate("2024.3.5", useInstaller = false)
+        intellijIdeaUltimate("251-EAP-SNAPSHOT", useInstaller = false)
 
         bundledPlugin("com.intellij.css")
         bundledPlugin("JavaScript")
@@ -37,8 +37,8 @@ dependencies {
 intellijPlatform {
     pluginConfiguration {
         ideaVersion {
-            sinceBuild = "243"
-            untilBuild = "243.*"
+            sinceBuild = "251"
+            untilBuild = "251.*"
         }
     }
 }

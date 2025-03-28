@@ -123,7 +123,7 @@ class UnocssDocumentationEditorPane : JEditorPane(), Disposable {
         val editorKit = HTMLEditorKitBuilder()
             .replaceViewFactoryExtensions(
                 icons(HtmlChunk.icon("UnoCSS.PluginIcon", IconResources.PluginIcon)),
-                Extensions.BASE64_IMAGES,
+                Extensions.HIDPI_IMAGES,
                 Extensions.INLINE_VIEW_EX,
                 Extensions.PARAGRAPH_VIEW_EX,
                 Extensions.LINE_VIEW_EX,
@@ -183,8 +183,8 @@ class UnocssDocumentationEditorPane : JEditorPane(), Disposable {
 
     private fun definitionPreferredWidth(): Int {
         val preferredDefinitionWidth = max(
-            getPreferredSectionsWidth("definition").toDouble(),
-            getPreferredSectionsWidth("definition-separated").toDouble()
+            getPreferredSectionsWidth("definition"),
+            getPreferredSectionsWidth("definition-separated")
         )
         if (preferredDefinitionWidth < 0) {
             return -1
@@ -338,15 +338,17 @@ class UnocssDocumentationUI(val project: Project, initialStyle: String?) : Dispo
     private val scrollPane = UnocssDocumentationScrollPane()
 
     val presentationPane = UnocssSelectionStylePresentationPane()
+
     val containerPane = JPanel(BorderLayout()).apply {
         border = JBUI.Borders.empty(0, 12, 12, 12)
         add(scrollPane, BorderLayout.CENTER)
     }
+
     val editorPane = UnocssDocumentationEditorPane()
 
     private val cs = CoroutineScope(Dispatchers.EDT)
 
-    private val myContentFlow = MutableStateFlow<String?>(initialStyle)
+    private val myContentFlow = MutableStateFlow(initialStyle)
 
     val hasContent get() = myContentFlow.value != null
 

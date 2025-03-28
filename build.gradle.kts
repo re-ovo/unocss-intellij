@@ -1,4 +1,6 @@
 import org.apache.tools.ant.taskdefs.condition.Os
+import org.jetbrains.intellij.platform.gradle.IntelliJPlatform
+import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.FileInputStream
@@ -39,6 +41,11 @@ intellijPlatform {
         ideaVersion {
             sinceBuild = "251"
             untilBuild = "251.*"
+        }
+    }
+    pluginVerification {
+        ides {
+            recommended()
         }
     }
 }

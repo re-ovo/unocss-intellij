@@ -27,7 +27,7 @@ dependencies {
     implementation("com.github.weisj:jsvg:1.3.0")
 
     intellijPlatform {
-        intellijIdeaUltimate("251-EAP-SNAPSHOT", useInstaller = false)
+        intellijIdeaUltimate("2025.1", useInstaller = false)
 
         bundledPlugin("com.intellij.css")
         bundledPlugin("JavaScript")

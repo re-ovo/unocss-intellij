@@ -1,6 +1,4 @@
 import org.apache.tools.ant.taskdefs.condition.Os
-import org.jetbrains.intellij.platform.gradle.IntelliJPlatform
-import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.FileInputStream
@@ -14,7 +12,7 @@ plugins {
 }
 
 group = "me.rerere"
-version = "2.0.0"
+version = "2.0.1"
 
 repositories {
     mavenCentral()

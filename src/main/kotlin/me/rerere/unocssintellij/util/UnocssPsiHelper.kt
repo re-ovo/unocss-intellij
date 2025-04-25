@@ -39,7 +39,7 @@ val classTagNameVariants = setOf(
  * Return if a [String] represents a class attribute
  * @see classTagNameVariants
  */
-internal fun String.isClassAttribute() = this in classTagNameVariants
+internal fun String.isClassAttribute() = this in classTagNameVariants || this.contains("class", true)
 
 /**
  * Build a dummy div tag with given attributes

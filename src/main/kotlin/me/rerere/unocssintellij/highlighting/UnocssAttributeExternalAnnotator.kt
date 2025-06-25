@@ -3,6 +3,7 @@ package me.rerere.unocssintellij.highlighting
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.ExternalAnnotator
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.util.TextRange
@@ -49,8 +50,9 @@ class UnocssAttributeExternalAnnotator : ExternalAnnotator<UnocssInitInfo, Unocs
 
         val cachedValue = collectedInfo.matchedPosition
 
-        val matchedPositions = cachedValue.value ?: return null
-        return UnocssAnnotationResult(matchedPositions)
+        return runReadAction {
+          cachedValue.value?.let(::UnocssAnnotationResult)
+        }
     }
 
     override fun apply(file: PsiFile, annotationResult: UnocssAnnotationResult?, holder: AnnotationHolder) {

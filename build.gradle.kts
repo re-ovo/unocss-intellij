@@ -25,7 +25,7 @@ dependencies {
     implementation("com.github.weisj:jsvg:1.3.0")
 
     intellijPlatform {
-        intellijIdeaUltimate("2025.1", useInstaller = false)
+        intellijIdeaUltimate("2025.2", useInstaller = false)
 
         bundledPlugin("com.intellij.css")
         bundledPlugin("JavaScript")
@@ -38,7 +38,7 @@ intellijPlatform {
     pluginConfiguration {
         ideaVersion {
             sinceBuild = "251"
-            untilBuild = "251.*"
+            untilBuild = "252.*"
         }
     }
     pluginVerification {

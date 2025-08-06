@@ -9,7 +9,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.css.impl.CssLazyStylesheet
 import com.intellij.psi.util.childrenOfType
-
 import com.intellij.psi.util.elementType
 import com.intellij.ui.JBColor
 import java.awt.Color
@@ -22,7 +21,7 @@ private val colorParseCache by lazy {
 private val iconParseCache by lazy {
     CacheBuilder.newBuilder()
         .maximumSize(64)
-        .build<String, String?>()
+        .build<String, String>()
 }
 
 private val CSS_RGBA_COLOR_PATTERN =

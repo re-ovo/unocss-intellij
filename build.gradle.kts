@@ -1,4 +1,5 @@
 import org.apache.tools.ant.taskdefs.condition.Os
+import org.jetbrains.intellij.platform.gradle.extensions.IntelliJPlatformDependenciesExtension
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.FileInputStream
@@ -8,11 +9,11 @@ import java.util.*
 plugins {
     java
     kotlin("jvm") version "2.1.10"
-    id("org.jetbrains.intellij.platform") version "2.4.0"
+    id("org.jetbrains.intellij.platform") version "2.7.0"
 }
 
 group = "me.rerere"
-version = "2.0.2"
+version = "2.0.3"
 
 repositories {
     mavenCentral()
@@ -25,7 +26,9 @@ dependencies {
     implementation("com.github.weisj:jsvg:1.3.0")
 
     intellijPlatform {
-        intellijIdeaUltimate("2025.2", useInstaller = false)
+        intellijIdeaUltimate("2025.2") {
+            useInstaller = false
+        }
 
         bundledPlugin("com.intellij.css")
         bundledPlugin("JavaScript")

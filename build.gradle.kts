@@ -13,7 +13,7 @@ plugins {
 }
 
 group = "me.rerere"
-version = "2.0.3"
+version = "2.0.4"
 
 repositories {
     mavenCentral()
@@ -40,7 +40,7 @@ dependencies {
 intellijPlatform {
     pluginConfiguration {
         ideaVersion {
-            sinceBuild = "251"
+            sinceBuild = "252"
             untilBuild = "253.*"
         }
     }

@@ -9,7 +9,7 @@ import java.util.*
 plugins {
     java
     kotlin("jvm") version "2.1.10"
-    id("org.jetbrains.intellij.platform") version "2.7.0"
+    id("org.jetbrains.intellij.platform") version "2.10.5"
 }
 
 group = "me.rerere"
@@ -26,7 +26,7 @@ dependencies {
     implementation("com.github.weisj:jsvg:1.3.0")
 
     intellijPlatform {
-        intellijIdeaUltimate("2025.2") {
+        intellijIdeaUltimate("2025.3") {
             useInstaller = false
         }
 
@@ -41,7 +41,7 @@ intellijPlatform {
     pluginConfiguration {
         ideaVersion {
             sinceBuild = "251"
-            untilBuild = "252.*"
+            untilBuild = "253.*"
         }
     }
     pluginVerification {

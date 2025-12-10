@@ -6,6 +6,7 @@ build/
 !**/src/test/**/build/
 unojs/
 .idea/
+.intellijPlatform
 sign/
 
 ### Flex ###

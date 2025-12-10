@@ -250,7 +250,7 @@ private class UnocssPreviewCollector(editor: Editor, private val matchedPosition
             val point = RelativePoint(event.component, event.point)
 
             val colorListener = UnocssTokenUpdateColorListener(editor, startOffset, meta.copy())
-            ColorChooserService.instance.showPopup(
+            ColorChooserService.getInstance().showPopup(
                 project = editor.project!!,
                 currentColor = color,
                 listener = colorListener,

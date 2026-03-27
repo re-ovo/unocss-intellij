@@ -96,8 +96,11 @@ tasks {
                 }
 
             workingDir("${project.projectDir}/src/main/javascript")
-            val npm = if (Os.isFamily(Os.FAMILY_WINDOWS)) "npm.cmd" else "npm"
-            commandLine(npm, "run", "build")
+            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                commandLine("npm.cmd", "run", "build")
+            } else {
+                commandLine("sh", "-c", "npm run build")
+            }
         }
     }
 

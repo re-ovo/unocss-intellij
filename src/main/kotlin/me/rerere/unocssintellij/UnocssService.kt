@@ -21,6 +21,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
 import me.rerere.unocssintellij.rpc.GetCompleteCommandData
 import me.rerere.unocssintellij.rpc.ResolveAnnotationsCommandData
@@ -54,10 +56,16 @@ private val SENSITIVE_FILES = listOf(
     "uno.config",
 )
 
+// 所有 RPC 调用的默认超时（毫秒）
+private const val RPC_TIMEOUT = 1000L
+
 @Service(Service.Level.PROJECT)
 class UnocssService(private val project: Project, val scope: CoroutineScope) : Disposable {
 
     private var unocssProcess: UnocssProcess? = null
+
+    // 串行化进程初始化，避免多个文件同时打开时并发创建多个进程
+    private val processMutex = Mutex()
 
     private val nodeEnvInstalled by lazy {
         val interpreter = NodeJsInterpreterManager.getInstance(project).interpreter
@@ -65,32 +73,17 @@ class UnocssService(private val project: Project, val scope: CoroutineScope) : D
     }
 
     init {
-        // 监听文件变化
+        // 监听敏感配置文件（package.json / *.config 等）的保存，变更后重载配置
         VirtualFileManager.getInstance().addAsyncFileListener({ events ->
-            var detected = false
-            var ctx: VirtualFile? = null
-            events.forEach { event ->
-                val file = event.file
-                if (file == null || !file.isValid) return@forEach
-                if (event.requestor == this) return@forEach
-                if (event.isFromSave) {
-                    if (SENSITIVE_FILES.any { file.name.contains(it) }) {
-                        println("Detected sensitive file change: ${file.name}")
-                        detected = true
-                        ctx = file
-                        return@forEach
-                    }
-                }
+            val changed = events.any { event ->
+                val file = event.file ?: return@any false
+                file.isValid && event.requestor != this && event.isFromSave &&
+                    SENSITIVE_FILES.any { file.name.contains(it) }
             }
+            if (!changed) return@addAsyncFileListener null
+
             object : ChangeApplier {
-                override fun afterVfsChange() {
-                    if (detected && unocssProcess != null) {
-                        ctx?.let {
-                            // reload config when sensitive file changed
-                            scope.launch { updateConfig(it) }
-                        }
-                    }
-                }
+                override fun afterVfsChange() = updateConfigIfRunning()
             }
         }, this)
     }
@@ -99,33 +92,41 @@ class UnocssService(private val project: Project, val scope: CoroutineScope) : D
         scope.cancel()
     }
 
-    private suspend fun getProcess(ctx: VirtualFile?): UnocssProcess? {
+    /**
+     * 获取（必要时创建/重启）UnoCSS 进程。
+     *
+     * 命名为 ensure 是因为它带有创建副作用：进程不存在时按需启动，崩溃时自动重启。
+     * 通过 [processMutex] 串行化创建/重启，避免多个文件同时打开时并发重复启动。
+     */
+    private suspend fun ensureProcess(ctx: VirtualFile?): UnocssProcess? {
         if (!nodeEnvInstalled) return null
-        if (unocssProcess == null && ctx != null && isUnocssInstalled(project, ctx)) {
-            initProcess(ctx)
-            updateConfig(ctx)
-        }
 
-        if (unocssProcess?.process?.isAlive == false) {
-            println("Unocss process is dead, restarting...")
+        // 已存在存活的进程时无需加锁，快速返回
+        unocssProcess?.let { if (it.process.isAlive) return it }
 
-            unocssProcess?.let { Disposer.dispose(it) }
-            unocssProcess = null
+        processMutex.withLock {
+            if (unocssProcess == null && ctx != null && isUnocssInstalled(ctx)) {
+                initProcess(ctx)
+                // 直接对刚创建的进程更新配置，避免重入 ensureProcess
+                unocssProcess?.let { updateConfig(it) }
+            }
 
-            ctx?.let { initProcess(it) }
-            updateConfigIfRunning()
+            if (unocssProcess?.process?.isAlive == false) {
+                println("Unocss process is dead, restarting...")
+                unocssProcess?.let { Disposer.dispose(it) }
+                unocssProcess = null
+                ctx?.let { initProcess(it) }
+                unocssProcess?.let { updateConfig(it) }
+            }
         }
 
         return unocssProcess
     }
 
     /**
-     * Check if unocss is installed in the project
-     *
-     * @param project The project
-     * @param context The context file
+     * 检查上下文文件所在项目是否安装了 unocss / @unocss
      */
-    private suspend fun isUnocssInstalled(project: Project, context: VirtualFile) = coroutineScope s@{
+    private suspend fun isUnocssInstalled(context: VirtualFile) = coroutineScope s@{
         val packageJson = PackageJsonUtil.findUpPackageJson(context.toLocalVirtualFile())
             ?: return@s false
 
@@ -143,7 +144,7 @@ class UnocssService(private val project: Project, val scope: CoroutineScope) : D
 
     fun onFileOpened(file: VirtualFile) {
         scope.launch {
-            this@UnocssService.getProcess(file)
+            ensureProcess(file)
         }
     }
 
@@ -171,14 +172,6 @@ class UnocssService(private val project: Project, val scope: CoroutineScope) : D
             .updateWidget(UnocssStatusBarFactory::class.java)
     }.onFailure {
         it.printStackTrace()
-    }
-
-    // 更新Unocss配置
-    private suspend fun updateConfig(ctx: VirtualFile) = runCatching {
-        val process = getProcess(ctx) ?: return@runCatching
-        updateConfig(process)
-    }.onFailure {
-        println("(!) Failed to update unocss config: $it")
     }
 
     fun updateConfigIfRunning() {
@@ -220,70 +213,57 @@ class UnocssService(private val project: Project, val scope: CoroutineScope) : D
         }
     }
 
+    /**
+     * 统一的 RPC 调用入口：确保进程存在、套用超时与异常兜底。
+     * 进程不可用或调用失败时返回 null，调用方按需提供默认值。
+     */
+    private suspend fun <T> withProcess(
+        file: VirtualFile?,
+        timeoutMillis: Long = RPC_TIMEOUT,
+        action: suspend (UnocssProcess) -> T,
+    ): T? {
+        val process = ensureProcess(file) ?: return null
+        return runCatching {
+            withTimeout(timeoutMillis) { action(process) }
+        }.onFailure {
+            println("(!) UnoCSS RPC failed: $it")
+        }.getOrNull()
+    }
+
     suspend fun getCompletion(
         ctx: VirtualFile,
         prefix: String,
         cursor: Int = prefix.length,
         maxItems: Int
-    ): List<SuggestionItem> {
-        val process = getProcess(ctx) ?: return emptyList()
+    ): List<SuggestionItem> = withProcess(ctx) { process ->
+        process.sendCommand<GetCompleteCommandData, SuggestionItemList>(
+            RpcAction.GetComplete,
+            GetCompleteCommandData(content = prefix, cursor = cursor, maxItems = maxItems)
+        )
+    } ?: emptyList()
 
-        return runCatching {
-            withTimeout<SuggestionItemList>(1000) {
-                process.sendCommand(
-                    RpcAction.GetComplete,
-                    GetCompleteCommandData(
-                        content = prefix,
-                        cursor = cursor,
-                        maxItems = maxItems
-                    )
-                )
-            }
-        }.onFailure {
-            println("(!) Failed to get completion: $it")
-        }.getOrDefault(emptyList())
-    }
-
-    suspend fun resolveCssByOffset(file: PsiFile, offset: Int): ResolveCSSResult? {
-        val process = getProcess(file.virtualFile) ?: return null
-        val text = file.text
-        return withTimeout(1000) {
+    suspend fun resolveCssByOffset(file: PsiFile, offset: Int): ResolveCSSResult? =
+        withProcess(file.virtualFile) { process ->
             process.sendCommand(
                 RpcAction.ResolveCssByOffset,
-                ResolveCSSByOffsetCommandData(
-                    content = text,
-                    cursor = offset
-                )
+                ResolveCSSByOffsetCommandData(content = file.text, cursor = offset)
             )
         }
-    }
 
-    suspend fun resolveCss(file: VirtualFile?, content: String): ResolveCSSResult? {
-        val process = getProcess(file) ?: return null
-        return process.sendCommand(RpcAction.ResolveCss, ResolveCSSCommandData(content))
-    }
+    suspend fun resolveCss(file: VirtualFile?, content: String): ResolveCSSResult? =
+        withProcess(file) { it.sendCommand(RpcAction.ResolveCss, ResolveCSSCommandData(content)) }
 
-    suspend fun resolveAnnotations(file: VirtualFile?, content: String): ResolveAnnotationsResult? {
-        val process = getProcess(file) ?: return null
-        return process.sendCommand(
-            RpcAction.ResolveAnnotations,
-            ResolveAnnotationsCommandData(
-                id = file?.path ?: "",
-                content = content
+    suspend fun resolveAnnotations(file: VirtualFile?, content: String): ResolveAnnotationsResult? =
+        withProcess(file) { process ->
+            process.sendCommand(
+                RpcAction.ResolveAnnotations,
+                ResolveAnnotationsCommandData(id = file?.path ?: "", content = content)
             )
-        )
-    }
+        }
 
-    suspend fun resolveBreakpoints(file: VirtualFile?): ResolveBreakpointsResult? {
-        val process = getProcess(file) ?: return null
-        return process.sendCommand(RpcAction.ResolveBreakpoints, null)
-    }
+    suspend fun resolveBreakpoints(file: VirtualFile?): ResolveBreakpointsResult? =
+        withProcess(file) { it.sendCommand(RpcAction.ResolveBreakpoints, null) }
 
-    suspend fun resolveToken(file: VirtualFile?, raw: String, alias: String? = null): ResolveTokenResult? {
-        val process = getProcess(file) ?: return null
-        return process.sendCommand(
-            RpcAction.ResolveToken,
-            ResolveTokenResultCommandData(raw, alias)
-        )
-    }
+    suspend fun resolveToken(file: VirtualFile?, raw: String, alias: String? = null): ResolveTokenResult? =
+        withProcess(file) { it.sendCommand(RpcAction.ResolveToken, ResolveTokenResultCommandData(raw, alias)) }
 }

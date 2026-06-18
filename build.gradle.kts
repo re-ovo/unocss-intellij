@@ -9,11 +9,11 @@ import java.util.*
 plugins {
     java
     kotlin("jvm") version "2.3.10"
-    id("org.jetbrains.intellij.platform") version "2.13.1"
+    id("org.jetbrains.intellij.platform") version "2.16.0"
 }
 
 group = "me.rerere"
-version = "2.0.5"
+version = "2.0.6"
 
 repositories {
     mavenCentral()

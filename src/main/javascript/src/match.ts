@@ -1,5 +1,6 @@
 import {type UnoGenerator} from "@unocss/core";
 import MagicString from "magic-string";
+import {log} from "./log";
 
 // remove @unocss/transformer-directives transformer to get matched result from source code
 export const ignoreTransformers = [
@@ -43,6 +44,14 @@ export async function applyTransformers(
 export async function getMatchedPositionsFromCode(generator: UnoGenerator, code: string, id = '') {
   const annotations = await applyTransformers(generator, code, id)
 
-  const genResult = await generator.generate(code, {preflights: false})
-  return {matched: [...genResult.matched], extraAnnotations: annotations}
+  // generate() throws when a single utility fails to resolve (e.g. theme() references a
+  // missing theme key, which happens before the user config is fully loaded). Don't let
+  // one bad token crash the whole annotation pass — degrade to the transformer annotations.
+  try {
+    const genResult = await generator.generate(code, {preflights: false})
+    return {matched: [...genResult.matched], extraAnnotations: annotations}
+  } catch (e: any) {
+    log('getMatchedPositionsFromCode: generate failed:', e?.message ?? e)
+    return {matched: [], extraAnnotations: annotations}
+  }
 }

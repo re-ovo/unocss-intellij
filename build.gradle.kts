@@ -13,7 +13,7 @@ plugins {
 }
 
 group = "me.rerere"
-version = "2.0.7"
+version = "2.0.8"
 
 repositories {
     mavenCentral()
@@ -29,7 +29,6 @@ dependencies {
         intellijIdeaUltimate("2026.1") {
             useInstaller = false
         }
-
         bundledPlugin("com.intellij.css")
         bundledPlugin("JavaScript")
     }
@@ -41,7 +40,6 @@ intellijPlatform {
     pluginConfiguration {
         ideaVersion {
             sinceBuild = "252"
-            untilBuild = "261.*"
         }
     }
     pluginVerification {

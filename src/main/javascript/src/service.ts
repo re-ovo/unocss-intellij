@@ -8,6 +8,7 @@ import {loadConfig} from "@unocss/config";
 import {sourceObjectFields, sourcePluginFactory} from "unconfig/presets";
 import {log} from "./log";
 import {suggestIcon} from "./collections";
+import {shortcutsFirst} from "./completion";
 
 console.log('[UnoProcess]', `Hello from service.js! ${process.cwd()}`);
 
@@ -75,7 +76,7 @@ async function updateSettings(newMatchType: AutoCompleteMatchType) {
 async function getComplete(content: string, maxItems: number | undefined) {
   let suggestions = await autocomplete.suggest(content, true);
   suggestions.push(...suggestIcon(content)) // suggest icons
-  return Promise.all(suggestions.slice(0, maxItems).map(async (suggestion) => {
+  return Promise.all(shortcutsFirst(generator, content, suggestions).slice(0, maxItems).map(async (suggestion) => {
     return {
       className: suggestion,
       css: (await generator.generate(suggestion, {

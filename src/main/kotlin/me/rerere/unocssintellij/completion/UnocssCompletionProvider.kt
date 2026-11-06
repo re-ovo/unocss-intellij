@@ -4,6 +4,7 @@ import com.intellij.codeInsight.AutoPopupController
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionProvider
 import com.intellij.codeInsight.completion.CompletionResultSet
+import com.intellij.codeInsight.completion.PrioritizedLookupElement
 import com.intellij.codeInsight.editorActions.TypedHandlerDelegate
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.openapi.components.service
@@ -81,7 +82,7 @@ abstract class UnocssCompletionProvider : CompletionProvider<CompletionParameter
                 prefix = prefixToSuggest,
                 maxItems = settingsState.maxItems
             )
-        }.forEach { suggestion ->
+        }.forEachIndexed { index, suggestion ->
 
             val className = resolveSuggestionClassName(typingPrefix, prefixToSuggest, suggestion)
 
@@ -103,7 +104,8 @@ abstract class UnocssCompletionProvider : CompletionProvider<CompletionParameter
 
             lookupElementBuilder = customizeLookupElement(lookupElementBuilder, typingPrefix, className, parameters.position)
 
-            completionResult.addElement(lookupElementBuilder)
+            // keep the service's order, otherwise the IDE sorts the popup alphabetically
+            completionResult.addElement(PrioritizedLookupElement.withPriority(lookupElementBuilder, -index.toDouble()))
         }
 
         result.restartCompletionOnAnyPrefixChange()

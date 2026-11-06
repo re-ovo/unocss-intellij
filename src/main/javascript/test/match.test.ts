@@ -1,5 +1,5 @@
 import {createGenerator, type SourceCodeTransformer} from '@unocss/core'
-import {presetUno, transformerVariantGroup} from 'unocss'
+import {presetWind3, transformerVariantGroup} from 'unocss'
 import {describe, expect, it} from 'vitest'
 import {applyTransformers, getMatchedPositionsFromCode} from '../src/match'
 
@@ -7,7 +7,7 @@ const code = '<template><div class="md:(flex grid) p-4"></div></template>'
 
 async function annotationsWith(transformer: SourceCodeTransformer, source = code, id = 'x.ts') {
   const generator = await createGenerator({
-    presets: [presetUno()],
+    presets: [presetWind3()],
     // transformerVariantGroup is itself `enforce: 'pre'`, so the transformer under test is
     // listed first to make sure it runs before variant group within the same phase
     transformers: [transformer, transformerVariantGroup()],
@@ -98,7 +98,7 @@ describe('applyTransformers', () => {
 describe('getMatchedPositionsFromCode', () => {
   it('returns matches and annotations when a transformer edits the source', async () => {
     const generator = await createGenerator({
-      presets: [presetUno()],
+      presets: [presetWind3()],
       transformers: [
         transformerVariantGroup(),
         {

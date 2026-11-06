@@ -1,4 +1,7 @@
+import type {AutoCompleteMatchType} from "@unocss/autocomplete";
 import type {UnoGenerator} from "@unocss/core";
+
+export type CompletionOrder = 'smart' | 'alphabetical'
 
 /**
  * Moves the project's shortcuts to the front of the suggestions and keeps the order otherwise.
@@ -21,4 +24,20 @@ export function shortcutsFirst(generator: UnoGenerator<any>, input: string, sugg
     ...suggestions.filter(isShortcut),
     ...suggestions.filter(suggestion => !isShortcut(suggestion)),
   ]
+}
+
+/**
+ * Applies the completion order setting. Fuzzy results are already ranked by relevance,
+ * so moving shortcuts ahead would put a loose match before an exact one.
+ */
+export function orderSuggestions(
+  generator: UnoGenerator<any>,
+  input: string,
+  suggestions: string[],
+  matchType: AutoCompleteMatchType,
+  order: CompletionOrder,
+) {
+  return order === 'smart' && matchType === 'prefix'
+    ? shortcutsFirst(generator, input, suggestions)
+    : suggestions
 }

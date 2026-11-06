@@ -80,7 +80,8 @@ abstract class UnocssCompletionProvider : CompletionProvider<CompletionParameter
             service.getCompletion(
                 ctx = parameters.originalFile.virtualFile,
                 prefix = prefixToSuggest,
-                maxItems = settingsState.maxItems
+                maxItems = settingsState.maxItems,
+                order = settingsState.completionOrder,
             )
         }.forEachIndexed { index, suggestion ->
 
@@ -104,8 +105,14 @@ abstract class UnocssCompletionProvider : CompletionProvider<CompletionParameter
 
             lookupElementBuilder = customizeLookupElement(lookupElementBuilder, typingPrefix, className, parameters.position)
 
-            // keep the service's order, otherwise the IDE sorts the popup alphabetically
-            completionResult.addElement(PrioritizedLookupElement.withPriority(lookupElementBuilder, -index.toDouble()))
+            completionResult.addElement(
+                if (settingsState.completionOrder == UnocssSettingsState.CompletionOrder.SMART) {
+                    // keep the service's order, otherwise the IDE sorts the popup alphabetically
+                    PrioritizedLookupElement.withPriority(lookupElementBuilder, -index.toDouble())
+                } else {
+                    lookupElementBuilder
+                }
+            )
         }
 
         result.restartCompletionOnAnyPrefixChange()

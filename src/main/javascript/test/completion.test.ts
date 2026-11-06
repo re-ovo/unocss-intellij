@@ -2,7 +2,7 @@ import {createAutocomplete} from '@unocss/autocomplete'
 import {createGenerator} from '@unocss/core'
 import {presetWind3} from 'unocss'
 import {describe, expect, it} from 'vitest'
-import {shortcutsFirst} from '../src/completion'
+import {orderSuggestions, shortcutsFirst} from '../src/completion'
 
 async function setup() {
   return createGenerator({
@@ -57,5 +57,28 @@ describe('shortcutsFirst', () => {
 
     expect(suggestions.slice(0, 25)).not.toContain('underlined')
     expect(shortcutsFirst(generator, 'underl', suggestions)[0]).toBe('underlined')
+  })
+})
+
+describe('orderSuggestions', () => {
+  const suggestions = ['underline-auto', 'underlined']
+
+  it('moves shortcuts first with the smart order and prefix matching', async () => {
+    const generator = await setup()
+
+    expect(orderSuggestions(generator, 'u', suggestions, 'prefix', 'smart'))
+      .toEqual(['underlined', 'underline-auto'])
+  })
+
+  it('keeps the order with the alphabetical order', async () => {
+    const generator = await setup()
+
+    expect(orderSuggestions(generator, 'u', suggestions, 'prefix', 'alphabetical')).toEqual(suggestions)
+  })
+
+  it('keeps the relevance ranking with fuzzy matching', async () => {
+    const generator = await setup()
+
+    expect(orderSuggestions(generator, 'u', suggestions, 'fuzzy', 'smart')).toEqual(suggestions)
   })
 })

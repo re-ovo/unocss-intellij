@@ -35,6 +35,7 @@ class UnocssSettingsState : PersistentStateComponent<UnocssSettingsState> {
 
     // ====== Autocomplete ======
     var matchType = MatchType.PREFIX
+    var completionOrder = CompletionOrder.SMART
     var maxItems = 50
 
     // ====== Code Folding ======
@@ -90,5 +91,10 @@ class UnocssSettingsState : PersistentStateComponent<UnocssSettingsState> {
     enum class MatchType {
         PREFIX,
         FUZZY
+    }
+
+    enum class CompletionOrder {
+        SMART,
+        ALPHABETICAL
     }
 }

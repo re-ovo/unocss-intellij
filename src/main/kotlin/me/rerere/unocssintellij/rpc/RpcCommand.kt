@@ -41,6 +41,7 @@ data class GetCompleteCommandData(
     val content: String,
     val cursor: Int = content.length,
     val maxItems: Int,
+    val order: String,
 )
 
 data class SuggestionItem(

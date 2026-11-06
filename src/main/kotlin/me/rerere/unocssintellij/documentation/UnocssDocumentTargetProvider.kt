@@ -11,6 +11,7 @@ import com.intellij.psi.impl.source.xml.XmlAttributeValueImpl
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfTypes
 import com.intellij.psi.util.startOffset
+import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlTokenType
 import me.rerere.unocssintellij.model.UnocssResolveMeta
 import me.rerere.unocssintellij.settings.UnocssSettingsState
@@ -19,6 +20,7 @@ import me.rerere.unocssintellij.util.inCssThemeFunction
 import me.rerere.unocssintellij.util.isLeafJsLiteral
 import me.rerere.unocssintellij.util.isScreenDirectiveIdent
 import me.rerere.unocssintellij.util.isUnocssCandidate
+import me.rerere.unocssintellij.util.isUtilityAttribute
 
 private val classNameRE = Regex("""\w+:\([^)]+\)|\S+""")
 private val variantNameRE = Regex("""(\w+):\(([^)]+)\)""")
@@ -35,6 +37,7 @@ class UnocssDocumentTargetProvider : DocumentationTargetProvider {
         if (attributeNameOnlyElementTypes.contains(elementType)) {
             val parent = element.parent
             if (parent !is CssAtRuleImpl && parent.lastChild != element) return targets
+            if (parent is XmlAttribute && !parent.name.isUtilityAttribute()) return targets
             meta = UnocssResolveMeta(
                 element,
                 element.text.trim('"'),
@@ -51,6 +54,7 @@ class UnocssDocumentTargetProvider : DocumentationTargetProvider {
 
                 val attributeEle = attributeValueEle.parent
                 val attributeNameEle = attributeEle.firstChild
+                if (!attributeNameEle.text.isUtilityAttribute()) return targets
 
                 val offsetValue = getOffsetValue(offset, element, isLiteralValue) ?: return targets
                 meta = UnocssResolveMeta(element, attributeNameEle.text, offsetValue)

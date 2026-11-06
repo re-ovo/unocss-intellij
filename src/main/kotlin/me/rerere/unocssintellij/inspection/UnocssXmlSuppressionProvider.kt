@@ -53,6 +53,8 @@ class UnocssXmlSuppressionProvider : XmlSuppressionProvider() {
     }
 
     private fun suppressForUnknownAttribute(attrElement: PsiElement): Boolean {
+        if (!UnocssConfigManager.hasPresetAttributify) return false
+
         val onlyAttributeName = attrElement.nextSibling == null
 
         val attrName = attrElement.text

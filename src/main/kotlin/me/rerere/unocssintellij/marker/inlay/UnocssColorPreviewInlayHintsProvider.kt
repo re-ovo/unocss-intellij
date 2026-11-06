@@ -138,7 +138,7 @@ private class UnocssPreviewCollector(editor: Editor, private val matchedPosition
     private val scaleAwarePresentationFactory = ScaleAwarePresentationFactory(editor, factory)
 
     override fun collect(element: PsiElement, editor: Editor, sink: InlayHintsSink): Boolean {
-        if (!element.isUnocssCandidate() && element !is CssFunction) {
+        if (!element.isUnocssUtilityCandidate() && element !is CssFunction) {
             return true
         }
 

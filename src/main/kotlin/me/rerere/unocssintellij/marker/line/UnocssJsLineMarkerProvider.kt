@@ -7,6 +7,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttributeValue
 import me.rerere.unocssintellij.model.UnocssResolveMeta
+import me.rerere.unocssintellij.util.isUtilityAttribute
 
 /**
  * For JSX/TSX Support
@@ -26,6 +27,7 @@ class UnocssJsLineMarkerProvider : UnocssHtmlLineMarkerProvider() {
 
         val xmlAttrValueEle = element.parentOfType<XmlAttributeValue>() ?: return null
         val xmlName = xmlAttrValueEle.parent.firstChild.text
+        if (!xmlName.isUtilityAttribute()) return null
 
         // Both JSLiteralExpression's first child and JSProperty's first child are LeafPsiElement
         return getLineMarkerInfo(UnocssResolveMeta(element.firstChild, xmlName, attrValue))

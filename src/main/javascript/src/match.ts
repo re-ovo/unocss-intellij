@@ -21,14 +21,14 @@ export async function applyTransformers(
   const annotations = []
   for (const enforce of ['pre', 'default', 'post']) {
     for (const i of transformers?.filter(i => (i.enforce ?? 'default') === enforce) || []) {
-      // an empty id means a snippet rather than a file, so there is nothing to filter by
-      if (id && i.idFilter && !i.idFilter(id)) {
-        continue
-      }
-      // Annotation offsets must point at the text in the editor, so each transformer gets
-      // its own copy of the original code. Sharing one MagicString also throws as soon as a
-      // transformer writes to a range that an earlier transformer already overwrote.
       try {
+        // an empty id means a snippet rather than a file, so there is nothing to filter by
+        if (id && i.idFilter && !i.idFilter(id)) {
+          continue
+        }
+        // Annotation offsets must point at the text in the editor, so each transformer gets
+        // its own copy of the original code. Sharing one MagicString also throws as soon as a
+        // transformer writes to a range that an earlier transformer already overwrote.
         const result = await i.transform(new MagicString(code), id, ctx)
         const _annotations = result?.highlightAnnotations
         if (_annotations) {

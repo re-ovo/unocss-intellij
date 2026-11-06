@@ -25,6 +25,7 @@
     "**/examples/**",
     "**/fixtures/**",
     "**/interactive/**",
-    "**/test/dts/**"
+    "**/test/dts/**",
+    "test/**"
   ]
 }

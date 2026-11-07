@@ -104,21 +104,25 @@ class UnocssService(private val project: Project, val scope: CoroutineScope) : D
         // 已存在存活的进程时无需加锁，快速返回
         unocssProcess?.let { if (it.process.isAlive) return it }
 
-        processMutex.withLock {
-            if (unocssProcess == null && ctx != null && isUnocssInstalled(ctx)) {
-                initProcess(ctx)
-                // 直接对刚创建的进程更新配置，避免重入 ensureProcess
-                unocssProcess?.let { updateConfig(it) }
-            }
+        // Start in the service scope, so a cancelled caller (such as a completion request
+        // superseded by the next keystroke) can't leave the process without its config and settings
+        scope.async {
+            processMutex.withLock {
+                if (unocssProcess == null && ctx != null && isUnocssInstalled(ctx)) {
+                    initProcess(ctx)
+                    // 直接对刚创建的进程更新配置，避免重入 ensureProcess
+                    unocssProcess?.let { updateConfig(it); sendSettings(it) }
+                }
 
-            if (unocssProcess?.process?.isAlive == false) {
-                println("Unocss process is dead, restarting...")
-                unocssProcess?.let { Disposer.dispose(it) }
-                unocssProcess = null
-                ctx?.let { initProcess(it) }
-                unocssProcess?.let { updateConfig(it) }
+                if (unocssProcess?.process?.isAlive == false) {
+                    println("Unocss process is dead, restarting...")
+                    unocssProcess?.let { Disposer.dispose(it) }
+                    unocssProcess = null
+                    ctx?.let { initProcess(it) }
+                    unocssProcess?.let { updateConfig(it); sendSettings(it) }
+                }
             }
-        }
+        }.await()
 
         return unocssProcess
     }
@@ -201,15 +205,24 @@ class UnocssService(private val project: Project, val scope: CoroutineScope) : D
     fun updateSettings() {
         val process = unocssProcess ?: return
         scope.launch {
-            val settingsState = UnocssSettingsState.of(project)
-            withTimeout(1000) {
-                process.sendCommand(
+            sendSettings(process)
+        }
+    }
+
+    // A new process starts with default settings, so it must be sent the saved ones too
+    private suspend fun sendSettings(process: UnocssProcess) {
+        val settingsState = UnocssSettingsState.of(project)
+        runCatching {
+            withTimeout(RPC_TIMEOUT) {
+                process.sendCommand<UpdateSettingsCommandData, Unit>(
                     RpcAction.UpdateSettings,
                     UpdateSettingsCommandData(
                         matchType = settingsState.matchType.name.lowercase(),
                     )
                 )
             }
+        }.onFailure {
+            println("(!) Failed to update unocss settings: $it")
         }
     }
 

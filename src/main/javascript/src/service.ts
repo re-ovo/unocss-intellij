@@ -1,9 +1,10 @@
 import {type GenerateResult, presetUno} from "unocss";
 import {createGenerator, UnoGenerator} from "@unocss/core";
-import {type AutoCompleteMatchType, createAutocomplete, searchUsageBoundary} from "@unocss/autocomplete";
+import {type AutoCompleteMatchType, searchUsageBoundary} from "@unocss/autocomplete";
 import readline from "readline";
 import {deprecationCheck, resolveNuxtOptions} from "./utils";
 import {applyTransformers, getMatchedPositionsFromCode} from "./match";
+import {createFreshAutocomplete} from "./autocomplete";
 import {loadConfig} from "@unocss/config";
 import {sourceObjectFields, sourcePluginFactory} from "unconfig/presets";
 import {log} from "./log";
@@ -15,7 +16,7 @@ const defaultConfig = {presets: [presetUno()]};
 
 let matchType: AutoCompleteMatchType = 'prefix';
 let generator : UnoGenerator<object> = await createGenerator({}, defaultConfig);
-let autocomplete = createAutocomplete(generator);
+let autocomplete = createFreshAutocomplete(generator);
 
 async function resolveConfig(rootDir: string) {
   const loadResult = await loadConfig(process.cwd(), rootDir, [
@@ -46,7 +47,7 @@ async function resolveConfig(rootDir: string) {
   deprecationCheck(loadResult.config);
 
   await generator.setConfig(loadResult.config, defaultConfig);
-  autocomplete = createAutocomplete(generator, {matchType});
+  autocomplete = createFreshAutocomplete(generator, {matchType});
 
   // we need to trim all fields except the name to avoid circular references
   // which will cause problems when calling JSON.stringify()
@@ -69,7 +70,7 @@ async function updateSettings(newMatchType: AutoCompleteMatchType) {
   log('updateSettings: matchType', newMatchType)
   matchType = newMatchType;
 
-  autocomplete = createAutocomplete(generator, {matchType});
+  autocomplete = createFreshAutocomplete(generator, {matchType});
 }
 
 async function getComplete(content: string, maxItems: number | undefined) {

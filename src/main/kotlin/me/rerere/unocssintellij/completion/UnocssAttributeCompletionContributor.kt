@@ -58,10 +58,14 @@ object UnocssAttributeCompletionProvider : UnocssCompletionProvider() {
 
     private val skipTagNames = setOf("script", "style", "template")
 
+    // Framework directive names (@click, :class, #default, v-if) are never attributify utilities
+    private val directiveNamePrefixes = listOf("@", ":", "#", "v-")
+
     override fun shouldSkip(position: PsiElement): Boolean {
-        // If user has not installed attributify preset, skip
-        if (!UnocssConfigManager.hasPresetAttributify && position.elementType == XmlTokenType.XML_NAME) {
-            return true
+        if (position.elementType == XmlTokenType.XML_NAME) {
+            // If user has not installed attributify preset, skip
+            if (!UnocssConfigManager.hasPresetAttributify) return true
+            if (directiveNamePrefixes.any { position.text.startsWith(it) }) return true
         }
 
         val xmlTag = position.parentOfType<XmlTag>() ?: return false

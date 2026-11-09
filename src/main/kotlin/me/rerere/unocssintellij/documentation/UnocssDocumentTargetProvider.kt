@@ -20,8 +20,9 @@ import me.rerere.unocssintellij.util.isLeafJsLiteral
 import me.rerere.unocssintellij.util.isScreenDirectiveIdent
 import me.rerere.unocssintellij.util.isUnocssCandidate
 
-private val classNameRE = Regex("""\w+:\([^)]+\)|\S+""")
-private val variantNameRE = Regex("""(\w+):\(([^)]+)\)""")
+// a variant can be more than one word, e.g. `group-hover:(...)`, `hover:md:(...)` or `[&_a]:(...)`
+private val classNameRE = Regex("""\S+?:\([^)\s][^)]*\)|\S+""")
+private val variantNameRE = Regex("""^(\S+?):\(([^)]+)\)$""")
 
 class UnocssDocumentTargetProvider : DocumentationTargetProvider {
 

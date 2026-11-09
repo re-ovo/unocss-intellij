@@ -14,7 +14,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import me.rerere.unocssintellij.UnocssService
 import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.util.getMatchedPositions
-import me.rerere.unocssintellij.util.isUnocssCandidate
+import me.rerere.unocssintellij.util.isUnocssUtilityCandidate
 
 class UnocssClassAttributeFoldBuilder : FoldingBuilderEx() {
     private val group = FoldingGroup.newGroup("unocss-class-attribute")
@@ -42,7 +42,7 @@ class UnocssClassAttributeFoldBuilder : FoldingBuilderEx() {
         matchedPositions.forEach { matchedPosition ->
             val element = file.findElementAt(matchedPosition.start) ?: return@forEach
             val elementType = element.elementType
-            if (!element.isUnocssCandidate()) return@forEach
+            if (!element.isUnocssUtilityCandidate()) return@forEach
 
             if (elementType == XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN) {
                 if (element.node.textLength > minLength) {

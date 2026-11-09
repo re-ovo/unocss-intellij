@@ -95,6 +95,10 @@ object UnocssAttributeCompletionProvider : UnocssCompletionProvider() {
 
         // attributify value
         if (!attrName.isClassAttribute()) {
+            if (!UnocssConfigManager.hasPresetAttributify) {
+                return null
+            }
+
             // use last().trim() to help manually trigger code completion (e.g. via keymap)
             // the attribute name will be used as prefix to query suggestions
             val typingPrefix = prefix.split(" ").last().trim()

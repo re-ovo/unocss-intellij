@@ -15,6 +15,7 @@ import com.intellij.psi.PsiReferenceBase
 import com.intellij.psi.PsiReferenceContributor
 import com.intellij.psi.PsiReferenceProvider
 import com.intellij.psi.PsiReferenceRegistrar
+import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.util.ProcessingContext
 import kotlinx.coroutines.runBlocking
@@ -23,6 +24,7 @@ import me.rerere.unocssintellij.UnocssService
 import me.rerere.unocssintellij.util.childrenOfTypeDeeply
 import me.rerere.unocssintellij.util.findUnoConfigFile
 import me.rerere.unocssintellij.util.getMatchedPositions
+import me.rerere.unocssintellij.util.isUtilityAttribute
 
 class UnocssClassNameReferenceContributor : PsiReferenceContributor() {
     override fun registerReferenceProviders(registrar: PsiReferenceRegistrar) {
@@ -36,6 +38,11 @@ class UnocssClassNameReferenceContributor : PsiReferenceContributor() {
 
 object UnocssClassNameReferenceProvider : PsiReferenceProvider() {
     override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
+        val attribute = element.parent as? XmlAttribute
+        if (attribute != null && !attribute.name.isUtilityAttribute()) {
+            return PsiReference.EMPTY_ARRAY
+        }
+
         val text = element.text
         val service = element.project.service<UnocssService>()
         val matched = runBlocking {

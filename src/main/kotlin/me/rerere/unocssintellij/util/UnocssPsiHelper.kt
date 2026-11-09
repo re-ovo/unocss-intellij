@@ -22,9 +22,11 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
+import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlTokenType
 import com.intellij.xml.util.HtmlUtil
 import me.rerere.unocssintellij.Unocss
+import me.rerere.unocssintellij.UnocssConfigManager
 
 val classTagNameVariants = setOf(
     // class
@@ -83,6 +85,24 @@ internal fun PsiElement.isUnocssCandidate(): Boolean {
     return elementType in annotationAcceptableElementTypes
             || isLeafJsLiteral()
             || isJsProperty()
+}
+
+/**
+ * Return if an attribute with this name can hold utilities. Without the attributify preset,
+ * a value such as `fixed` in `position="fixed"` generates no CSS, so only class-like attributes count.
+ */
+internal fun String.isUtilityAttribute() = isClassAttribute() || UnocssConfigManager.hasPresetAttributify
+
+/**
+ * Return if a [PsiElement] is a candidate that is not inside an attribute unable to hold utilities
+ * @see isUtilityAttribute
+ */
+internal fun PsiElement.isUnocssUtilityCandidate(): Boolean {
+    if (!isUnocssCandidate()) {
+        return false
+    }
+    val attribute = parentOfType<XmlAttribute>() ?: return true
+    return attribute.name.isUtilityAttribute()
 }
 
 private val leafJsLiteralMatcher = PlatformPatterns

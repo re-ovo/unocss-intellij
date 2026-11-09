@@ -12,7 +12,7 @@ import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValuesManager
 import me.rerere.unocssintellij.settings.UnocssSettingsState
 import me.rerere.unocssintellij.util.MatchedPosition
-import me.rerere.unocssintellij.util.isUnocssCandidate
+import me.rerere.unocssintellij.util.isUnocssUtilityCandidate
 
 data class UnocssInitInfo(
     val psiFile: PsiFile,
@@ -57,7 +57,7 @@ class UnocssAttributeExternalAnnotator : ExternalAnnotator<UnocssInitInfo, Unocs
 
     override fun apply(file: PsiFile, annotationResult: UnocssAnnotationResult?, holder: AnnotationHolder) {
         annotationResult?.annotations
-            ?.filter { file.findElementAt(it.start)?.isUnocssCandidate() == true }
+            ?.filter { file.findElementAt(it.start)?.isUnocssUtilityCandidate() == true }
             ?.forEach {
                 holder.newSilentAnnotation(HighlightSeverity.TEXT_ATTRIBUTES)
                     .range(TextRange.create(it.start, it.end))

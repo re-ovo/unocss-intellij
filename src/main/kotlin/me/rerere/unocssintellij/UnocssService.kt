@@ -247,11 +247,12 @@ class UnocssService(private val project: Project, val scope: CoroutineScope) : D
         ctx: VirtualFile,
         prefix: String,
         cursor: Int = prefix.length,
-        maxItems: Int
+        maxItems: Int,
+        order: UnocssSettingsState.CompletionOrder,
     ): List<SuggestionItem> = withProcess(ctx) { process ->
         process.sendCommand<GetCompleteCommandData, SuggestionItemList>(
             RpcAction.GetComplete,
-            GetCompleteCommandData(content = prefix, cursor = cursor, maxItems = maxItems)
+            GetCompleteCommandData(content = prefix, cursor = cursor, maxItems = maxItems, order = order.name.lowercase())
         )
     } ?: emptyList()
 

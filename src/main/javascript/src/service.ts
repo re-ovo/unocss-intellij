@@ -9,6 +9,7 @@ import {loadConfig} from "@unocss/config";
 import {sourceObjectFields, sourcePluginFactory} from "unconfig/presets";
 import {log} from "./log";
 import {suggestIcon} from "./collections";
+import {type CompletionOrder, orderSuggestions} from "./completion";
 
 console.log('[UnoProcess]', `Hello from service.js! ${process.cwd()}`);
 
@@ -73,10 +74,10 @@ async function updateSettings(newMatchType: AutoCompleteMatchType) {
   autocomplete = createFreshAutocomplete(generator, {matchType});
 }
 
-async function getComplete(content: string, maxItems: number | undefined) {
+async function getComplete(content: string, maxItems: number | undefined, order: CompletionOrder = 'smart') {
   let suggestions = await autocomplete.suggest(content, true);
   suggestions.push(...suggestIcon(content)) // suggest icons
-  return Promise.all(suggestions.slice(0, maxItems).map(async (suggestion) => {
+  return Promise.all(orderSuggestions(generator, content, suggestions, matchType, order).slice(0, maxItems).map(async (suggestion) => {
     return {
       className: suggestion,
       css: (await generator.generate(suggestion, {
@@ -182,7 +183,7 @@ async function handle_command(command: string, data: any) {
     case "updateSettings":
       return await updateSettings(data.matchType);
     case "getComplete":
-      return await getComplete(data.content, data.maxItems);
+      return await getComplete(data.content, data.maxItems, data.order);
     case "resolveCSSByOffset":
       return await resolveCSSByOffset(data.content, data.cursor);
     case "resolveCSS":

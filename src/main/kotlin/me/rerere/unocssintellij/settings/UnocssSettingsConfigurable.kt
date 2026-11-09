@@ -102,6 +102,19 @@ class UnocssSettingsConfigurable(private val project: Project) : BoundSearchable
                 }
             }.bind(settings::matchType)
 
+            buttonsGroup {
+                row(UnocssBundle.message("setting.autocomplete.order.title")) {
+                    radioButton(
+                        UnocssBundle.message("setting.autocomplete.order.option.smart"),
+                        UnocssSettingsState.CompletionOrder.SMART
+                    )
+                    radioButton(
+                        UnocssBundle.message("setting.autocomplete.order.option.alphabetical"),
+                        UnocssSettingsState.CompletionOrder.ALPHABETICAL
+                    )
+                }.rowComment(UnocssBundle.message("setting.autocomplete.order.comment"))
+            }.bind(settings::completionOrder)
+
             row(UnocssBundle.message("setting.autocomplete.max_items.title")) {
                 intTextField(1..1000, 1)
                     .bindIntText(settings::maxItems)
